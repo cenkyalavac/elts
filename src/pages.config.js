@@ -1,10 +1,10 @@
-import Freelancers from './pages/Freelancers';
 import FreelancerDetail from './pages/FreelancerDetail';
+import Freelancers from './pages/Freelancers';
 
 
 export const PAGES = {
-    "Freelancers": Freelancers,
     "FreelancerDetail": FreelancerDetail,
+    "Freelancers": Freelancers,
 }
 
 export const pagesConfig = {

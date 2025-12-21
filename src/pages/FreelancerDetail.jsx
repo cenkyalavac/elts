@@ -4,21 +4,19 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
     ArrowLeft, Mail, Phone, MapPin, Globe, Award, 
-    Calendar, FileText, CheckCircle, XCircle, Save
+    Calendar, FileText, Edit, Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
+import FreelancerEditForm from "../components/freelancers/FreelancerEditForm";
 
 export default function FreelancerDetailPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const freelancerId = urlParams.get('id');
 
-    const [notes, setNotes] = useState('');
-    const [status, setStatus] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
 
     const queryClient = useQueryClient();
 
@@ -26,10 +24,7 @@ export default function FreelancerDetailPage() {
         queryKey: ['freelancer', freelancerId],
         queryFn: async () => {
             const freelancers = await base44.entities.Freelancer.filter({ id: freelancerId });
-            const f = freelancers[0];
-            setNotes(f.notes || '');
-            setStatus(f.status || 'New');
-            return f;
+            return freelancers[0];
         },
         enabled: !!freelancerId,
     });
@@ -39,11 +34,12 @@ export default function FreelancerDetailPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['freelancer', freelancerId] });
             queryClient.invalidateQueries({ queryKey: ['freelancers'] });
+            setIsEditing(false);
         },
     });
 
-    const handleSave = () => {
-        updateMutation.mutate({ notes, status });
+    const handleSave = (data) => {
+        updateMutation.mutate(data);
     };
 
     if (isLoading) {
@@ -100,18 +96,43 @@ export default function FreelancerDetailPage() {
                                 </div>
                             )}
                         </div>
-                        {freelancer.cv_file_url && (
-                            <a href={freelancer.cv_file_url} target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline">
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    View CV
-                                </Button>
-                            </a>
-                        )}
+                        <div className="flex gap-2">
+                            <Button
+                                variant={isEditing ? "default" : "outline"}
+                                onClick={() => setIsEditing(!isEditing)}
+                            >
+                                {isEditing ? (
+                                    <>
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        View Mode
+                                    </>
+                                ) : (
+                                    <>
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        Edit Profile
+                                    </>
+                                )}
+                            </Button>
+                            {freelancer.cv_file_url && (
+                                <a href={freelancer.cv_file_url} target="_blank" rel="noopener noreferrer">
+                                    <Button variant="outline">
+                                        <FileText className="w-4 h-4 mr-2" />
+                                        View CV
+                                    </Button>
+                                </a>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {isEditing ? (
+                    <FreelancerEditForm
+                        freelancer={freelancer}
+                        onSave={handleSave}
+                        onCancel={() => setIsEditing(false)}
+                    />
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Info */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Contact Info */}
@@ -249,44 +270,15 @@ export default function FreelancerDetailPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Status & Actions */}
+                        {/* Status Badge */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Application Status</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="New">New</SelectItem>
-                                        <SelectItem value="Reviewing">Reviewing</SelectItem>
-                                        <SelectItem value="Interview Scheduled">Interview Scheduled</SelectItem>
-                                        <SelectItem value="Accepted">Accepted</SelectItem>
-                                        <SelectItem value="Rejected">Rejected</SelectItem>
-                                        <SelectItem value="On Hold">On Hold</SelectItem>
-                                    </SelectContent>
-                                </Select>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Internal Notes</label>
-                                    <Textarea
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        placeholder="Add notes about this candidate..."
-                                        className="h-32"
-                                    />
-                                </div>
-
-                                <Button 
-                                    onClick={handleSave}
-                                    className="w-full bg-blue-600 hover:bg-blue-700"
-                                    disabled={updateMutation.isPending}
-                                >
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Save Changes
-                                </Button>
+                            <CardContent>
+                                <Badge className={`${statusColors[freelancer.status]} text-lg px-4 py-2`}>
+                                    {freelancer.status}
+                                </Badge>
                             </CardContent>
                         </Card>
 
@@ -319,8 +311,9 @@ export default function FreelancerDetailPage() {
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+                    </div>
+                    )}
+                    </div>
+                    </div>
+                    );
+                    }
