@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
 import FreelancerCard from "../components/freelancers/FreelancerCard";
 import UploadCV from "../components/freelancers/UploadCV";
-import FilterPanel from "../components/freelancers/FilterPanel";
+import AdvancedFilters from "../components/freelancers/AdvancedFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FreelancersPage() {
@@ -13,7 +13,11 @@ export default function FreelancersPage() {
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
-        serviceType: 'all',
+        selectedLanguages: [],
+        selectedSpecializations: [],
+        selectedServices: [],
+        minExperience: '',
+        maxExperience: '',
         availability: 'all'
     });
 
@@ -37,7 +41,8 @@ export default function FreelancersPage() {
                 freelancer.full_name?.toLowerCase().includes(searchLower) ||
                 freelancer.email?.toLowerCase().includes(searchLower) ||
                 freelancer.skills?.some(skill => skill.toLowerCase().includes(searchLower)) ||
-                freelancer.specializations?.some(spec => spec.toLowerCase().includes(searchLower));
+                freelancer.specializations?.some(spec => spec.toLowerCase().includes(searchLower)) ||
+                freelancer.languages?.some(lang => lang.language?.toLowerCase().includes(searchLower));
             
             if (!matchesSearch) return false;
         }
@@ -47,10 +52,43 @@ export default function FreelancersPage() {
             return false;
         }
 
-        // Service type filter
-        if (filters.serviceType !== 'all' && 
-            !freelancer.service_types?.includes(filters.serviceType)) {
-            return false;
+        // Languages filter (multi-select)
+        if (filters.selectedLanguages?.length > 0) {
+            const freelancerLanguages = freelancer.languages?.map(l => l.language) || [];
+            const hasMatchingLanguage = filters.selectedLanguages.some(lang => 
+                freelancerLanguages.includes(lang)
+            );
+            if (!hasMatchingLanguage) return false;
+        }
+
+        // Specializations filter (multi-select)
+        if (filters.selectedSpecializations?.length > 0) {
+            const hasMatchingSpec = filters.selectedSpecializations.some(spec =>
+                freelancer.specializations?.includes(spec)
+            );
+            if (!hasMatchingSpec) return false;
+        }
+
+        // Service types filter (multi-select)
+        if (filters.selectedServices?.length > 0) {
+            const hasMatchingService = filters.selectedServices.some(service =>
+                freelancer.service_types?.includes(service)
+            );
+            if (!hasMatchingService) return false;
+        }
+
+        // Experience range filter
+        if (filters.minExperience) {
+            const minExp = parseFloat(filters.minExperience);
+            if (!freelancer.experience_years || freelancer.experience_years < minExp) {
+                return false;
+            }
+        }
+        if (filters.maxExperience) {
+            const maxExp = parseFloat(filters.maxExperience);
+            if (!freelancer.experience_years || freelancer.experience_years > maxExp) {
+                return false;
+            }
         }
 
         // Availability filter
@@ -122,7 +160,11 @@ export default function FreelancersPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Filters */}
                     <div className="lg:col-span-1">
-                        <FilterPanel filters={filters} onFilterChange={setFilters} />
+                        <AdvancedFilters 
+                            filters={filters} 
+                            onFilterChange={setFilters}
+                            freelancers={freelancers}
+                        />
                     </div>
 
                     {/* Freelancer List */}
