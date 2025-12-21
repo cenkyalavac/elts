@@ -27,34 +27,51 @@ export default function UploadCV({ onSuccess }) {
         setProgress({ current: 0, total: files.length });
 
         try {
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                setProgress({ current: i + 1, total: files.length });
-
-                // Upload file
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
-                setParsing(true);
-
-                // Parse CV
-                const response = await base44.functions.invoke('parseCV', { file_url });
-
-                if (response.data.success) {
-                    // Create freelancer record
-                    const freelancerData = {
-                        ...response.data.data,
-                        cv_file_url: file_url,
-                        status: 'New'
-                    };
-
-                    await base44.entities.Freelancer.create(freelancerData);
-                }
-
-                setParsing(false);
+            // Process files in parallel batches of 5
+            const batchSize = 5;
+            const results = [];
+            
+            for (let i = 0; i < files.length; i += batchSize) {
+                const batch = files.slice(i, i + batchSize);
+                
+                const batchPromises = batch.map(async (file) => {
+                    try {
+                        // Upload file
+                        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                        
+                        // Parse CV
+                        const response = await base44.functions.invoke('parseCV', { file_url });
+                        
+                        if (response.data.success) {
+                            // Create freelancer record
+                            const freelancerData = {
+                                ...response.data.data,
+                                cv_file_url: file_url,
+                                status: 'New'
+                            };
+                            
+                            await base44.entities.Freelancer.create(freelancerData);
+                            return { success: true, file: file.name };
+                        }
+                        return { success: false, file: file.name, error: 'Parsing failed' };
+                    } catch (err) {
+                        return { success: false, file: file.name, error: err.message };
+                    }
+                });
+                
+                const batchResults = await Promise.all(batchPromises);
+                results.push(...batchResults);
+                setProgress({ current: results.length, total: files.length });
+            }
+            
+            const failed = results.filter(r => !r.success);
+            if (failed.length > 0) {
+                setError(`${failed.length} file(s) failed to process`);
             }
             
             setFiles([]);
             setUploading(false);
+            setParsing(false);
             onSuccess();
 
         } catch (err) {
@@ -113,13 +130,11 @@ export default function UploadCV({ onSuccess }) {
                     </div>
                 )}
 
-                {(uploading || parsing) && (
+{uploading && (
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-blue-600 bg-blue-50 p-3 rounded-lg">
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            <span>
-                                {parsing ? 'Parsing CV with AI...' : `Processing ${progress.current} of ${progress.total}...`}
-                            </span>
+                            <span>Processing {progress.current} of {progress.total} CVs...</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
@@ -130,12 +145,12 @@ export default function UploadCV({ onSuccess }) {
                     </div>
                 )}
 
-                <Button
+<Button
                     onClick={handleUpload}
-                    disabled={files.length === 0 || uploading || parsing}
+                    disabled={files.length === 0 || uploading}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                 >
-                    {uploading || parsing ? (
+                    {uploading ? (
                         <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             Processing...
