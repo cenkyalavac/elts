@@ -310,10 +310,10 @@ export default function FreelancerDetailPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                        </div>
                     </div>
-                    </div>
-                    )}
-                    </div>
-                    </div>
-                    );
-                    }
+                )}
+            </div>
+        </div>
+    );
+}
