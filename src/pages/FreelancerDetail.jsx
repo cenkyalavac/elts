@@ -11,7 +11,7 @@ import {
     Calendar, FileText, CheckCircle, XCircle, Save
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "./utils";
+import { createPageUrl } from "../utils";
 
 export default function FreelancerDetailPage() {
     const urlParams = new URLSearchParams(window.location.search);
