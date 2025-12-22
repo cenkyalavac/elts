@@ -120,7 +120,7 @@ export default function FreelancersPage() {
                         <Link to={createPageUrl('Pipeline')}>
                             <Button variant="outline">
                                 <LayoutGrid className="w-5 h-5 mr-2" />
-                                Pipeline Görünümü
+                                Pipeline View
                             </Button>
                         </Link>
                         <Button
@@ -128,14 +128,14 @@ export default function FreelancersPage() {
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             <Plus className="w-5 h-5 mr-2" />
-                            Yeni Başvuru
+                            New Freelancer
                         </Button>
                         <Button
                             onClick={() => setShowUpload(!showUpload)}
                             variant="outline"
                         >
                             <Plus className="w-5 h-5 mr-2" />
-                            Toplu CV Yükleme
+                            Bulk Upload CVs
                         </Button>
                     </div>
                 </div>

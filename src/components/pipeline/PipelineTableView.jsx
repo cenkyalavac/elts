@@ -56,31 +56,31 @@ export default function PipelineTableView({
                         <thead className="bg-gray-50 border-b">
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    İsim
+                                    Name
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Aşama
+                                    Stage
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Diller
+                                    Languages
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Uzmanlık
+                                    Specialization
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Birim Fiyat
+                                    Rate
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Sorumlu
+                                    Assigned To
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Aşamada Geçen
+                                    Days in Stage
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     CV
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    İşlemler
+                                    Actions
                                 </th>
                             </tr>
                         </thead>
@@ -196,7 +196,7 @@ export default function PipelineTableView({
                                                     daysInStage > 14 ? 'text-red-600 font-medium' : 'text-gray-600'
                                                 }`}>
                                                     <Calendar className="w-3 h-3" />
-                                                    {daysInStage} gün
+                                                    {daysInStage} days
                                                 </div>
                                             ) : (
                                                 <span className="text-gray-400 text-sm">-</span>
@@ -232,7 +232,7 @@ export default function PipelineTableView({
                     {sortedFreelancers.length === 0 && (
                         <div className="text-center py-12 text-gray-500">
                             <Globe className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                            <p>Başvuru bulunamadı</p>
+                            <p>No applications found</p>
                         </div>
                     )}
                 </div>

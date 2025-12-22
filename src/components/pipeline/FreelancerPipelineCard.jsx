@@ -39,20 +39,20 @@ export default function FreelancerPipelineCard({ freelancer, daysInStage, isDrag
                             daysInStage > 14 ? 'text-red-600' : 'text-gray-500'
                         }`}>
                             <Calendar className="w-3 h-3" />
-                            {daysInStage} gün
+                            {daysInStage} days
                         </div>
                     )}
                     {freelancer.follow_up_date && new Date(freelancer.follow_up_date) <= new Date() && (
                         <Badge variant="destructive" className="text-xs">
                             <AlertCircle className="w-3 h-3 mr-1" />
-                            Takip
+                            Follow-up
                         </Badge>
                     )}
                 </div>
 
                 {freelancer.assigned_to && (
                     <div className="text-xs text-gray-500">
-                        Sorumlu: {freelancer.assigned_to.split('@')[0]}
+                        Assigned: {freelancer.assigned_to.split('@')[0]}
                     </div>
                 )}
             </CardContent>

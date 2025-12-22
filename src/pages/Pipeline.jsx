@@ -17,14 +17,14 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 
 const stages = [
-    { id: 'New Application', label: 'Yeni Başvuru', color: 'bg-blue-50 border-blue-200' },
-    { id: 'Form Sent', label: 'Form Gönderildi', color: 'bg-purple-50 border-purple-200' },
-    { id: 'Price Negotiation', label: 'Fiyat Görüşmesi', color: 'bg-yellow-50 border-yellow-200' },
-    { id: 'Test Sent', label: 'Test Gönderildi', color: 'bg-indigo-50 border-indigo-200' },
-    { id: 'Approved', label: 'Onaylandı', color: 'bg-green-50 border-green-200' },
-    { id: 'On Hold', label: 'Beklemede', color: 'bg-gray-50 border-gray-200' },
-    { id: 'Rejected', label: 'Reddedildi', color: 'bg-red-50 border-red-200' },
-    { id: 'Red Flag', label: 'Kırmızı Bayrak', color: 'bg-orange-50 border-orange-200' }
+    { id: 'New Application', label: 'New Application', color: 'bg-blue-50 border-blue-200' },
+    { id: 'Form Sent', label: 'Form Sent', color: 'bg-purple-50 border-purple-200' },
+    { id: 'Price Negotiation', label: 'Price Negotiation', color: 'bg-yellow-50 border-yellow-200' },
+    { id: 'Test Sent', label: 'Test Sent', color: 'bg-indigo-50 border-indigo-200' },
+    { id: 'Approved', label: 'Approved', color: 'bg-green-50 border-green-200' },
+    { id: 'On Hold', label: 'On Hold', color: 'bg-gray-50 border-gray-200' },
+    { id: 'Rejected', label: 'Rejected', color: 'bg-red-50 border-red-200' },
+    { id: 'Red Flag', label: 'Red Flag', color: 'bg-orange-50 border-orange-200' }
 ];
 
 export default function PipelinePage() {
@@ -130,22 +130,22 @@ export default function PipelinePage() {
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                                 <Users className="w-8 h-8 text-blue-600" />
-                                Başvuru Pipeline
+                                Application Pipeline
                             </h1>
                             <p className="text-gray-600 mt-1">
-                                Freelancer başvurularını aşama aşama yönetin
+                                Manage freelancer applications stage by stage
                             </p>
                         </div>
                         <div className="flex gap-2">
                             <Link to={createPageUrl('Freelancers')}>
                                 <Button variant="outline">
-                                    Liste Görünümü
+                                    List View
                                     <ChevronRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </Link>
                             <Link to={createPageUrl('FreelancerOnboarding')}>
                                 <Button className="bg-blue-600 hover:bg-blue-700">
-                                    Yeni Başvuru
+                                    New Application
                                 </Button>
                             </Link>
                         </div>
@@ -156,7 +156,7 @@ export default function PipelinePage() {
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                             <Input
-                                placeholder="İsim, email veya dilde ara..."
+                                placeholder="Search by name, email or language..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10"
@@ -169,7 +169,7 @@ export default function PipelinePage() {
                                 onClick={() => setViewMode('board')}
                             >
                                 <LayoutGrid className="w-4 h-4 mr-2" />
-                                Pano
+                                Board
                             </Button>
                             <Button 
                                 variant={viewMode === 'table' ? 'default' : 'ghost'}
@@ -177,7 +177,7 @@ export default function PipelinePage() {
                                 onClick={() => setViewMode('table')}
                             >
                                 <Table className="w-4 h-4 mr-2" />
-                                Tablo
+                                Table
                             </Button>
                         </div>
                     </div>
@@ -190,7 +190,7 @@ export default function PipelinePage() {
                             <div className="text-2xl font-bold text-blue-600">
                                 {getStageFreelancers('New Application').length}
                             </div>
-                            <div className="text-sm text-gray-600">Yeni Başvuru</div>
+                            <div className="text-sm text-gray-600">New Application</div>
                         </CardContent>
                     </Card>
                     <Card>
@@ -198,7 +198,7 @@ export default function PipelinePage() {
                             <div className="text-2xl font-bold text-yellow-600">
                                 {getStageFreelancers('Price Negotiation').length}
                             </div>
-                            <div className="text-sm text-gray-600">Fiyat Görüşmesi</div>
+                            <div className="text-sm text-gray-600">Price Negotiation</div>
                         </CardContent>
                     </Card>
                     <Card>
@@ -206,7 +206,7 @@ export default function PipelinePage() {
                             <div className="text-2xl font-bold text-green-600">
                                 {getStageFreelancers('Approved').length}
                             </div>
-                            <div className="text-sm text-gray-600">Onaylı</div>
+                            <div className="text-sm text-gray-600">Approved</div>
                         </CardContent>
                     </Card>
                     <Card>
@@ -214,7 +214,7 @@ export default function PipelinePage() {
                             <div className="text-2xl font-bold text-orange-600">
                                 {getStageFreelancers('Red Flag').length}
                             </div>
-                            <div className="text-sm text-gray-600">Kırmızı Bayrak</div>
+                            <div className="text-sm text-gray-600">Red Flag</div>
                         </CardContent>
                     </Card>
                 </div>

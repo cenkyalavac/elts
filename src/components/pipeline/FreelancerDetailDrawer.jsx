@@ -136,7 +136,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             size="sm"
                             onClick={() => setActiveTab('details')}
                         >
-                            Detaylar
+                            Details
                         </Button>
                         <Button
                             variant={activeTab === 'activity' ? 'default' : 'ghost'}
@@ -144,7 +144,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             onClick={() => setActiveTab('activity')}
                         >
                             <Activity className="w-4 h-4 mr-2" />
-                            Aktivite ({activities.length})
+                            Activity ({activities.length})
                         </Button>
                     </div>
                 </div>
@@ -155,7 +155,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                         <>
                             {/* Contact Info */}
                             <div className="space-y-3">
-                                <h3 className="font-semibold">İletişim Bilgileri</h3>
+                                <h3 className="font-semibold">Contact Information</h3>
                                 <div className="space-y-2">
                                     {freelancer.email && (
                                         <div className="flex items-center gap-2 text-sm">
@@ -185,7 +185,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 <div className="space-y-3">
                                     <h3 className="font-semibold flex items-center gap-2">
                                         <Globe className="w-4 h-4" />
-                                        Diller
+                                        Languages
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {freelancer.languages.map((lang, idx) => (
@@ -200,7 +200,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             {/* Services */}
                             {freelancer.service_types && freelancer.service_types.length > 0 && (
                                 <div className="space-y-3">
-                                    <h3 className="font-semibold">Hizmetler</h3>
+                                    <h3 className="font-semibold">Services</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {freelancer.service_types.map((service, idx) => (
                                             <Badge key={idx} className="bg-indigo-100 text-indigo-800">
@@ -215,14 +215,14 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             <div className="grid grid-cols-2 gap-4">
                                 {freelancer.rate && (
                                     <div>
-                                        <h3 className="font-semibold text-sm mb-1">Birim Fiyat</h3>
+                                        <h3 className="font-semibold text-sm mb-1">Rate</h3>
                                         <p className="text-lg font-medium text-blue-600">{freelancer.rate}</p>
                                     </div>
                                 )}
                                 {freelancer.experience_years && (
                                     <div>
-                                        <h3 className="font-semibold text-sm mb-1">Deneyim</h3>
-                                        <p className="text-lg font-medium">{freelancer.experience_years} yıl</p>
+                                        <h3 className="font-semibold text-sm mb-1">Experience</h3>
+                                        <p className="text-lg font-medium">{freelancer.experience_years} years</p>
                                     </div>
                                 )}
                             </div>
@@ -233,7 +233,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                     <a href={freelancer.cv_file_url} target="_blank" rel="noopener noreferrer">
                                         <Button variant="outline" className="w-full">
                                             <FileText className="w-4 h-4 mr-2" />
-                                            CV'yi Görüntüle
+                                            View CV
                                         </Button>
                                     </a>
                                 </div>
@@ -242,10 +242,10 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             {/* Management Section */}
                             <div className="border-t pt-6 space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-semibold">Yönetim</h3>
+                                    <h3 className="font-semibold">Management</h3>
                                     {!editMode && (
                                         <Button size="sm" onClick={() => setEditMode(true)}>
-                                            Düzenle
+                                            Edit
                                         </Button>
                                     )}
                                 </div>
@@ -253,7 +253,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 {editMode ? (
                                     <div className="space-y-4">
                                         <div>
-                                            <Label>Aşama</Label>
+                                            <Label>Stage</Label>
                                             <Select
                                                 value={formData.status}
                                                 onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -272,20 +272,20 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                         </div>
 
                                         <div>
-                                            <Label>Sorumlu Kişi</Label>
+                                            <Label>Assigned To</Label>
                                             <Input
                                                 value={formData.assigned_to}
                                                 onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-                                                placeholder="Email adresi"
+                                                placeholder="Email address"
                                             />
                                         </div>
 
                                         <div>
-                                            <Label>İç Notlar</Label>
+                                            <Label>Internal Notes</Label>
                                             <Textarea
                                                 value={formData.notes}
                                                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                                placeholder="Bu başvuru hakkında notlarınız..."
+                                                placeholder="Notes about this application..."
                                                 className="h-24"
                                             />
                                         </div>
@@ -293,7 +293,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                         <div>
                                             <Label className="flex items-center gap-2">
                                                 <Bell className="w-4 h-4" />
-                                                Takip Hatırlatıcısı
+                                                Follow-up Reminder
                                             </Label>
                                             <Input
                                                 type="date"
@@ -304,7 +304,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                             <Textarea
                                                 value={formData.follow_up_note}
                                                 onChange={(e) => setFormData({ ...formData, follow_up_note: e.target.value })}
-                                                placeholder="Takip notu..."
+                                                placeholder="Follow-up note..."
                                                 className="h-20 mt-2"
                                             />
                                         </div>
@@ -312,10 +312,10 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                         <div className="flex gap-2">
                                             <Button onClick={handleSave} className="flex-1">
                                                 <Save className="w-4 h-4 mr-2" />
-                                                Kaydet
+                                                Save
                                             </Button>
                                             <Button variant="outline" onClick={() => setEditMode(false)}>
-                                                İptal
+                                                Cancel
                                             </Button>
                                         </div>
                                     </div>
@@ -323,7 +323,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                     <div className="space-y-3">
                                         {freelancer.assigned_to && (
                                             <div>
-                                                <span className="text-sm text-gray-600">Sorumlu: </span>
+                                                <span className="text-sm text-gray-600">Assigned: </span>
                                                 <span className="font-medium">{freelancer.assigned_to}</span>
                                             </div>
                                         )}
@@ -337,7 +337,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Bell className="w-4 h-4 text-yellow-600" />
                                                     <span className="font-medium text-sm">
-                                                        Takip: {new Date(freelancer.follow_up_date).toLocaleDateString('tr-TR')}
+                                                        Follow-up: {new Date(freelancer.follow_up_date).toLocaleDateString()}
                                                     </span>
                                                 </div>
                                                 {freelancer.follow_up_note && (
@@ -352,7 +352,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             <div className="border-t pt-4">
                                 <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>
                                     <Button variant="outline" className="w-full">
-                                        Tam Profili Görüntüle
+                                        View Full Profile
                                     </Button>
                                 </Link>
                             </div>
@@ -363,7 +363,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             {activities.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
                                     <Activity className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                                    <p>Henüz aktivite yok</p>
+                                    <p>No activity yet</p>
                                 </div>
                             ) : (
                                 activities.map(activity => (
@@ -379,7 +379,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                                 )}
                                             </div>
                                             <div className="text-xs text-gray-500">
-                                                {new Date(activity.created_date).toLocaleDateString('tr-TR')}
+                                                {new Date(activity.created_date).toLocaleDateString()}
                                             </div>
                                         </div>
                                     </div>
