@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Briefcase, Users, Target } from "lucide-react";
 import JobForm from "../components/jobs/JobForm";
+import JobFilters from "../components/jobs/JobFilters";
 import FreelancerMatch, { calculateMatchScore } from "../components/jobs/FreelancerMatch";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -13,6 +14,15 @@ import { createPageUrl } from "../utils";
 export default function JobsPage() {
     const [showForm, setShowForm] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
+    const [filters, setFilters] = useState({
+        search: '',
+        status: 'all',
+        selectedLanguages: [],
+        selectedSpecializations: [],
+        selectedServices: [],
+        minExperience: '',
+        hasDeadline: false
+    });
 
     const queryClient = useQueryClient();
 
@@ -48,6 +58,66 @@ export default function JobsPage() {
             .sort((a, b) => b.matchData.score - a.matchData.score);
     };
 
+    const filteredJobs = jobs.filter(job => {
+        // Search filter
+        if (filters.search) {
+            const searchLower = filters.search.toLowerCase();
+            const matchesSearch = 
+                job.title?.toLowerCase().includes(searchLower) ||
+                job.description?.toLowerCase().includes(searchLower) ||
+                job.required_skills?.some(skill => skill.toLowerCase().includes(searchLower)) ||
+                job.required_specializations?.some(spec => spec.toLowerCase().includes(searchLower)) ||
+                job.required_languages?.some(lang => lang.language?.toLowerCase().includes(searchLower));
+            
+            if (!matchesSearch) return false;
+        }
+
+        // Status filter
+        if (filters.status !== 'all' && job.status !== filters.status) {
+            return false;
+        }
+
+        // Languages filter
+        if (filters.selectedLanguages?.length > 0) {
+            const jobLanguages = job.required_languages?.map(l => l.language) || [];
+            const hasMatchingLanguage = filters.selectedLanguages.some(lang => 
+                jobLanguages.includes(lang)
+            );
+            if (!hasMatchingLanguage) return false;
+        }
+
+        // Specializations filter
+        if (filters.selectedSpecializations?.length > 0) {
+            const hasMatchingSpec = filters.selectedSpecializations.some(spec =>
+                job.required_specializations?.includes(spec)
+            );
+            if (!hasMatchingSpec) return false;
+        }
+
+        // Service types filter
+        if (filters.selectedServices?.length > 0) {
+            const hasMatchingService = filters.selectedServices.some(service =>
+                job.required_service_types?.includes(service)
+            );
+            if (!hasMatchingService) return false;
+        }
+
+        // Min experience filter
+        if (filters.minExperience) {
+            const minExp = parseFloat(filters.minExperience);
+            if (!job.min_experience_years || job.min_experience_years < minExp) {
+                return false;
+            }
+        }
+
+        // Has deadline filter
+        if (filters.hasDeadline && !job.deadline) {
+            return false;
+        }
+
+        return true;
+    });
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-7xl mx-auto">
@@ -80,25 +150,38 @@ export default function JobsPage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Filters */}
+                    <div className="lg:col-span-1">
+                        <JobFilters 
+                            filters={filters} 
+                            onFilterChange={setFilters}
+                            jobs={jobs}
+                        />
+                    </div>
+
                     {/* Jobs List */}
                     <div className="lg:col-span-1">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center justify-between">
-                                    <span>Jobs ({jobs.length})</span>
+                                    <span>Jobs ({filteredJobs.length})</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                {jobs.length === 0 ? (
+                                {filteredJobs.length === 0 ? (
                                     <div className="text-center py-8 text-gray-500">
                                         <Briefcase className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                                        <p>No jobs yet</p>
-                                        <p className="text-sm">Create your first job</p>
+                                        <p>No jobs found</p>
+                                        <p className="text-sm">
+                                            {filters.search || filters.status !== 'all' 
+                                                ? 'Try adjusting your filters' 
+                                                : 'Create your first job'}
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
-                                        {jobs.map(job => {
+                                        {filteredJobs.map(job => {
                                             const matches = getMatchedFreelancers(job);
                                             const topMatches = matches.filter(m => m.matchData.score >= 60).length;
                                             
