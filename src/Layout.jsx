@@ -29,6 +29,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Pipeline', label: 'Pipeline', icon: LayoutGrid },
         { name: 'Freelancers', label: 'Freelancers', icon: Users },
         { name: 'Jobs', label: 'Jobs', icon: Briefcase },
+        { name: 'Analytics', label: 'Analytics', icon: LayoutGrid },
     ];
 
     const adminItems = isAdmin ? [

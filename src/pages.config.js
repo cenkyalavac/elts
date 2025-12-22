@@ -1,25 +1,27 @@
+import Apply from './pages/Apply';
 import FreelancerDetail from './pages/FreelancerDetail';
 import FreelancerOnboarding from './pages/FreelancerOnboarding';
 import Freelancers from './pages/Freelancers';
 import Jobs from './pages/Jobs';
-import Pipeline from './pages/Pipeline';
-import Apply from './pages/Apply';
-import OpenPositions from './pages/OpenPositions';
 import MyApplication from './pages/MyApplication';
+import OpenPositions from './pages/OpenPositions';
+import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
+import Analytics from './pages/Analytics';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Apply": Apply,
     "FreelancerDetail": FreelancerDetail,
     "FreelancerOnboarding": FreelancerOnboarding,
     "Freelancers": Freelancers,
     "Jobs": Jobs,
-    "Pipeline": Pipeline,
-    "Apply": Apply,
-    "OpenPositions": OpenPositions,
     "MyApplication": MyApplication,
+    "OpenPositions": OpenPositions,
+    "Pipeline": Pipeline,
     "UserManagement": UserManagement,
+    "Analytics": Analytics,
 }
 
 export const pagesConfig = {
