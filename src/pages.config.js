@@ -9,6 +9,7 @@ import MyApplication from './pages/MyApplication';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
+import ImportFreelancers from './pages/ImportFreelancers';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
     "UserManagement": UserManagement,
+    "ImportFreelancers": ImportFreelancers,
 }
 
 export const pagesConfig = {
