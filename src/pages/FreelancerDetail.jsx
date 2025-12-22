@@ -20,14 +20,13 @@ export default function FreelancerDetailPage() {
 
     const queryClient = useQueryClient();
 
-    const { data: freelancer, isLoading } = useQuery({
+    const { data: freelancers, isLoading } = useQuery({
         queryKey: ['freelancer', freelancerId],
-        queryFn: async () => {
-            const freelancers = await base44.entities.Freelancer.filter({ id: freelancerId });
-            return freelancers[0];
-        },
+        queryFn: () => base44.entities.Freelancer.filter({ id: freelancerId }),
         enabled: !!freelancerId,
     });
+
+    const freelancer = freelancers?.[0];
 
     const updateMutation = useMutation({
         mutationFn: (data) => base44.entities.Freelancer.update(freelancerId, data),
