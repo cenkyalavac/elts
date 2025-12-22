@@ -6,10 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Globe, Briefcase, Clock, Award, Users, TrendingUp } from "lucide-react";
 import ApplicationForm from "../components/apply/ApplicationForm";
+import { createPageUrl } from "../utils";
 
 export default function ApplyPage() {
     const [showForm, setShowForm] = useState(false);
     const [selectedPosition, setSelectedPosition] = useState(null);
+    
+    const { data: existingUser } = useQuery({
+        queryKey: ['checkUser'],
+        queryFn: async () => {
+            try {
+                return await base44.auth.me();
+            } catch {
+                return null;
+            }
+        },
+    });
 
     const { data: openPositions = [] } = useQuery({
         queryKey: ['openPositions'],
@@ -32,6 +44,26 @@ export default function ApplyPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            {/* Header */}
+            <nav className="bg-white border-b shadow-sm">
+                <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <a href={createPageUrl('Home')} className="text-2xl font-bold text-blue-600">
+                        LSP Portal
+                    </a>
+                    <div className="flex gap-3">
+                        {existingUser ? (
+                            <Button variant="outline" onClick={() => window.location.href = createPageUrl('MyApplication')}>
+                                My Application
+                            </Button>
+                        ) : (
+                            <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
+                                Login
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </nav>
+
             {!showForm ? (
                 <>
                     {/* Hero Section */}
