@@ -35,6 +35,14 @@ export default function PipelinePage() {
 
     const queryClient = useQueryClient();
 
+    const { data: currentUser } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: () => base44.auth.me(),
+    });
+
+    const isAdmin = currentUser?.role === 'admin';
+    const canManage = currentUser?.role === 'admin' || currentUser?.role === 'project_manager';
+
     const { data: freelancers = [], isLoading } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-updated_date'),
@@ -116,6 +124,17 @@ export default function PipelinePage() {
                         <div className="h-12 bg-gray-200 rounded w-1/3"></div>
                         <div className="h-96 bg-gray-200 rounded"></div>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!canManage) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+                <div className="max-w-4xl mx-auto text-center mt-20">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+                    <p className="text-gray-600">You don't have permission to view this page.</p>
                 </div>
             </div>
         );

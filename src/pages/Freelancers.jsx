@@ -25,6 +25,13 @@ export default function FreelancersPage() {
 
     const queryClient = useQueryClient();
 
+    const { data: user } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: () => base44.auth.me(),
+    });
+
+    const canManage = user?.role === 'admin' || user?.role === 'project_manager';
+
     const { data: freelancers = [], isLoading } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-created_date'),
@@ -101,6 +108,17 @@ export default function FreelancersPage() {
 
         return true;
     });
+
+    if (!canManage) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+                <div className="max-w-4xl mx-auto text-center mt-20">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+                    <p className="text-gray-600">You don't have permission to view this page.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">

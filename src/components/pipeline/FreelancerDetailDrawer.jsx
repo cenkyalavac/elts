@@ -38,6 +38,14 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
 
     const queryClient = useQueryClient();
 
+    const { data: currentUser } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: () => base44.auth.me(),
+    });
+
+    const isAdmin = currentUser?.role === 'admin';
+    const canEdit = isAdmin;
+
     const { data: activities = [] } = useQuery({
         queryKey: ['activities', freelancer.id],
         queryFn: () => base44.entities.FreelancerActivity.filter({ 
@@ -280,14 +288,14 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             <div className="border-t pt-6 space-y-4">
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-semibold">Management</h3>
-                                    {!editMode && (
+                                    {!editMode && canEdit && (
                                         <Button size="sm" onClick={() => setEditMode(true)}>
                                             Edit
                                         </Button>
                                     )}
                                 </div>
 
-                                {editMode ? (
+                                {editMode && canEdit ? (
                                     <div className="space-y-4">
                                         <div>
                                             <Label>Stage</Label>
