@@ -25,7 +25,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Apply",
+    mainPage: "Freelancers",
     Pages: PAGES,
     Layout: __Layout,
 };
