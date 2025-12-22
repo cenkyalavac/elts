@@ -35,9 +35,16 @@ export default function PipelinePage() {
 
     const queryClient = useQueryClient();
 
-    const { data: currentUser } = useQuery({
+    const { data: currentUser, isLoading: userLoading } = useQuery({
         queryKey: ['currentUser'],
-        queryFn: () => base44.auth.me(),
+        queryFn: async () => {
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) {
+                base44.auth.redirectToLogin(createPageUrl('Pipeline'));
+                return null;
+            }
+            return base44.auth.me();
+        },
     });
 
     const isAdmin = currentUser?.role === 'admin';
@@ -124,6 +131,17 @@ export default function PipelinePage() {
                         <div className="h-12 bg-gray-200 rounded w-1/3"></div>
                         <div className="h-96 bg-gray-200 rounded"></div>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (userLoading || !currentUser) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
                 </div>
             </div>
         );

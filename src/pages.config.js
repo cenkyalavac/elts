@@ -8,6 +8,7 @@ import MyApplication from './pages/MyApplication';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
     "UserManagement": UserManagement,
+    "Home": Home,
 }
 
 export const pagesConfig = {

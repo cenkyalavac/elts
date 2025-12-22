@@ -25,9 +25,16 @@ export default function FreelancersPage() {
 
     const queryClient = useQueryClient();
 
-    const { data: user } = useQuery({
+    const { data: user, isLoading: userLoading } = useQuery({
         queryKey: ['currentUser'],
-        queryFn: () => base44.auth.me(),
+        queryFn: async () => {
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) {
+                base44.auth.redirectToLogin(createPageUrl('Freelancers'));
+                return null;
+            }
+            return base44.auth.me();
+        },
     });
 
     const canManage = user?.role === 'admin' || user?.role === 'project_manager';
@@ -108,6 +115,17 @@ export default function FreelancersPage() {
 
         return true;
     });
+
+    if (userLoading || !user) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!canManage) {
         return (

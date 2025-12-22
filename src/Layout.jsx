@@ -12,7 +12,13 @@ import {
 export default function Layout({ children, currentPageName }) {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
-        queryFn: () => base44.auth.me(),
+        queryFn: async () => {
+            try {
+                return await base44.auth.me();
+            } catch {
+                return null;
+            }
+        },
     });
 
     const isAdmin = user?.role === 'admin';
@@ -20,8 +26,17 @@ export default function Layout({ children, currentPageName }) {
     const isApplicant = user?.role === 'applicant';
 
     const handleLogout = () => {
-        base44.auth.logout();
+        base44.auth.logout(createPageUrl('Home'));
     };
+
+    // Public pages that don't need authentication
+    const publicPages = ['Home', 'Apply'];
+    const isPublicPage = publicPages.includes(currentPageName);
+
+    // If not a public page and no user, don't show layout
+    if (!isPublicPage && !user) {
+        return <>{children}</>;
+    }
 
     const navItems = isApplicant ? [
         { name: 'MyApplication', label: 'My Application', icon: FileText },
@@ -36,6 +51,11 @@ export default function Layout({ children, currentPageName }) {
         { name: 'OpenPositions', label: 'Open Positions', icon: Briefcase },
         { name: 'UserManagement', label: 'User Management', icon: Shield },
     ] : [];
+
+    // Don't show navigation on public pages
+    if (isPublicPage) {
+        return <>{children}</>;
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
