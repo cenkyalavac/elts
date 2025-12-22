@@ -59,21 +59,21 @@ export default function FreelancerCard({ freelancer }) {
                     )}
                 </div>
 
-                {freelancer.languages && freelancer.languages.length > 0 && (
+                {freelancer.language_pairs && freelancer.language_pairs.length > 0 && (
                     <div>
                         <div className="flex items-center gap-1 text-sm font-medium mb-2">
                             <Globe className="w-4 h-4" />
-                            Languages
+                            Language Pairs
                         </div>
                         <div className="flex flex-wrap gap-1">
-                            {freelancer.languages.slice(0, 4).map((lang, idx) => (
+                            {freelancer.language_pairs.slice(0, 3).map((pair, idx) => (
                                 <Badge key={idx} variant="outline" className="text-xs">
-                                    {lang.language} ({lang.proficiency})
+                                    {pair.source_language} → {pair.target_language}
                                 </Badge>
                             ))}
-                            {freelancer.languages.length > 4 && (
+                            {freelancer.language_pairs.length > 3 && (
                                 <Badge variant="outline" className="text-xs">
-                                    +{freelancer.languages.length - 4} more
+                                    +{freelancer.language_pairs.length - 3} more
                                 </Badge>
                             )}
                         </div>
@@ -96,6 +96,11 @@ export default function FreelancerCard({ freelancer }) {
                             <div className="flex items-center gap-1">
                                 <Award className="w-4 h-4" />
                                 {freelancer.experience_years} years
+                            </div>
+                        )}
+                        {freelancer.language_pairs?.[0]?.rates?.[0] && (
+                            <div className="text-sm font-medium text-green-600">
+                                ${freelancer.language_pairs[0].rates[0].rate_value}/{freelancer.language_pairs[0].rates[0].rate_type.replace('per_', '')}
                             </div>
                         )}
                         {freelancer.availability && (

@@ -211,21 +211,13 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 </div>
                             )}
 
-                            {/* Rate & Experience */}
-                            <div className="grid grid-cols-2 gap-4">
-                                {freelancer.rate && (
-                                    <div>
-                                        <h3 className="font-semibold text-sm mb-1">Rate</h3>
-                                        <p className="text-lg font-medium text-blue-600">{freelancer.rate}</p>
-                                    </div>
-                                )}
-                                {freelancer.experience_years && (
-                                    <div>
-                                        <h3 className="font-semibold text-sm mb-1">Experience</h3>
-                                        <p className="text-lg font-medium">{freelancer.experience_years} years</p>
-                                    </div>
-                                )}
-                            </div>
+                            {/* Experience */}
+                            {freelancer.experience_years && (
+                                <div>
+                                    <h3 className="font-semibold text-sm mb-1">Experience</h3>
+                                    <p className="text-lg font-medium">{freelancer.experience_years} years</p>
+                                </div>
+                            )}
 
                             {/* CV Link */}
                             {freelancer.cv_file_url && (

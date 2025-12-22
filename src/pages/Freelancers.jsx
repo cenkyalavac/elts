@@ -56,7 +56,7 @@ export default function FreelancersPage() {
 
         // Languages filter (multi-select)
         if (filters.selectedLanguages?.length > 0) {
-            const freelancerLanguages = freelancer.languages?.map(l => l.language) || [];
+            const freelancerLanguages = freelancer.language_pairs?.flatMap(p => [p.source_language, p.target_language]) || [];
             const hasMatchingLanguage = filters.selectedLanguages.some(lang => 
                 freelancerLanguages.includes(lang)
             );

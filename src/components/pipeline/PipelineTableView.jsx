@@ -142,16 +142,16 @@ export default function PipelineTableView({
                                             </DropdownMenu>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {freelancer.languages && freelancer.languages.length > 0 ? (
+                                            {freelancer.language_pairs && freelancer.language_pairs.length > 0 ? (
                                                 <div className="flex flex-wrap gap-1">
-                                                    {freelancer.languages.slice(0, 2).map((lang, idx) => (
+                                                    {freelancer.language_pairs.slice(0, 2).map((pair, idx) => (
                                                         <Badge key={idx} variant="outline" className="text-xs">
-                                                            {lang.language}
+                                                            {pair.source_language} → {pair.target_language}
                                                         </Badge>
                                                     ))}
-                                                    {freelancer.languages.length > 2 && (
+                                                    {freelancer.language_pairs.length > 2 && (
                                                         <Badge variant="outline" className="text-xs">
-                                                            +{freelancer.languages.length - 2}
+                                                            +{freelancer.language_pairs.length - 2}
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -172,10 +172,15 @@ export default function PipelineTableView({
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {freelancer.rate ? (
-                                                <span className="text-sm font-medium text-blue-600">
-                                                    {freelancer.rate}
-                                                </span>
+                                            {freelancer.language_pairs?.[0]?.rates?.[0] ? (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-green-600">
+                                                        ${freelancer.language_pairs[0].rates[0].rate_value}
+                                                    </span>
+                                                    <span className="text-gray-500 ml-1">
+                                                        /{freelancer.language_pairs[0].rates[0].rate_type.replace('per_', '')}
+                                                    </span>
+                                                </div>
                                             ) : (
                                                 <span className="text-gray-400 text-sm">-</span>
                                             )}

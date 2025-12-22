@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, CheckCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import LanguagePairRateInput from "./LanguagePairRateInput";
 
 export default function ApplicationForm({ position, onCancel, onSuccess }) {
     const [uploading, setUploading] = useState(false);
@@ -21,7 +22,7 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
         linkedin_url: '',
         portfolio_url: '',
         why_join: '',
-        rate_expectation: '',
+        language_pairs: [],
         status: 'New Application'
     });
 
@@ -225,16 +226,14 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
                         </div>
 
                         <div>
-                            <Label htmlFor="rate_expectation">Rate Expectation</Label>
-                            <Input
-                                id="rate_expectation"
-                                value={formData.rate_expectation}
-                                onChange={(e) => setFormData({ ...formData, rate_expectation: e.target.value })}
-                                placeholder="e.g., $0.12/word, $35/hour"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Please specify your expected rate and unit (per word, per hour, etc.)
+                            <Label>Language Pairs & Rates</Label>
+                            <p className="text-sm text-gray-600 mb-3">
+                                Add your language pairs with rates. You can specify different rates for different specializations and tools.
                             </p>
+                            <LanguagePairRateInput
+                                languagePairs={formData.language_pairs}
+                                onChange={(pairs) => setFormData({ ...formData, language_pairs: pairs })}
+                            />
                         </div>
 
                         <div>
