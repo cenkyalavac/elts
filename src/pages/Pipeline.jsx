@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
     Search, Filter, Users, Calendar, AlertCircle,
-    ChevronRight
+    ChevronRight, LayoutGrid, Table
 } from "lucide-react";
 import FreelancerPipelineCard from "../components/pipeline/FreelancerPipelineCard";
 import FreelancerDetailDrawer from "../components/pipeline/FreelancerDetailDrawer";
+import PipelineTableView from "../components/pipeline/PipelineTableView";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 
@@ -30,6 +31,7 @@ export default function PipelinePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedFreelancer, setSelectedFreelancer] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
+    const [viewMode, setViewMode] = useState('board'); // 'board' or 'table'
 
     const queryClient = useQueryClient();
 
@@ -149,7 +151,7 @@ export default function PipelinePage() {
                         </div>
                     </div>
 
-                    {/* Search */}
+                    {/* Search & View Toggle */}
                     <div className="flex gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -160,10 +162,24 @@ export default function PipelinePage() {
                                 className="pl-10"
                             />
                         </div>
-                        <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-                            <Filter className="w-4 h-4 mr-2" />
-                            Filtreler
-                        </Button>
+                        <div className="flex gap-2 border rounded-lg p-1 bg-white">
+                            <Button 
+                                variant={viewMode === 'board' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('board')}
+                            >
+                                <LayoutGrid className="w-4 h-4 mr-2" />
+                                Pano
+                            </Button>
+                            <Button 
+                                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('table')}
+                            >
+                                <Table className="w-4 h-4 mr-2" />
+                                Tablo
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -203,66 +219,92 @@ export default function PipelinePage() {
                     </Card>
                 </div>
 
-                {/* Pipeline Board */}
-                <DragDropContext onDragEnd={handleDragEnd}>
-                    <div className="flex gap-4 overflow-x-auto pb-4">
-                        {stages.map(stage => {
-                            const stageFreelancers = getStageFreelancers(stage.id);
-                            
-                            return (
-                                <div key={stage.id} className="flex-shrink-0 w-80">
-                                    <Card className={`${stage.color} border-2`}>
-                                        <CardHeader className="pb-3">
-                                            <CardTitle className="text-base flex items-center justify-between">
-                                                <span>{stage.label}</span>
-                                                <Badge variant="secondary">
-                                                    {stageFreelancers.length}
-                                                </Badge>
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Droppable droppableId={stage.id}>
-                                                {(provided, snapshot) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.droppableProps}
-                                                        className={`space-y-3 min-h-[500px] ${
-                                                            snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg' : ''
-                                                        }`}
-                                                    >
-                                                        {stageFreelancers.map((freelancer, index) => (
-                                                            <Draggable
-                                                                key={freelancer.id}
-                                                                draggableId={freelancer.id}
-                                                                index={index}
-                                                            >
-                                                                {(provided, snapshot) => (
-                                                                    <div
-                                                                        ref={provided.innerRef}
-                                                                        {...provided.draggableProps}
-                                                                        {...provided.dragHandleProps}
-                                                                        onClick={() => setSelectedFreelancer(freelancer)}
-                                                                    >
-                                                                        <FreelancerPipelineCard
-                                                                            freelancer={freelancer}
-                                                                            daysInStage={getDaysInStage(freelancer)}
-                                                                            isDragging={snapshot.isDragging}
-                                                                        />
-                                                                    </div>
-                                                                )}
-                                                            </Draggable>
-                                                        ))}
-                                                        {provided.placeholder}
-                                                    </div>
-                                                )}
-                                            </Droppable>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </DragDropContext>
+                {/* Pipeline Views */}
+                {viewMode === 'board' ? (
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <div className="flex gap-4 overflow-x-auto pb-4">
+                            {stages.map(stage => {
+                                const stageFreelancers = getStageFreelancers(stage.id);
+                                
+                                return (
+                                    <div key={stage.id} className="flex-shrink-0 w-80">
+                                        <Card className={`${stage.color} border-2`}>
+                                            <CardHeader className="pb-3">
+                                                <CardTitle className="text-base flex items-center justify-between">
+                                                    <span>{stage.label}</span>
+                                                    <Badge variant="secondary">
+                                                        {stageFreelancers.length}
+                                                    </Badge>
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <Droppable droppableId={stage.id}>
+                                                    {(provided, snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.droppableProps}
+                                                            className={`space-y-3 min-h-[500px] ${
+                                                                snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg' : ''
+                                                            }`}
+                                                        >
+                                                            {stageFreelancers.map((freelancer, index) => (
+                                                                <Draggable
+                                                                    key={freelancer.id}
+                                                                    draggableId={freelancer.id}
+                                                                    index={index}
+                                                                >
+                                                                    {(provided, snapshot) => (
+                                                                        <div
+                                                                            ref={provided.innerRef}
+                                                                            {...provided.draggableProps}
+                                                                            {...provided.dragHandleProps}
+                                                                            onClick={() => setSelectedFreelancer(freelancer)}
+                                                                        >
+                                                                            <FreelancerPipelineCard
+                                                                                freelancer={freelancer}
+                                                                                daysInStage={getDaysInStage(freelancer)}
+                                                                                isDragging={snapshot.isDragging}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+                                                                </Draggable>
+                                                            ))}
+                                                            {provided.placeholder}
+                                                        </div>
+                                                    )}
+                                                </Droppable>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </DragDropContext>
+                ) : (
+                    <PipelineTableView
+                        freelancers={filteredFreelancers}
+                        stages={stages}
+                        onStageChange={async (freelancerId, newStage, oldStage) => {
+                            await updateFreelancerMutation.mutateAsync({
+                                id: freelancerId,
+                                data: {
+                                    status: newStage,
+                                    stage_changed_date: new Date().toISOString()
+                                }
+                            });
+                            await createActivityMutation.mutateAsync({
+                                freelancer_id: freelancerId,
+                                activity_type: 'Stage Changed',
+                                description: `Stage changed from ${oldStage} to ${newStage}`,
+                                old_value: oldStage,
+                                new_value: newStage,
+                                performed_by: (await base44.auth.me()).email
+                            });
+                        }}
+                        onFreelancerClick={setSelectedFreelancer}
+                        getDaysInStage={getDaysInStage}
+                    />
+                )}
             </div>
 
             {/* Detail Drawer */}
