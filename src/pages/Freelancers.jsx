@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, LayoutGrid } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../utils";
 import FreelancerCard from "../components/freelancers/FreelancerCard";
 import UploadCV from "../components/freelancers/UploadCV";
 import AdvancedFilters from "../components/freelancers/AdvancedFilters";
@@ -115,19 +117,25 @@ export default function FreelancersPage() {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <Link to={createPageUrl('Pipeline')}>
+                            <Button variant="outline">
+                                <LayoutGrid className="w-5 h-5 mr-2" />
+                                Pipeline Görünümü
+                            </Button>
+                        </Link>
                         <Button
                             onClick={() => window.location.href = createPageUrl('FreelancerOnboarding')}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             <Plus className="w-5 h-5 mr-2" />
-                            New Freelancer
+                            Yeni Başvuru
                         </Button>
                         <Button
                             onClick={() => setShowUpload(!showUpload)}
                             variant="outline"
                         >
                             <Plus className="w-5 h-5 mr-2" />
-                            Bulk Upload CVs
+                            Toplu CV Yükleme
                         </Button>
                     </div>
                 </div>
