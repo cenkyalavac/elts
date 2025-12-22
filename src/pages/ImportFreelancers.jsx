@@ -9,6 +9,8 @@ import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 export default function ImportFreelancersPage() {
     const [file, setFile] = useState(null);
     const [result, setResult] = useState(null);
+    const [dropboxPath, setDropboxPath] = useState('');
+    const [isImportingFromDropbox, setIsImportingFromDropbox] = useState(false);
 
     const importMutation = useMutation({
         mutationFn: async (csvData) => {
