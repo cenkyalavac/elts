@@ -5,12 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ImportFreelancersPage() {
     const [file, setFile] = useState(null);
     const [result, setResult] = useState(null);
     const [dropboxPath, setDropboxPath] = useState('');
     const [isImportingFromDropbox, setIsImportingFromDropbox] = useState(false);
+    
+    const queryClient = useQueryClient();
 
     const importMutation = useMutation({
         mutationFn: async (csvData) => {
@@ -19,12 +24,32 @@ export default function ImportFreelancersPage() {
         },
         onSuccess: (data) => {
             setResult(data);
+            queryClient.invalidateQueries({ queryKey: ['freelancers'] });
         },
         onError: (error) => {
             setResult({
                 success: false,
                 error: error.message || 'Import failed'
             });
+        }
+    });
+
+    const dropboxImportMutation = useMutation({
+        mutationFn: async (folderPath) => {
+            const response = await base44.functions.invoke('importFromDropbox', { folder_path: folderPath });
+            return response.data;
+        },
+        onSuccess: (data) => {
+            setResult(data);
+            setIsImportingFromDropbox(false);
+            queryClient.invalidateQueries({ queryKey: ['freelancers'] });
+        },
+        onError: (error) => {
+            setResult({ 
+                success: false, 
+                error: error.response?.data?.error || error.message 
+            });
+            setIsImportingFromDropbox(false);
         }
     });
 
@@ -201,6 +226,58 @@ export default function ImportFreelancersPage() {
                                 )}
                             </div>
                         )}
+                    </CardContent>
+                </Card>
+
+                {/* Dropbox Import */}
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Upload className="w-5 h-5" />
+                            Dropbox'tan İçe Aktar
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <Label htmlFor="dropbox-path">Dropbox Klasör Yolu</Label>
+                            <Input
+                                id="dropbox-path"
+                                placeholder="/Freelancers/CVs"
+                                value={dropboxPath}
+                                onChange={(e) => setDropboxPath(e.target.value)}
+                                disabled={isImportingFromDropbox}
+                            />
+                            <p className="text-sm text-gray-500 mt-1">
+                                Örnek: /Freelancers veya /CVs/2024
+                            </p>
+                        </div>
+                        <Button
+                            onClick={() => {
+                                setIsImportingFromDropbox(true);
+                                setResult(null);
+                                dropboxImportMutation.mutate(dropboxPath);
+                            }}
+                            disabled={!dropboxPath || isImportingFromDropbox}
+                            className="w-full"
+                        >
+                            {isImportingFromDropbox ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    İçe Aktarılıyor...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Dropbox'tan İçe Aktar
+                                </>
+                            )}
+                        </Button>
+                        <Alert>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>
+                                Bu işlem belirtilen klasördeki ve alt klasörlerdeki tüm PDF, DOC ve DOCX dosyalarını tarayacak ve sisteme aktaracaktır.
+                            </AlertDescription>
+                        </Alert>
                     </CardContent>
                 </Card>
 
