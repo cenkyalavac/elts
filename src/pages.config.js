@@ -3,6 +3,8 @@ import FreelancerOnboarding from './pages/FreelancerOnboarding';
 import Freelancers from './pages/Freelancers';
 import Jobs from './pages/Jobs';
 import Pipeline from './pages/Pipeline';
+import Apply from './pages/Apply';
+import OpenPositions from './pages/OpenPositions';
 
 
 export const PAGES = {
@@ -11,6 +13,8 @@ export const PAGES = {
     "Freelancers": Freelancers,
     "Jobs": Jobs,
     "Pipeline": Pipeline,
+    "Apply": Apply,
+    "OpenPositions": OpenPositions,
 }
 
 export const pagesConfig = {
