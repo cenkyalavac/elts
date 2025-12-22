@@ -4,12 +4,12 @@ import FreelancerDetail from './pages/FreelancerDetail';
 import FreelancerOnboarding from './pages/FreelancerOnboarding';
 import Freelancers from './pages/Freelancers';
 import Home from './pages/Home';
+import ImportFreelancers from './pages/ImportFreelancers';
 import Jobs from './pages/Jobs';
 import MyApplication from './pages/MyApplication';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
-import ImportFreelancers from './pages/ImportFreelancers';
 import __Layout from './Layout.jsx';
 
 
@@ -20,12 +20,12 @@ export const PAGES = {
     "FreelancerOnboarding": FreelancerOnboarding,
     "Freelancers": Freelancers,
     "Home": Home,
+    "ImportFreelancers": ImportFreelancers,
     "Jobs": Jobs,
     "MyApplication": MyApplication,
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
     "UserManagement": UserManagement,
-    "ImportFreelancers": ImportFreelancers,
 }
 
 export const pagesConfig = {

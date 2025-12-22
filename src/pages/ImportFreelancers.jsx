@@ -18,6 +18,12 @@ export default function ImportFreelancersPage() {
         onSuccess: (data) => {
             setResult(data);
         },
+        onError: (error) => {
+            setResult({
+                success: false,
+                error: error.message || 'Import failed'
+            });
+        }
     });
 
     const handleFileChange = (e) => {
@@ -29,8 +35,11 @@ export default function ImportFreelancersPage() {
     };
 
     const parseCSV = (text) => {
-        const lines = text.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        // Remove BOM if present
+        text = text.replace(/^\uFEFF/, '');
+        
+        const lines = text.split(/\r?\n/);
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').replace(/^ï»¿/, ''));
         const data = [];
 
         for (let i = 1; i < lines.length; i++) {
@@ -43,7 +52,7 @@ export default function ImportFreelancersPage() {
             for (let j = 0; j < lines[i].length; j++) {
                 const char = lines[i][j];
                 
-                if (char === '"') {
+                if (char === '"' && (j === 0 || lines[i][j-1] !== '\\')) {
                     inQuotes = !inQuotes;
                 } else if (char === ',' && !inQuotes) {
                     values.push(current.trim().replace(/^"|"$/g, ''));
@@ -54,13 +63,17 @@ export default function ImportFreelancersPage() {
             }
             values.push(current.trim().replace(/^"|"$/g, ''));
 
-            const row = {};
-            headers.forEach((header, index) => {
-                row[header] = values[index] || '';
-            });
-            data.push(row);
+            if (values.length > 0 && values.some(v => v !== '')) {
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                data.push(row);
+            }
         }
 
+        console.log('Parsed CSV rows:', data.length);
+        console.log('Headers:', headers);
         return data;
     };
 
