@@ -180,17 +180,62 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 </div>
                             </div>
 
-                            {/* Languages */}
-                            {freelancer.languages && freelancer.languages.length > 0 && (
+                            {/* Language Pairs & Rates */}
+                            {freelancer.language_pairs && freelancer.language_pairs.length > 0 && (
                                 <div className="space-y-3">
                                     <h3 className="font-semibold flex items-center gap-2">
                                         <Globe className="w-4 h-4" />
-                                        Languages
+                                        Language Pairs & Rates
                                     </h3>
+                                    <div className="space-y-3">
+                                        {freelancer.language_pairs.map((pair, idx) => (
+                                            <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Badge variant="outline" className="font-medium">
+                                                        {pair.source_language} → {pair.target_language}
+                                                    </Badge>
+                                                    <Badge variant="secondary" className="text-xs">
+                                                        {pair.proficiency}
+                                                    </Badge>
+                                                </div>
+                                                {pair.rates && pair.rates.length > 0 && (
+                                                    <div className="space-y-1 pl-3 border-l-2 border-blue-200">
+                                                        {pair.rates.map((rate, rateIdx) => (
+                                                            <div key={rateIdx} className="text-sm">
+                                                                <span className="font-semibold text-green-600">
+                                                                    ${rate.rate_value} {rate.currency}
+                                                                </span>
+                                                                <span className="text-gray-600 ml-1">
+                                                                    {rate.rate_type.replace('_', ' ')}
+                                                                </span>
+                                                                {rate.specialization && (
+                                                                    <Badge variant="outline" className="ml-2 text-xs">
+                                                                        {rate.specialization}
+                                                                    </Badge>
+                                                                )}
+                                                                {rate.tool && (
+                                                                    <Badge variant="outline" className="ml-1 text-xs">
+                                                                        {rate.tool}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Services */}
+                            {freelancer.service_types && freelancer.service_types.length > 0 && (
+                                <div className="space-y-3">
+                                    <h3 className="font-semibold">Services</h3>
                                     <div className="flex flex-wrap gap-2">
-                                        {freelancer.languages.map((lang, idx) => (
-                                            <Badge key={idx} variant="outline">
-                                                {lang.language} - {lang.proficiency}
+                                        {freelancer.service_types.map((service, idx) => (
+                                            <Badge key={idx} className="bg-indigo-100 text-indigo-800">
+                                                {service}
                                             </Badge>
                                         ))}
                                     </div>
