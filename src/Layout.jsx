@@ -6,7 +6,7 @@ import { createPageUrl } from "./utils";
 import { Button } from "@/components/ui/button";
 import { 
     LayoutGrid, Users, Briefcase, FileText, 
-    UserCircle, LogOut, Settings, Shield, Menu, X 
+    UserCircle, LogOut, Settings, Shield, Menu, X, Upload 
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -52,6 +52,7 @@ export default function Layout({ children, currentPageName }) {
     const adminItems = isAdmin ? [
         { name: 'OpenPositions', label: 'Open Positions', icon: Briefcase },
         { name: 'UserManagement', label: 'User Management', icon: Shield },
+        { name: 'ImportFreelancers', label: 'Import Freelancers', icon: Upload },
     ] : [];
 
     // Don't show navigation on public pages
