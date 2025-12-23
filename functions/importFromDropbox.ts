@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'folder_path is required' }, { status: 400 });
         }
 
-        const accessToken = Deno.env.get("DROPBOX_ACCESS_TOKEN");
+        const accessToken = Deno.env.get("Dropbox");
         if (!accessToken) {
             return Response.json({ error: 'Dropbox access token not configured' }, { status: 500 });
         }
