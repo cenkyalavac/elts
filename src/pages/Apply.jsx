@@ -43,20 +43,31 @@ export default function ApplyPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="min-h-screen bg-white">
             {/* Header */}
-            <nav className="bg-white border-b shadow-sm">
-                <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <a href={createPageUrl('Home')} className="text-2xl font-bold text-blue-600">
-                        LSP Portal
+            <nav className="bg-gradient-to-r from-purple-900 via-purple-800 to-pink-700 text-white">
+                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <a href={createPageUrl('Home')} className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold">
+                            et
+                        </div>
+                        <span className="text-xl font-bold">el turco</span>
                     </a>
                     <div className="flex gap-3">
                         {existingUser ? (
-                            <Button variant="outline" onClick={() => window.location.href = createPageUrl('MyApplication')}>
+                            <Button 
+                                variant="ghost" 
+                                className="text-white hover:bg-white/10"
+                                onClick={() => window.location.href = createPageUrl('MyApplication')}
+                            >
                                 My Application
                             </Button>
                         ) : (
-                            <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
+                            <Button 
+                                variant="ghost" 
+                                className="text-white hover:bg-white/10"
+                                onClick={() => base44.auth.redirectToLogin()}
+                            >
                                 Login
                             </Button>
                         )}
@@ -67,32 +78,45 @@ export default function ApplyPage() {
             {!showForm ? (
                 <>
                     {/* Hero Section */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+                    <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 text-white py-20 lg:py-28">
                         <div className="max-w-6xl mx-auto px-6 text-center">
-                            <h1 className="text-5xl font-bold mb-6">Join Our Team of Expert Linguists</h1>
-                            <p className="text-xl mb-8 text-blue-100">
-                                Be part of a leading language service provider and work on exciting international projects
+                            <div className="inline-block px-4 py-1.5 bg-white/10 rounded-full text-sm mb-6">
+                                Join Our Network
+                            </div>
+                            <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
+                                Become a Regional<br />Language Expert
+                            </h1>
+                            <p className="text-lg lg:text-xl text-purple-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+                                Work with a leading LSP specializing in Central & Eastern Europe, Middle East, and Central Asia
                             </p>
                             <Button
                                 size="lg"
-                                className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8"
+                                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0 px-8 text-lg"
                                 onClick={() => handleApply(null)}
                             >
-                                Apply Now
+                                Submit Application
+                                <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
                         </div>
                     </div>
 
                     {/* Benefits Section */}
-                    <div className="max-w-6xl mx-auto px-6 py-16">
-                        <h2 className="text-3xl font-bold text-center mb-12">Why Work With Us?</h2>
+                    <div className="max-w-7xl mx-auto px-6 py-20">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                                Why Join Our Network?
+                            </h2>
+                            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                                Work with a team that values expertise and cultural understanding
+                            </p>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {benefits.map((benefit, index) => (
-                                <Card key={index} className="hover:shadow-lg transition-shadow">
+                                <Card key={index} className="border-0 shadow-sm hover:shadow-lg transition-all">
                                     <CardContent className="pt-6">
-                                        <benefit.icon className="w-12 h-12 text-blue-600 mb-4" />
-                                        <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                                        <p className="text-gray-600">{benefit.description}</p>
+                                        <benefit.icon className="w-12 h-12 text-purple-600 mb-4" />
+                                        <h3 className="text-xl font-semibold mb-3">{benefit.title}</h3>
+                                        <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -101,12 +125,19 @@ export default function ApplyPage() {
 
                     {/* Open Positions Section */}
                     {openPositions.length > 0 && (
-                        <div className="bg-gray-50 py-16">
-                            <div className="max-w-6xl mx-auto px-6">
-                                <h2 className="text-3xl font-bold text-center mb-12">Current Open Positions</h2>
+                        <div className="bg-gray-50 py-20">
+                            <div className="max-w-7xl mx-auto px-6">
+                                <div className="text-center mb-16">
+                                    <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                                        Current Open Positions
+                                    </h2>
+                                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                                        Apply for specific roles that match your expertise
+                                    </p>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {openPositions.map(position => (
-                                        <Card key={position.id} className="hover:shadow-lg transition-shadow">
+                                        <Card key={position.id} className="border-0 shadow-sm hover:shadow-xl transition-all">
                                             <CardHeader>
                                                 <div className="flex justify-between items-start">
                                                     <CardTitle className="text-xl">{position.title}</CardTitle>
@@ -152,10 +183,11 @@ export default function ApplyPage() {
                                                 )}
 
                                                 <Button
-                                                    className="w-full"
+                                                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                                                     onClick={() => handleApply(position)}
                                                 >
                                                     Apply for This Position
+                                                    <ArrowRight className="w-4 h-4 ml-2" />
                                                 </Button>
                                             </CardContent>
                                         </Card>
@@ -166,19 +198,23 @@ export default function ApplyPage() {
                     )}
 
                     {/* General Application CTA */}
-                    <div className="max-w-6xl mx-auto px-6 py-16 text-center">
-                        <h2 className="text-3xl font-bold mb-4">Don't see a perfect match?</h2>
-                        <p className="text-xl text-gray-600 mb-8">
-                            Submit a general application and we'll keep you in mind for future opportunities
-                        </p>
-                        <Button
-                            size="lg"
-                            variant="outline"
-                            className="text-lg px-8"
-                            onClick={() => handleApply(null)}
-                        >
-                            Submit General Application
-                        </Button>
+                    <div className="bg-gradient-to-r from-purple-900 to-pink-700 text-white py-20">
+                        <div className="max-w-4xl mx-auto px-6 text-center">
+                            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
+                                Don't See a Perfect Match?
+                            </h2>
+                            <p className="text-xl text-purple-100 mb-8">
+                                Submit a general application and we'll keep you in mind for future opportunities
+                            </p>
+                            <Button
+                                size="lg"
+                                className="bg-white text-purple-900 hover:bg-gray-100 px-8"
+                                onClick={() => handleApply(null)}
+                            >
+                                Submit General Application
+                                <ArrowRight className="w-5 h-5 ml-2" />
+                            </Button>
+                        </div>
                     </div>
                 </>
             ) : (

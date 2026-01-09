@@ -63,19 +63,24 @@ export default function Layout({ children, currentPageName }) {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Navigation */}
-            <nav className="bg-white border-b shadow-sm sticky top-0 z-40">
+            <nav className="bg-gradient-to-r from-purple-900 via-purple-800 to-pink-700 text-white shadow-lg sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-8">
                             <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Pipeline')} className="flex items-center gap-2">
-                                <div className="text-xl md:text-2xl font-bold text-blue-600">LSP Portal</div>
+                                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold text-sm">
+                                    et
+                                </div>
+                                <span className="text-xl font-bold hidden sm:inline">el turco</span>
                             </Link>
                             <div className="hidden md:flex items-center gap-1">
                                 {navItems.map(item => (
                                     <Link key={item.name} to={createPageUrl(item.name)}>
                                         <Button
-                                            variant={currentPageName === item.name ? 'default' : 'ghost'}
-                                            className="gap-2"
+                                            variant="ghost"
+                                            className={`gap-2 text-white hover:bg-white/10 ${
+                                                currentPageName === item.name ? 'bg-white/20' : ''
+                                            }`}
                                         >
                                             <item.icon className="w-4 h-4" />
                                             {item.label}
@@ -85,8 +90,10 @@ export default function Layout({ children, currentPageName }) {
                                 {adminItems.map(item => (
                                     <Link key={item.name} to={createPageUrl(item.name)}>
                                         <Button
-                                            variant={currentPageName === item.name ? 'default' : 'ghost'}
-                                            className="gap-2"
+                                            variant="ghost"
+                                            className={`gap-2 text-white hover:bg-white/10 ${
+                                                currentPageName === item.name ? 'bg-white/20' : ''
+                                            }`}
                                         >
                                             <item.icon className="w-4 h-4" />
                                             {item.label}
@@ -101,14 +108,14 @@ export default function Layout({ children, currentPageName }) {
                                 <>
                                     <div className="hidden md:flex items-center gap-3">
                                         <div className="text-right">
-                                            <div className="text-sm font-medium">{user.full_name || user.email}</div>
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-sm font-medium text-white">{user.full_name || user.email}</div>
+                                            <div className="text-xs text-purple-200">
                                                 {user.role === 'admin' ? 'Administrator' : 
                                                  user.role === 'project_manager' ? 'Project Manager' : 
                                                  'Applicant'}
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" onClick={handleLogout}>
+                                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={handleLogout}>
                                             <LogOut className="w-4 h-4" />
                                         </Button>
                                     </div>
@@ -128,13 +135,15 @@ export default function Layout({ children, currentPageName }) {
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden border-t bg-white">
+                    <div className="md:hidden border-t border-white/10 bg-purple-900">
                         <div className="px-4 py-3 space-y-1">
                             {navItems.map(item => (
                                 <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
                                     <Button
-                                        variant={currentPageName === item.name ? 'default' : 'ghost'}
-                                        className="w-full justify-start gap-3"
+                                        variant="ghost"
+                                        className={`w-full justify-start gap-3 text-white hover:bg-white/10 ${
+                                            currentPageName === item.name ? 'bg-white/20' : ''
+                                        }`}
                                     >
                                         <item.icon className="w-5 h-5" />
                                         {item.label}
@@ -144,18 +153,20 @@ export default function Layout({ children, currentPageName }) {
                             {adminItems.map(item => (
                                 <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
                                     <Button
-                                        variant={currentPageName === item.name ? 'default' : 'ghost'}
-                                        className="w-full justify-start gap-3"
+                                        variant="ghost"
+                                        className={`w-full justify-start gap-3 text-white hover:bg-white/10 ${
+                                            currentPageName === item.name ? 'bg-white/20' : ''
+                                        }`}
                                     >
                                         <item.icon className="w-5 h-5" />
                                         {item.label}
                                     </Button>
                                 </Link>
                             ))}
-                            <div className="border-t pt-3 mt-3">
+                            <div className="border-t border-white/10 pt-3 mt-3">
                                 <div className="px-3 py-2">
-                                    <div className="text-sm font-medium">{user.full_name || user.email}</div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-sm font-medium text-white">{user.full_name || user.email}</div>
+                                    <div className="text-xs text-purple-200">
                                         {user.role === 'admin' ? 'Administrator' : 
                                          user.role === 'project_manager' ? 'Project Manager' : 
                                          'Applicant'}
@@ -163,7 +174,7 @@ export default function Layout({ children, currentPageName }) {
                                 </div>
                                 <Button
                                     variant="ghost"
-                                    className="w-full justify-start gap-3 text-red-600"
+                                    className="w-full justify-start gap-3 text-white hover:bg-red-500/20"
                                     onClick={() => {
                                         setMobileMenuOpen(false);
                                         handleLogout();
