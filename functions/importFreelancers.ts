@@ -100,7 +100,6 @@ Deno.serve(async (req) => {
                 let status = row.Status || 'New Application';
                 if (status === 'ACTIVE') status = 'Approved';
                 if (status === 'INACTIVE') status = 'On Hold';
-                if (status === 'New') status = 'New Application';
 
                 const freelancerData = {
                     full_name: `${row.ResourceFirstName || ''} ${row.ResourceLastName || ''}`.trim(),
