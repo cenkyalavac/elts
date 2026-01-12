@@ -249,6 +249,38 @@ export default function FreelancersPage() {
 
                     {/* Freelancer List */}
                     <div className="lg:col-span-3">
+                        {/* Bulk Actions Toolbar */}
+                        {selectedIds.size > 0 && (
+                            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Checkbox 
+                                        checked={selectedIds.size === filteredFreelancers.length && filteredFreelancers.length > 0}
+                                        onCheckedChange={toggleSelectAll}
+                                    />
+                                    <span className="text-sm font-medium text-blue-900">
+                                        {selectedIds.size} selected
+                                    </span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                        onClick={() => setShowBulkDialog(true)}
+                                    >
+                                        Change Status
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={clearSelection}
+                                    >
+                                        <X className="w-4 h-4 mr-1" />
+                                        Clear
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
                         {isLoading ? (
                             <div className="grid gap-4">
                                 {Array(6).fill(0).map((_, i) => (
@@ -270,12 +302,30 @@ export default function FreelancersPage() {
                         ) : (
                             <div className="grid gap-4">
                                 {filteredFreelancers.map(freelancer => (
-                                    <FreelancerCard key={freelancer.id} freelancer={freelancer} />
+                                    <div key={freelancer.id} className="flex gap-3 items-start">
+                                        <div className="pt-5">
+                                            <Checkbox 
+                                                checked={selectedIds.has(freelancer.id)}
+                                                onCheckedChange={() => toggleSelectId(freelancer.id)}
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <FreelancerCard freelancer={freelancer} />
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
+
+                {/* Bulk Status Dialog */}
+                <BulkStatusDialog 
+                    open={showBulkDialog}
+                    onOpenChange={setShowBulkDialog}
+                    selectedIds={Array.from(selectedIds)}
+                    freelancers={filteredFreelancers}
+                />
             </div>
         </div>
     );
