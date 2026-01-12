@@ -51,9 +51,8 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
         queryKey: ['activities', freelancer.id],
         queryFn: () => base44.entities.FreelancerActivity.filter({ 
             freelancer_id: freelancer.id 
-        }).then(data => data.sort((a, b) => 
-            new Date(b.created_date) - new Date(a.created_date)
-        )),
+        }, '-created_date', 50),
+        staleTime: 30000,
     });
 
     const createActivityMutation = useMutation({
@@ -65,12 +64,11 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
 
     const handleSave = async () => {
         const updates = {};
-        let activityDescription = '';
+        const userEmail = currentUser?.email;
 
         if (formData.status !== freelancer.status) {
             updates.status = formData.status;
             updates.stage_changed_date = new Date().toISOString();
-            activityDescription += `Stage changed to ${formData.status}. `;
             
             await createActivityMutation.mutateAsync({
                 freelancer_id: freelancer.id,
@@ -78,19 +76,18 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                 description: `Stage changed from ${freelancer.status} to ${formData.status}`,
                 old_value: freelancer.status,
                 new_value: formData.status,
-                performed_by: (await base44.auth.me()).email
+                performed_by: userEmail
             });
         }
 
         if (formData.notes !== freelancer.notes) {
             updates.notes = formData.notes;
-            activityDescription += 'Notes updated. ';
             
             await createActivityMutation.mutateAsync({
                 freelancer_id: freelancer.id,
                 activity_type: 'Note Added',
                 description: 'Internal notes updated',
-                performed_by: (await base44.auth.me()).email
+                performed_by: userEmail
             });
         }
 
@@ -106,7 +103,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                 freelancer_id: freelancer.id,
                 activity_type: 'Follow-up Scheduled',
                 description: `Follow-up scheduled for ${formData.follow_up_date}: ${formData.follow_up_note}`,
-                performed_by: (await base44.auth.me()).email
+                performed_by: userEmail
             });
         }
 

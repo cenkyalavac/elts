@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function FreelancersPage() {
     const { data: freelancers = [], isLoading } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-created_date'),
+        staleTime: 30000, // Data stays fresh for 30 seconds
     });
 
     const handleUploadSuccess = () => {
@@ -49,7 +50,7 @@ export default function FreelancersPage() {
         queryClient.invalidateQueries({ queryKey: ['freelancers'] });
     };
 
-    const filteredFreelancers = freelancers.filter(freelancer => {
+    const filteredFreelancers = useMemo(() => freelancers.filter(freelancer => {
         // Search filter
         if (filters.search) {
             const searchLower = filters.search.toLowerCase();
@@ -114,7 +115,7 @@ export default function FreelancersPage() {
         }
 
         return true;
-    });
+    }), [freelancers, filters]);
 
     if (userLoading || !user) {
         return (

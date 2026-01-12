@@ -20,11 +20,12 @@ export default function EmailThread({ freelancerEmail }) {
         queryFn: async () => {
             const { data } = await base44.functions.invoke('getGmailEmails', { 
                 email: freelancerEmail,
-                maxResults: 50
+                maxResults: 20
             });
             return data.emails || [];
         },
-        enabled: !!freelancerEmail
+        enabled: !!freelancerEmail,
+        staleTime: 60000, // Cache emails for 1 minute
     });
 
     const sendMutation = useMutation({

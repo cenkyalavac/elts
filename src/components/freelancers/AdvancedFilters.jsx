@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,14 +23,14 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         experience: true
     });
 
-    // Extract unique values from freelancers
-    const allLanguages = [...new Set(
+    // Extract unique values from freelancers - memoized to prevent recalculation
+    const allLanguages = useMemo(() => [...new Set(
         freelancers.flatMap(f => f.languages?.map(l => l.language) || [])
-    )].sort();
+    )].sort(), [freelancers]);
 
-    const allSpecializations = [...new Set(
+    const allSpecializations = useMemo(() => [...new Set(
         freelancers.flatMap(f => f.specializations || [])
-    )].sort();
+    )].sort(), [freelancers]);
 
     const allServices = [
         "Translation", "Interpretation", "Proofreading", 
