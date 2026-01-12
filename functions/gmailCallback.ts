@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.User.update(state, {
             gmailRefreshToken: tokens.refresh_token,
             gmailEmail: profile.emailAddress
-        }, { skipAuth: true });
+        });
 
         // Redirect to app
         return Response.redirect(`${url.origin}/`, 302);
