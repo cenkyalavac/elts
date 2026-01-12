@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { 
     TrendingUp, Clock, Users, CheckCircle, 
-    AlertTriangle, Award, Target
+    AlertTriangle, Award, Target, Globe
 } from "lucide-react";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -26,17 +26,17 @@ const STAGES = [
 ];
 
 export default function AnalyticsPage() {
-    const { data: user } = useQuery({
+    const { data: user, isLoading: isLoadingUser } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
     });
 
-    const { data: freelancers = [] } = useQuery({
+    const { data: freelancers = [], isLoading: isLoadingFreelancers } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list(),
     });
 
-    const { data: activities = [] } = useQuery({
+    const { data: activities = [], isLoading: isLoadingActivities } = useQuery({
         queryKey: ['allActivities'],
         queryFn: () => base44.entities.FreelancerActivity.list('-created_date'),
     });
@@ -44,6 +44,8 @@ export default function AnalyticsPage() {
     const canView = user?.role === 'admin' || user?.role === 'project_manager';
 
     const analytics = useMemo(() => {
+        if (!freelancers || !activities) return null;
+        
         // Application volume over time (last 6 months)
         const volumeData = [];
         for (let i = 5; i >= 0; i--) {
@@ -172,15 +174,39 @@ export default function AnalyticsPage() {
         };
     }, [freelancers, activities]);
 
+    const isLoading = isLoadingUser || isLoadingFreelancers || isLoadingActivities;
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p className="text-lg text-gray-700">Loading analytics...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!canView) {
         return (
-            <div className="min-h-screen bg-gray-50 p-6">
-                <div className="max-w-md mx-auto text-center mt-20">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="max-w-md mx-auto text-center">
                     <div className="p-4 bg-red-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                         <AlertTriangle className="w-10 h-10 text-red-600" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
                     <p className="text-gray-600">You don't have permission to view analytics.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!analytics) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p className="text-lg text-gray-700">Preparing analytics...</p>
                 </div>
             </div>
         );
