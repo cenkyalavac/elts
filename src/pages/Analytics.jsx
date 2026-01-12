@@ -175,6 +175,7 @@ export default function AnalyticsPage() {
             rateTypeData,
             topPerformers,
             bottlenecks,
+            conversionFunnelData,
             total,
             approved,
             rejected,
