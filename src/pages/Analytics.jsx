@@ -11,6 +11,8 @@ import {
     TrendingUp, Clock, Users, CheckCircle, 
     AlertTriangle, Award, Target, Globe
 } from "lucide-react";
+import ConversionFunnel from "../components/analytics/ConversionFunnel";
+import PerformanceMetrics from "../components/analytics/PerformanceMetrics";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
