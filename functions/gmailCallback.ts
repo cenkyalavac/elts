@@ -29,8 +29,14 @@ Deno.serve(async (req) => {
 
         const tokens = await tokenResponse.json();
 
+        if (!tokenResponse.ok) {
+            console.error('Token exchange failed:', tokens);
+            return Response.json({ error: `Token exchange failed: ${tokens.error}`, details: tokens }, { status: 400 });
+        }
+
         if (!tokens.refresh_token) {
-            return new Response('No refresh token received', { status: 400 });
+            console.error('No refresh token in response:', tokens);
+            return Response.json({ error: 'No refresh token received. Make sure you added consent prompt.' }, { status: 400 });
         }
 
         // Get user's Gmail email
