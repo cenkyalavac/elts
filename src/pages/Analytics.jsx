@@ -157,6 +157,12 @@ export default function AnalyticsPage() {
             .sort((a, b) => (b.days * b.count) - (a.days * a.count))
             .slice(0, 3);
 
+        // Conversion funnel data
+        const conversionFunnelData = STAGES.map(stage => ({
+            stage,
+            count: freelancers.filter(f => f.status === stage).length
+        })).filter(s => s.count > 0);
+
         return {
             volumeData,
             stageDistribution,
