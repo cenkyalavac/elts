@@ -96,10 +96,16 @@ Deno.serve(async (req) => {
                     paypal_id: row.PaypalID || ''
                 };
 
-                // Map old status to new status
-                let status = row.Status || 'New Application';
+                // Map old status to new status - ensure it's one of the valid enum values
+                let status = row.Status ? String(row.Status).trim() : 'New Application';
                 if (status === 'ACTIVE') status = 'Approved';
                 if (status === 'INACTIVE') status = 'On Hold';
+                if (status === 'New') status = 'New Application'; // Handle legacy "New" status
+                // Validate status is in allowed enum
+                const validStatuses = ['New Application', 'Form Sent', 'Price Negotiation', 'Test Sent', 'Approved', 'On Hold', 'Rejected', 'Red Flag'];
+                if (!validStatuses.includes(status)) {
+                    status = 'New Application'; // Default to New Application for invalid statuses
+                }
 
                 const freelancerData = {
                     full_name: `${row.ResourceFirstName || ''} ${row.ResourceLastName || ''}`.trim(),
