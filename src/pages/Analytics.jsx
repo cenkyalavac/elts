@@ -420,6 +420,11 @@ export default function AnalyticsPage() {
                     </Card>
                 </div>
 
+                {/* Conversion Funnel */}
+                <div className="mb-6">
+                    <ConversionFunnel data={analytics.conversionFunnelData} />
+                </div>
+
                 {/* Charts Row 3 */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                     {/* Specialization Distribution */}
