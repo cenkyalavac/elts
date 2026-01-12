@@ -229,6 +229,11 @@ export default function AnalyticsPage() {
                     <p className="text-gray-600">Track recruitment performance and key metrics</p>
                 </div>
 
+                {/* Performance Metrics */}
+                <div className="mb-8">
+                    <PerformanceMetrics freelancers={freelancers} />
+                </div>
+
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
