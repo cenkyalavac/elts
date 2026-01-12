@@ -39,12 +39,12 @@ Deno.serve(async (req) => {
         });
         const profile = await profileResponse.json();
 
-        // Update user with refresh token
+        // Update user with refresh token - use service role directly
         const base44 = createClientFromRequest(req);
         await base44.asServiceRole.entities.User.update(state, {
             gmailRefreshToken: tokens.refresh_token,
             gmailEmail: profile.emailAddress
-        });
+        }, { skipAuth: true });
 
         // Redirect to app
         return Response.redirect(`${url.origin}/`, 302);
