@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
             `prompt=consent&` +
             `state=${user.id}`;
 
-        return Response.json({ authUrl });
+        console.log('Redirect URI being used:', redirectUri);
+
+        return Response.json({ authUrl, redirectUri });
 
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
