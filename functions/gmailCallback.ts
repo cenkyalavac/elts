@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
         const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
         const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
-        const redirectUri = 'https://app.base44.com/api/apps/694868412332f081649b2833/functions/gmailCallback';
+        const redirectUri = `${new URL(req.url).origin}/functions/gmailCallback`;
 
         // Exchange code for tokens
         const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
