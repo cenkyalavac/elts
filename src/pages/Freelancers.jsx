@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FreelancersPage() {
     const [showUpload, setShowUpload] = useState(false);
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [showBulkDialog, setShowBulkDialog] = useState(false);
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
