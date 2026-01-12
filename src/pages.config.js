@@ -3,6 +3,7 @@ import Apply from './pages/Apply';
 import FreelancerDetail from './pages/FreelancerDetail';
 import FreelancerOnboarding from './pages/FreelancerOnboarding';
 import Freelancers from './pages/Freelancers';
+import GmailCallback from './pages/GmailCallback';
 import Home from './pages/Home';
 import ImportFreelancers from './pages/ImportFreelancers';
 import Jobs from './pages/Jobs';
@@ -10,7 +11,6 @@ import MyApplication from './pages/MyApplication';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
-import GmailCallback from './pages/GmailCallback';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +20,7 @@ export const PAGES = {
     "FreelancerDetail": FreelancerDetail,
     "FreelancerOnboarding": FreelancerOnboarding,
     "Freelancers": Freelancers,
+    "GmailCallback": GmailCallback,
     "Home": Home,
     "ImportFreelancers": ImportFreelancers,
     "Jobs": Jobs,
@@ -27,7 +28,6 @@ export const PAGES = {
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
     "UserManagement": UserManagement,
-    "GmailCallback": GmailCallback,
 }
 
 export const pagesConfig = {

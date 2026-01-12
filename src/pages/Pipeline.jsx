@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -53,6 +53,7 @@ export default function PipelinePage() {
     const { data: freelancers = [], isLoading } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-updated_date'),
+        staleTime: 30000, // Data stays fresh for 30 seconds
     });
 
     const updateFreelancerMutation = useMutation({
@@ -89,18 +90,18 @@ export default function PipelinePage() {
             }
         });
 
-        // Log activity
+        // Log activity - use currentUser instead of calling auth.me() again
         await createActivityMutation.mutateAsync({
             freelancer_id: freelancerId,
             activity_type: 'Stage Changed',
             description: `Stage changed from ${oldStatus} to ${newStatus}`,
             old_value: oldStatus,
             new_value: newStatus,
-            performed_by: (await base44.auth.me()).email
+            performed_by: currentUser?.email
         });
     };
 
-    const filteredFreelancers = freelancers.filter(f => {
+    const filteredFreelancers = useMemo(() => freelancers.filter(f => {
         if (!searchTerm) return true;
         const search = searchTerm.toLowerCase();
         return (
@@ -108,11 +109,16 @@ export default function PipelinePage() {
             f.email?.toLowerCase().includes(search) ||
             f.languages?.some(l => l.language?.toLowerCase().includes(search))
         );
-    });
+    }), [freelancers, searchTerm]);
 
-    const getStageFreelancers = (stageId) => {
-        return filteredFreelancers.filter(f => f.status === stageId);
-    };
+    // Pre-calculate freelancers by stage to avoid recalculating on every render
+    const freelancersByStage = useMemo(() => {
+        const result = {};
+        stages.forEach(stage => {
+            result[stage.id] = filteredFreelancers.filter(f => f.status === stage.id);
+        });
+        return result;
+    }, [filteredFreelancers]);
 
     const getDaysInStage = (freelancer) => {
         if (!freelancer.stage_changed_date) return null;
@@ -225,7 +231,7 @@ export default function PipelinePage() {
                     <Card>
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-blue-600">
-                                {getStageFreelancers('New Application').length}
+                                {freelancersByStage['New Application']?.length || 0}
                             </div>
                             <div className="text-sm text-gray-600">New Application</div>
                         </CardContent>
@@ -233,7 +239,7 @@ export default function PipelinePage() {
                     <Card>
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-yellow-600">
-                                {getStageFreelancers('Price Negotiation').length}
+                                {freelancersByStage['Price Negotiation']?.length || 0}
                             </div>
                             <div className="text-sm text-gray-600">Price Negotiation</div>
                         </CardContent>
@@ -241,7 +247,7 @@ export default function PipelinePage() {
                     <Card>
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-green-600">
-                                {getStageFreelancers('Approved').length}
+                                {freelancersByStage['Approved']?.length || 0}
                             </div>
                             <div className="text-sm text-gray-600">Approved</div>
                         </CardContent>
@@ -249,7 +255,7 @@ export default function PipelinePage() {
                     <Card>
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-orange-600">
-                                {getStageFreelancers('Red Flag').length}
+                                {freelancersByStage['Red Flag']?.length || 0}
                             </div>
                             <div className="text-sm text-gray-600">Red Flag</div>
                         </CardContent>
@@ -261,7 +267,7 @@ export default function PipelinePage() {
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <div className="flex gap-4 overflow-x-auto pb-4">
                             {stages.map(stage => {
-                                const stageFreelancers = getStageFreelancers(stage.id);
+                                const stageFreelancers = freelancersByStage[stage.id] || [];
                                 
                                 return (
                                     <div key={stage.id} className="flex-shrink-0 w-80">
@@ -335,7 +341,7 @@ export default function PipelinePage() {
                                 description: `Stage changed from ${oldStage} to ${newStage}`,
                                 old_value: oldStage,
                                 new_value: newStage,
-                                performed_by: (await base44.auth.me()).email
+                                performed_by: currentUser?.email
                             });
                         }}
                         onFreelancerClick={setSelectedFreelancer}
