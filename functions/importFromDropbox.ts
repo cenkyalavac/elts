@@ -127,10 +127,25 @@ Deno.serve(async (req) => {
                 });
 
                 if (extractResult.status === 'success' && extractResult.output) {
+                    // Validate and normalize status
+                    let status = extractResult.output.status || 'New Application';
+                    status = String(status).trim();
+                    
+                    // Map legacy statuses
+                    if (status === 'ACTIVE') status = 'Approved';
+                    if (status === 'INACTIVE') status = 'On Hold';
+                    if (status === 'New') status = 'New Application';
+                    
+                    // Validate against allowed enum
+                    const validStatuses = ['New Application', 'Form Sent', 'Price Negotiation', 'Test Sent', 'Approved', 'On Hold', 'Rejected', 'Red Flag'];
+                    if (!validStatuses.includes(status)) {
+                        status = 'New Application';
+                    }
+                    
                     const freelancerData = {
                         ...extractResult.output,
                         cv_file_url: fileUrl,
-                        status: 'New Application',
+                        status,
                         notes: `Imported from Dropbox: ${file.path_display}`
                     };
 
