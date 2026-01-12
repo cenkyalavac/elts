@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, LayoutGrid } from "lucide-react";
+import { Plus, Users, LayoutGrid, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import FreelancerCard from "../components/freelancers/FreelancerCard";
 import UploadCV from "../components/freelancers/UploadCV";
 import AdvancedFilters from "../components/freelancers/AdvancedFilters";
+import BulkStatusDialog from "../components/freelancers/BulkStatusDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FreelancersPage() {
