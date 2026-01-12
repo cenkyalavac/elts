@@ -127,12 +127,14 @@ Deno.serve(async (req) => {
                 });
 
                 if (extractResult.status === 'success' && extractResult.output) {
-                    const freelancerData = {
+                    let freelancerData = {
                         ...extractResult.output,
                         cv_file_url: fileUrl,
-                        status: 'New Application',
                         notes: `Imported from Dropbox: ${file.path_display}`
                     };
+
+                    // Ensure status is always "New Application"
+                    freelancerData.status = 'New Application';
 
                     // Check if freelancer already exists
                     let existingFreelancer = null;
