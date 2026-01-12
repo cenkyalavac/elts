@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
         }
 
         const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-        const redirectUri = `${new URL(req.url).origin}/functions/gmailCallback`;
+        const redirectUri = Deno.env.get('GMAIL_CALLBACK_URL');
 
         const scopes = [
             'https://www.googleapis.com/auth/gmail.readonly',
