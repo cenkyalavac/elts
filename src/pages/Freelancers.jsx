@@ -54,6 +54,28 @@ export default function FreelancersPage() {
         queryClient.invalidateQueries({ queryKey: ['freelancers'] });
     };
 
+    const toggleSelectId = (id) => {
+        const newSet = new Set(selectedIds);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setSelectedIds(newSet);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredFreelancers.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredFreelancers.map(f => f.id)));
+        }
+    };
+
+    const clearSelection = () => {
+        setSelectedIds(new Set());
+    };
+
     const filteredFreelancers = useMemo(() => freelancers.filter(freelancer => {
         // Search filter
         if (filters.search) {
