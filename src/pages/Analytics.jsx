@@ -174,9 +174,12 @@ export default function AnalyticsPage() {
 
     if (!canView) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-                <div className="max-w-4xl mx-auto text-center mt-20">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+            <div className="min-h-screen bg-gray-50 p-6">
+                <div className="max-w-md mx-auto text-center mt-20">
+                    <div className="p-4 bg-red-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                        <AlertTriangle className="w-10 h-10 text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
                     <p className="text-gray-600">You don't have permission to view analytics.</p>
                 </div>
             </div>
@@ -184,53 +187,64 @@ export default function AnalyticsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-            <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">Analytics Dashboard</h1>
+        <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+            <div className="max-w-[1600px] mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+                    <p className="text-gray-600">Track recruitment performance and key metrics</p>
+                </div>
 
                 {/* Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
                         <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between">
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-900">{analytics.total}</div>
-                                    <div className="text-sm text-gray-600">Total Applications</div>
+                                    <div className="text-3xl font-bold text-purple-900 mb-1">{analytics.total}</div>
+                                    <div className="text-sm font-medium text-purple-700">Total Applications</div>
                                 </div>
-                                <Users className="w-8 h-8 text-blue-600" />
+                                <div className="p-3 bg-purple-100 rounded-xl">
+                                    <Users className="w-6 h-6 text-purple-600" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-white">
                         <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between">
                                 <div>
-                                    <div className="text-2xl font-bold text-green-600">{analytics.conversionRate}%</div>
-                                    <div className="text-sm text-gray-600">Approval Rate</div>
+                                    <div className="text-3xl font-bold text-green-900 mb-1">{analytics.conversionRate}%</div>
+                                    <div className="text-sm font-medium text-green-700">Approval Rate</div>
                                 </div>
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                                <div className="p-3 bg-green-100 rounded-xl">
+                                    <CheckCircle className="w-6 h-6 text-green-600" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-yellow-50 to-white">
                         <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between">
                                 <div>
-                                    <div className="text-2xl font-bold text-yellow-600">{analytics.activeRate}%</div>
-                                    <div className="text-sm text-gray-600">In Progress</div>
+                                    <div className="text-3xl font-bold text-yellow-900 mb-1">{analytics.activeRate}%</div>
+                                    <div className="text-sm font-medium text-yellow-700">In Progress</div>
                                 </div>
-                                <Clock className="w-8 h-8 text-yellow-600" />
+                                <div className="p-3 bg-yellow-100 rounded-xl">
+                                    <Clock className="w-6 h-6 text-yellow-600" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-white">
                         <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between">
                                 <div>
-                                    <div className="text-2xl font-bold text-red-600">{analytics.rejectionRate}%</div>
-                                    <div className="text-sm text-gray-600">Rejection Rate</div>
+                                    <div className="text-3xl font-bold text-red-900 mb-1">{analytics.rejectionRate}%</div>
+                                    <div className="text-sm font-medium text-red-700">Rejection Rate</div>
                                 </div>
-                                <Target className="w-8 h-8 text-red-600" />
+                                <div className="p-3 bg-red-100 rounded-xl">
+                                    <Target className="w-6 h-6 text-red-600" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -238,10 +252,12 @@ export default function AnalyticsPage() {
 
                 {/* Bottlenecks Alert */}
                 {analytics.bottlenecks.length > 0 && (
-                    <Card className="mb-6 border-orange-200 bg-orange-50">
+                    <Card className="mb-8 border-0 shadow-sm bg-gradient-to-r from-orange-50 to-red-50">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-orange-900">
-                                <AlertTriangle className="w-5 h-5" />
+                                <div className="p-2 bg-orange-100 rounded-lg">
+                                    <AlertTriangle className="w-5 h-5 text-orange-600" />
+                                </div>
                                 Identified Bottlenecks
                             </CardTitle>
                         </CardHeader>
@@ -266,13 +282,16 @@ export default function AnalyticsPage() {
                 )}
 
                 {/* Charts Row 1 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                     {/* Application Volume Over Time */}
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5" />
-                                Application Volume (Last 6 Months)
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <TrendingUp className="w-5 h-5 text-purple-600" />
+                                </div>
+                                Application Volume
+                                <span className="text-sm font-normal text-gray-500">(Last 6 Months)</span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -289,9 +308,14 @@ export default function AnalyticsPage() {
                     </Card>
 
                     {/* Stage Distribution */}
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle>Applications by Stage</CardTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <Users className="w-5 h-5 text-blue-600" />
+                                </div>
+                                Applications by Stage
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={250}>
@@ -308,12 +332,14 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Charts Row 2 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                     {/* Average Time in Stage */}
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Clock className="w-5 h-5" />
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-yellow-100 rounded-lg">
+                                    <Clock className="w-5 h-5 text-yellow-600" />
+                                </div>
                                 Average Days in Each Stage
                             </CardTitle>
                         </CardHeader>
@@ -331,9 +357,14 @@ export default function AnalyticsPage() {
                     </Card>
 
                     {/* Top Language Pairs */}
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle>Top Language Pairs</CardTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-green-100 rounded-lg">
+                                    <Globe className="w-5 h-5 text-green-600" />
+                                </div>
+                                Top Language Pairs
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={250}>
@@ -350,11 +381,16 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Charts Row 3 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                     {/* Specialization Distribution */}
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle>Top Specializations</CardTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <Award className="w-5 h-5 text-purple-600" />
+                                </div>
+                                Top Specializations
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={250}>
@@ -380,9 +416,14 @@ export default function AnalyticsPage() {
                     </Card>
 
                     {/* Rate Type Distribution */}
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle>Rate Types</CardTitle>
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-pink-100 rounded-lg">
+                                    <TrendingUp className="w-5 h-5 text-pink-600" />
+                                </div>
+                                Rate Types Distribution
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={250}>
@@ -409,10 +450,12 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Team Performance */}
-                <Card>
+                <Card className="border-0 shadow-sm">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Award className="w-5 h-5" />
+                        <CardTitle className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-100 rounded-lg">
+                                <Award className="w-5 h-5 text-indigo-600" />
+                            </div>
                             Team Performance
                         </CardTitle>
                     </CardHeader>

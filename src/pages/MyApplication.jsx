@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar, MessageSquare } from "lucide-react";
+import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar, MessageSquare, ArrowRight } from "lucide-react";
 
 export default function MyApplicationPage() {
     const { data: user } = useQuery({
@@ -42,51 +42,80 @@ export default function MyApplicationPage() {
 
     if (!application) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-                <div className="max-w-4xl mx-auto text-center mt-20">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">No Application Found</h2>
-                    <p className="text-gray-600 mb-6">You haven't submitted an application yet.</p>
-                    <Button onClick={() => window.location.href = '/apply'}>
-                        Submit Application
-                    </Button>
-                </div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <Card className="max-w-md w-full border-0 shadow-lg">
+                    <CardContent className="pt-12 pb-8 text-center">
+                        <div className="p-4 bg-purple-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                            <FileText className="w-10 h-10 text-purple-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-3">No Application Found</h2>
+                        <p className="text-gray-600 mb-8">You haven't submitted an application yet. Start your journey with us today.</p>
+                        <Button 
+                            size="lg"
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                            onClick={() => window.location.href = '/apply'}
+                        >
+                            Submit Application
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">My Application</h1>
+        <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">My Application</h1>
+                    <p className="text-gray-600">Track the status of your freelancer application</p>
+                </div>
 
                 {/* Status Card */}
-                <Card className="mb-6">
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle>Application Status</CardTitle>
-                            <Badge className={`${statusColors[application.status]} text-lg px-4 py-2`}>
-                                {application.status}
-                            </Badge>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Clock className="w-4 h-4" />
-                            Applied on {new Date(application.created_date).toLocaleDateString()}
-                        </div>
-                        {application.stage_changed_date && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                                <Calendar className="w-4 h-4" />
-                                Last updated {new Date(application.stage_changed_date).toLocaleDateString()}
+                <Card className="mb-8 border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
+                    <CardContent className="pt-8 pb-8">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div className="text-sm font-medium text-purple-700 mb-2">Current Status</div>
+                                <Badge className={`${statusColors[application.status]} text-base px-5 py-2`}>
+                                    {application.status}
+                                </Badge>
                             </div>
-                        )}
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-3 text-sm text-gray-700">
+                                    <div className="p-2 bg-purple-100 rounded-lg">
+                                        <Clock className="w-4 h-4 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium">Applied on</div>
+                                        <div className="text-gray-600">{new Date(application.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                                    </div>
+                                </div>
+                                {application.stage_changed_date && (
+                                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                                        <div className="p-2 bg-purple-100 rounded-lg">
+                                            <Calendar className="w-4 h-4 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <div className="font-medium">Last updated</div>
+                                            <div className="text-gray-600">{new Date(application.stage_changed_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
                 {/* Application Details */}
-                <Card className="mb-6">
+                <Card className="mb-8 border-0 shadow-sm">
                     <CardHeader>
-                        <CardTitle>Your Information</CardTitle>
+                        <CardTitle className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                                <Globe className="w-5 h-5 text-blue-600" />
+                            </div>
+                            Your Information
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -172,21 +201,24 @@ export default function MyApplicationPage() {
 
                 {/* Activity Timeline */}
                 {activities.length > 0 && (
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5" />
+                            <CardTitle className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <MessageSquare className="w-5 h-5 text-purple-600" />
+                                </div>
                                 Activity & Updates
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
                                 {activities.map(activity => (
-                                    <div key={activity.id} className="border-l-2 border-blue-500 pl-4 pb-4">
-                                        <div className="font-medium text-sm">{activity.activity_type}</div>
+                                    <div key={activity.id} className="relative pl-8 pb-6 border-l-2 border-purple-200 last:pb-0">
+                                        <div className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-purple-500 rounded-full border-4 border-white"></div>
+                                        <div className="font-semibold text-sm text-gray-900">{activity.activity_type}</div>
                                         <div className="text-sm text-gray-600 mt-1">{activity.description}</div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            {new Date(activity.created_date).toLocaleDateString()}
+                                        <div className="text-xs text-gray-500 mt-2">
+                                            {new Date(activity.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </div>
                                     </div>
                                 ))}
