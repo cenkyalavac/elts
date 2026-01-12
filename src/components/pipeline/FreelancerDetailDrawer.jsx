@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import EmailThread from "../gmail/EmailThread";
 import { 
     X, Mail, Phone, MapPin, Globe, Calendar, 
     FileText, Save, Bell, MessageSquare, Activity
@@ -393,6 +394,13 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                     </div>
                                 )}
                             </div>
+
+                            {/* Email Conversations */}
+                            {currentUser?.gmailRefreshToken && (
+                                <div className="border-t pt-6">
+                                    <EmailThread freelancerEmail={freelancer.email} />
+                                </div>
+                            )}
 
                             <div className="border-t pt-4">
                                 <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>

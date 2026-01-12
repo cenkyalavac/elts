@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import GmailConnect from "../components/gmail/GmailConnect";
 import { Users, Shield, Eye } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,6 +64,11 @@ export default function UserManagementPage() {
                         User Management
                     </h1>
                     <p className="text-gray-600 mt-1">Manage user roles and permissions</p>
+                </div>
+
+                {/* Gmail Integration */}
+                <div className="mb-6">
+                    <GmailConnect />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
