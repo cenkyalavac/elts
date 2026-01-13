@@ -347,26 +347,26 @@ export default function SettingsPage() {
                         <ApplicationSettings />
                     </TabsContent>
                 </Tabs>
-
-                {/* Template Form Dialog */}
-                <Dialog open={showTemplateForm} onOpenChange={setShowTemplateForm}>
-                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>
-                                {editingTemplate ? 'Edit Email Template' : 'Create Email Template'}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <EmailTemplateForm
-                            template={editingTemplate}
-                            onSave={handleSaveTemplate}
-                            onCancel={() => {
-                                setShowTemplateForm(false);
-                                setEditingTemplate(null);
-                            }}
-                        />
-                    </DialogContent>
-                </Dialog>
             </div>
+
+            {/* Template Form Dialog */}
+            <Dialog open={showTemplateForm} onOpenChange={setShowTemplateForm}>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingTemplate ? 'Edit Email Template' : 'Create Email Template'}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <EmailTemplateForm
+                        template={editingTemplate}
+                        onSave={handleSaveTemplate}
+                        onCancel={() => {
+                            setShowTemplateForm(false);
+                            setEditingTemplate(null);
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
