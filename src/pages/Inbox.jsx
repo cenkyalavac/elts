@@ -8,6 +8,7 @@ import { Mail, FileText, Clock, ChevronDown, ChevronUp, Loader2, RefreshCw, Link
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import ProcessApplicationDialog from '@/components/inbox/ProcessApplicationDialog';
+import EmailAnalysis from '@/components/inbox/EmailAnalysis';
 
 export default function InboxPage() {
     const [expandedEmail, setExpandedEmail] = useState(null);
@@ -15,6 +16,7 @@ export default function InboxPage() {
     const [maxResults, setMaxResults] = useState(30);
     const [selectedEmail, setSelectedEmail] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [emailAnalysis, setEmailAnalysis] = useState({});
 
     // Check if user is admin
     const { data: user } = useQuery({
@@ -49,6 +51,26 @@ export default function InboxPage() {
         setSelectedEmail(email);
         setDialogOpen(true);
     };
+
+    const analyzeEmailMutation = useMutation({
+        mutationFn: async (email) => {
+            const response = await base44.functions.invoke('analyzeEmailWithAI', {
+                email: {
+                    subject: email.subject,
+                    from: email.from,
+                    body: email.body || email.snippet,
+                    attachments: email.attachments
+                }
+            });
+            return response.data.analysis;
+        },
+        onSuccess: (data, variables) => {
+            setEmailAnalysis(prev => ({
+                ...prev,
+                [variables.id]: data
+            }));
+        }
+    });
 
     if (!user) {
         return (
@@ -254,11 +276,36 @@ export default function InboxPage() {
                                         </div>
                                     </div>
 
+                                    {/* AI Analysis Tags */}
+                                    {emailAnalysis[email.id] && (
+                                        <div className="mt-2">
+                                            <EmailAnalysis analysis={emailAnalysis[email.id]} />
+                                        </div>
+                                    )}
+
                                     {/* Email Preview */}
                                     {expandedEmail !== email.id && (
                                         <p className="text-sm text-gray-600 mt-2 line-clamp-2">
                                             {email.snippet}
                                         </p>
+                                    )}
+
+                                    {/* AI Analysis (expanded) */}
+                                    {expandedEmail === email.id && !emailAnalysis[email.id] && (
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={(e) => {
+                                                   e.stopPropagation();
+                                                   analyzeEmailMutation.mutate({ ...email, id: email.id });
+                                               }}
+                                               disabled={analyzeEmailMutation.isPending}
+                                               className="mb-3 w-full"
+                                            >
+                                                {analyzeEmailMutation.isPending ? 'Analyzing...' : 'AI Analysis'}
+                                            </Button>
+                                        </div>
                                     )}
 
                                     {/* Expanded Content */}
