@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import EmailThread from "../gmail/EmailThread";
 import { 
     X, Mail, Phone, MapPin, Globe, Calendar, 
-    FileText, Save, Bell, MessageSquare, Activity, Send
+    FileText, Save, Bell, MessageSquare, Activity, Send, Award
 } from "lucide-react";
 import SendEmailDialog from "../freelancers/SendEmailDialog";
 import QuizAttemptsView from "../quiz/QuizAttemptsView";
