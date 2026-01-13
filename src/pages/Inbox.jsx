@@ -28,7 +28,7 @@ export default function InboxPage() {
     });
 
     // Fetch all emails
-    const { data: emailData = { emails: [] }, isLoading, refetch } = useQuery({
+    const { data: emailData = { emails: [] }, isLoading, error, refetch } = useQuery({
         queryKey: ['allEmails', maxResults],
         queryFn: async () => {
             const response = await base44.functions.invoke('getGmailEmails', {
@@ -36,7 +36,8 @@ export default function InboxPage() {
             });
             return response.data;
         },
-        enabled: !!user && user.role === 'admin',
+        enabled: !!user && user.role === 'admin' && !!user.gmailRefreshToken,
+        retry: 1,
     });
 
     const handleProcessEmail = (email) => {
@@ -74,9 +75,24 @@ export default function InboxPage() {
             <div className="min-h-screen bg-gray-50 p-6">
                 <div className="max-w-4xl mx-auto">
                     <Card className="p-8 text-center">
+                        <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <h2 className="text-xl font-semibold text-gray-900">Gmail Not Connected</h2>
                         <p className="text-gray-600 mt-2">Please connect your Gmail account to use the inbox feature.</p>
                         <Button className="mt-4">Connect Gmail</Button>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-6">
+                <div className="max-w-4xl mx-auto">
+                    <Card className="p-8 text-center border-red-200 bg-red-50">
+                        <h2 className="text-xl font-semibold text-red-900">Error Loading Emails</h2>
+                        <p className="text-red-700 mt-2">{error?.message || 'Failed to fetch emails from Gmail'}</p>
+                        <Button onClick={() => refetch()} className="mt-4">Retry</Button>
                     </Card>
                 </div>
             </div>
