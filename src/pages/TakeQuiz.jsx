@@ -50,9 +50,18 @@ export default function TakeQuiz() {
     });
 
     const submitQuizMutation = useMutation({
-        mutationFn: (data) => base44.entities.QuizAttempt.create(data),
+        mutationFn: async (data) => {
+            const attempt = await base44.entities.QuizAttempt.create(data);
+            // Update assignment status to completed
+            const assignments = await base44.entities.QuizAssignment.filter({ freelancer_id: freelancer.id, quiz_id: quizId });
+            if (assignments.length > 0) {
+                await base44.entities.QuizAssignment.update(assignments[0].id, { status: 'completed' });
+            }
+            return attempt;
+        },
         onSuccess: (attempt) => {
             queryClient.invalidateQueries({ queryKey: ['quizAttempts'] });
+            queryClient.invalidateQueries({ queryKey: ['quizAssignments'] });
             setResult(attempt);
             setSubmitted(true);
             toast.success('Quiz submitted successfully!');

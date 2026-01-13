@@ -25,7 +25,11 @@ export default function AssignedQuizzesSection({ freelancerId }) {
     });
 
     const getQuizDetails = (quizId) => quizzes.find(q => q.id === quizId);
-    const getQuizAttempt = (quizId) => attempts.find(a => a.quiz_id === quizId);
+    const getQuizAttempt = (quizId) => {
+        // Get the most recent attempt for this quiz
+        const quizAttempts = attempts.filter(a => a.quiz_id === quizId);
+        return quizAttempts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+    };
 
     if (assignments.length === 0) {
         return (
@@ -82,24 +86,28 @@ export default function AssignedQuizzesSection({ freelancerId }) {
 
                             {attempt && (
                                 <div className="border-t pt-3">
-                                    <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex items-center gap-2 mb-3">
                                         <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                        <span className="text-sm font-medium">Quiz Attempt</span>
+                                        <span className="text-sm font-medium">Latest Attempt</span>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2 text-sm">
+                                    <div className="grid grid-cols-4 gap-2 text-sm">
                                         <div>
                                             <div className="text-gray-600">Score</div>
                                             <div className="font-semibold">{attempt.score}/{attempt.total_possible}</div>
                                         </div>
                                         <div>
                                             <div className="text-gray-600">Percentage</div>
-                                            <div className="font-semibold">{attempt.percentage.toFixed(1)}%</div>
+                                            <div className="font-semibold">{attempt.percentage}%</div>
                                         </div>
                                         <div>
-                                            <div className="text-gray-600">Status</div>
-                                            <div className={`font-semibold ${attempt.passed ? 'text-green-600' : 'text-red-600'}`}>
-                                                {attempt.passed ? 'Passed' : 'Failed'}
+                                            <div className="text-gray-600">Result</div>
+                                            <div className={`font-semibold text-xs ${attempt.passed ? 'text-green-600' : attempt.passed === false ? 'text-red-600' : 'text-blue-600'}`}>
+                                                {attempt.passed ? '✓ Passed' : attempt.passed === false ? '✗ Failed' : 'Submitted'}
                                             </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-gray-600">Time</div>
+                                            <div className="font-semibold">{attempt.time_taken_minutes}m</div>
                                         </div>
                                     </div>
                                 </div>
