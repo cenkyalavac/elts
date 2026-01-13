@@ -14,6 +14,9 @@ import FreelancerJobOffers from "../components/jobs/FreelancerJobOffers";
 import FreelancerDashboard from "../components/freelancers/FreelancerDashboard";
 import PaymentInfoForm from "../components/freelancers/PaymentInfoForm";
 import QuizResultsView from "../components/quiz/QuizResultsView";
+import ProfessionalOverview from "../components/freelancers/ProfessionalOverview";
+import WorkPreferencesForm from "../components/freelancers/WorkPreferencesForm";
+import PortfolioSection from "../components/freelancers/PortfolioSection";
 
 export default function MyApplicationPage() {
     const queryClient = useQueryClient();
@@ -136,10 +139,12 @@ export default function MyApplicationPage() {
                 </div>
 
                 <Tabs defaultValue="dashboard" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                    <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto">
                         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                        <TabsTrigger value="application">Status</TabsTrigger>
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="profile">Profile</TabsTrigger>
+                        <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                        <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
                         <TabsTrigger value="payment">Payment</TabsTrigger>
                         <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
                         <TabsTrigger value="jobs">Jobs</TabsTrigger>
@@ -147,6 +152,10 @@ export default function MyApplicationPage() {
 
                     <TabsContent value="dashboard" className="space-y-6">
                         <FreelancerDashboard freelancer={application} />
+                    </TabsContent>
+
+                    <TabsContent value="overview" className="space-y-6">
+                        <ProfessionalOverview freelancer={application} />
                     </TabsContent>
 
                     <TabsContent value="application" className="space-y-8">
@@ -450,6 +459,14 @@ export default function MyApplicationPage() {
 
                    <TabsContent value="profile" className="space-y-6">
                        <FreelancerProfileForm freelancer={application} onSaveSuccess={() => {}} />
+                   </TabsContent>
+
+                   <TabsContent value="preferences" className="space-y-6">
+                       <WorkPreferencesForm freelancer={application} />
+                   </TabsContent>
+
+                   <TabsContent value="portfolio" className="space-y-6">
+                       <PortfolioSection freelancer={application} />
                    </TabsContent>
 
                    <TabsContent value="payment" className="space-y-6">
