@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, FileText, Clock, ChevronDown, ChevronUp, Loader2, RefreshCw } from 'lucide-react';
+import { Mail, FileText, Clock, ChevronDown, ChevronUp, Loader2, RefreshCw, LinkIcon } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { toast } from 'sonner';
 import ProcessApplicationDialog from '@/components/inbox/ProcessApplicationDialog';
 
 export default function InboxPage() {
@@ -70,6 +71,21 @@ export default function InboxPage() {
         );
     }
 
+    const connectMutation = useMutation({
+        mutationFn: async () => {
+            const response = await base44.functions.invoke('connectGmail', {});
+            return response.data;
+        },
+        onSuccess: (data) => {
+            if (data.authUrl) {
+                window.location.href = data.authUrl;
+            }
+        },
+        onError: (error) => {
+            toast.error('Failed to initiate Gmail connection');
+        }
+    });
+
     if (!user.gmailRefreshToken) {
         return (
             <div className="min-h-screen bg-gray-50 p-6">
@@ -78,7 +94,14 @@ export default function InboxPage() {
                         <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <h2 className="text-xl font-semibold text-gray-900">Gmail Not Connected</h2>
                         <p className="text-gray-600 mt-2">Please connect your Gmail account to use the inbox feature.</p>
-                        <Button className="mt-4">Connect Gmail</Button>
+                        <Button 
+                            onClick={() => connectMutation.mutate()} 
+                            disabled={connectMutation.isPending}
+                            className="mt-4 gap-2"
+                        >
+                            <LinkIcon className="w-4 h-4" />
+                            {connectMutation.isPending ? 'Connecting...' : 'Connect Gmail'}
+                        </Button>
                     </Card>
                 </div>
             </div>
