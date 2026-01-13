@@ -24,7 +24,7 @@ Attachments: ${email.attachments?.length || 0}
 
         const analysis = await base44.integrations.Core.InvokeLLM({
             prompt: `Analyze this email and provide a JSON response with the following fields:
-- category: One of ["Application", "Support Request", "Notification", "Job Inquiry", "Follow-up", "Other"]
+- category: One of ["New Application Inquiry", "Urgent Support", "Billing Issue", "Feedback", "Job Inquiry", "Notification", "Follow-up", "Other"]
 - urgency: One of ["high", "medium", "low"]
 - is_spam: boolean (true if this appears to be spam or unwanted)
 - confidence: number between 0 and 1
