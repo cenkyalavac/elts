@@ -7,17 +7,17 @@ import GmailCallback from './pages/GmailCallback';
 import Home from './pages/Home';
 import ImportFreelancers from './pages/ImportFreelancers';
 import Jobs from './pages/Jobs';
+import Messages from './pages/Messages';
 import MyApplication from './pages/MyApplication';
+import MyAvailability from './pages/MyAvailability';
+import NormalizeLanguages from './pages/NormalizeLanguages';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
-import UserManagement from './pages/UserManagement';
-import Messages from './pages/Messages';
-import NormalizeLanguages from './pages/NormalizeLanguages';
-import Settings from './pages/Settings';
 import QuizManagement from './pages/QuizManagement';
+import Settings from './pages/Settings';
 import TakeQuiz from './pages/TakeQuiz';
-import MyAvailability from './pages/MyAvailability';
 import TeamAvailability from './pages/TeamAvailability';
+import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -31,17 +31,17 @@ export const PAGES = {
     "Home": Home,
     "ImportFreelancers": ImportFreelancers,
     "Jobs": Jobs,
+    "Messages": Messages,
     "MyApplication": MyApplication,
+    "MyAvailability": MyAvailability,
+    "NormalizeLanguages": NormalizeLanguages,
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
-    "UserManagement": UserManagement,
-    "Messages": Messages,
-    "NormalizeLanguages": NormalizeLanguages,
-    "Settings": Settings,
     "QuizManagement": QuizManagement,
+    "Settings": Settings,
     "TakeQuiz": TakeQuiz,
-    "MyAvailability": MyAvailability,
     "TeamAvailability": TeamAvailability,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {

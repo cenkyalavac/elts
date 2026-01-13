@@ -14,6 +14,7 @@ import NotificationSettings from "../components/settings/NotificationSettings";
 import ApplicationSettings from "../components/settings/ApplicationSettings";
 import AdminTools from "../components/settings/AdminTools";
 import StatusSettings from "../components/settings/StatusSettings";
+import GmailConnect from "../components/gmail/GmailConnect";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -354,7 +355,10 @@ export default function SettingsPage() {
                     </TabsContent>
 
                     <TabsContent value="admin">
-                        <AdminTools />
+                        <div className="space-y-6">
+                            <GmailConnect />
+                            <AdminTools />
+                        </div>
                     </TabsContent>
                 </Tabs>
             </div>
