@@ -4,14 +4,17 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, FileQuestion, BarChart } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Edit, Trash2, FileQuestion, BarChart, X } from "lucide-react";
 import { createPageUrl } from "../utils";
 import QuizForm from "../components/quiz/QuizForm";
+import QuizAnalytics from "../components/quiz/QuizAnalytics";
 import { toast } from "sonner";
 
 export default function QuizManagement() {
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [expandedQuizId, setExpandedQuizId] = useState(null);
 
     const queryClient = useQueryClient();
 
@@ -126,6 +129,7 @@ export default function QuizManagement() {
                         ) : (
                             quizzes.map(quiz => {
                                 const stats = getQuizStats(quiz.id);
+                                const isExpanded = expandedQuizId === quiz.id;
                                 return (
                                     <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
                                         <CardHeader>
@@ -148,6 +152,15 @@ export default function QuizManagement() {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => setExpandedQuizId(isExpanded ? null : quiz.id)}
+                                                        className="gap-2"
+                                                    >
+                                                        <BarChart className="w-4 h-4" />
+                                                        Analytics
+                                                    </Button>
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
@@ -183,6 +196,12 @@ export default function QuizManagement() {
                                                     </div>
                                                 )}
                                             </div>
+                                            
+                                            {isExpanded && (
+                                                <div className="mt-6 pt-6 border-t">
+                                                    <QuizAnalytics quizId={quiz.id} quiz={quiz} />
+                                                </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 );
