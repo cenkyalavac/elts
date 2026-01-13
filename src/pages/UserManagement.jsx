@@ -37,8 +37,8 @@ export default function UserManagementPage() {
     });
 
     const inviteUserMutation = useMutation({
-        mutationFn: async () => {
-            await base44.users.inviteUser(inviteEmail, inviteRole);
+        mutationFn: async ({ email, role }) => {
+            await base44.users.inviteUser(email, role);
         },
         onSuccess: () => {
             toast.success(`Invitation sent to ${inviteEmail}`);
@@ -245,7 +245,7 @@ export default function UserManagementPage() {
                                 Cancel
                             </Button>
                             <Button 
-                                onClick={() => inviteUserMutation.mutate()}
+                                onClick={() => inviteUserMutation.mutate({ email: inviteEmail, role: inviteRole })}
                                 disabled={!inviteEmail || inviteUserMutation.isPending}
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
