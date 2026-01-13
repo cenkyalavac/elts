@@ -15,18 +15,14 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Email and role are required' }, { status: 400 });
         }
 
-        if (!['admin', 'project_manager'].includes(role)) {
-            return Response.json({ error: 'Invalid role' }, { status: 400 });
+        if (!['admin', 'user'].includes(role)) {
+            return Response.json({ error: 'Invalid role - must be admin or user' }, { status: 400 });
         }
 
-        // Invite the user (platform will send invitation email)
-        await base44.asServiceRole.integrations.Core.SendEmail({
-            to: email,
-            subject: 'You have been invited to el turco portal',
-            body: `You have been invited to join the el turco portal as a ${role === 'admin' ? 'Administrator' : 'Project Manager'}.\n\nPlease visit the app to accept the invitation.`
-        });
+        // Invite the user using Base44's built-in invitation system
+        await base44.asServiceRole.users.inviteUser(email, role);
 
-        return Response.json({ success: true, message: 'Invitation sent' });
+        return Response.json({ success: true, message: 'Invitation sent successfully' });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
     }
