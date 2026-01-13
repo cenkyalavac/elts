@@ -32,17 +32,14 @@ export default function InboxPage() {
     const { data: emailData = { emails: [] }, isLoading, error, refetch } = useQuery({
         queryKey: ['allEmails', maxResults],
         queryFn: async () => {
-            try {
-                const response = await base44.functions.invoke('getGmailEmails', {
-                    maxResults: maxResults
-                });
-                const emails = response.data?.emails || [];
-                console.log('Fetched emails:', emails.length);
-                return { emails };
-            } catch (err) {
-                console.error('Error fetching emails:', err);
-                throw err;
-            }
+            console.log('Query started, user:', user?.email, 'hasToken:', !!user?.gmailRefreshToken);
+            const response = await base44.functions.invoke('getGmailEmails', {
+                maxResults: maxResults
+            });
+            console.log('Response from getGmailEmails:', response);
+            const emails = response.data?.emails || [];
+            console.log('Parsed emails:', emails.length);
+            return { emails };
         },
         enabled: !!user && user.role === 'admin' && !!user.gmailRefreshToken,
         retry: 1,
