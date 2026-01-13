@@ -23,33 +23,13 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         experience: true
     });
 
-    // Normalize language names
-    const normalizeLanguage = (lang) => {
-        const normalized = {
-            'Fransızca': 'French',
-            'French': 'French',
-            'Almanca': 'German',
-            'German': 'German',
-            'İngilizce': 'English',
-            'English': 'English',
-            'Türkçe': 'Turkish',
-            'Turkish': 'Turkish',
-            'İspanyolca': 'Spanish',
-            'Spanish': 'Spanish',
-            'İtalyanca': 'Italian',
-            'Italian': 'Italian'
-        };
-        return normalized[lang] || lang;
-    };
-
     // Extract unique language pairs - memoized to prevent recalculation
     const allLanguagePairs = useMemo(() => {
         const pairs = new Set();
         freelancers.forEach(f => {
             f.language_pairs?.forEach(pair => {
-                const source = normalizeLanguage(pair.source_language);
-                const target = normalizeLanguage(pair.target_language);
-                pairs.add(`${source} → ${target}`);
+                const pairStr = `${pair.source_language} → ${pair.target_language}`;
+                pairs.add(pairStr);
             });
         });
         return [...pairs].sort();

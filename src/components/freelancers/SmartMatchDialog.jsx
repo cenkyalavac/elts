@@ -6,29 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, X, TrendingUp, ArrowRight } from "lucide-react";
-import { calculateMatchScore } from "../jobs/FreelancerMatch";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
+import { normalizeLanguage, getLanguageName } from "../../utils/languageUtils";
 
 export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
-    // Normalize language names
-    const normalizeLanguage = (lang) => {
-        const normalized = {
-            'Fransızca': 'French',
-            'French': 'French',
-            'Almanca': 'German',
-            'German': 'German',
-            'İngilizce': 'English',
-            'English': 'English',
-            'Türkçe': 'Turkish',
-            'Turkish': 'Turkish',
-            'İspanyolca': 'Spanish',
-            'Spanish': 'Spanish',
-            'İtalyanca': 'Italian',
-            'Italian': 'Italian'
-        };
-        return normalized[lang] || lang;
-    };
 
     const [criteria, setCriteria] = useState({
         languagePairs: [],
@@ -48,10 +30,10 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
     });
 
     const addLanguagePair = () => {
-        const source = inputValue.sourceLanguage.trim();
-        const target = inputValue.targetLanguage.trim();
+        const source = normalizeLanguage(inputValue.sourceLanguage.trim());
+        const target = normalizeLanguage(inputValue.targetLanguage.trim());
         if (source && target) {
-            const pair = `${normalizeLanguage(source)} → ${normalizeLanguage(target)}`;
+            const pair = `${source} → ${target}`;
             if (!criteria.languagePairs.includes(pair)) {
                 setCriteria(prev => ({
                     ...prev,
@@ -95,7 +77,9 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
                     const freelancerPairs = f.language_pairs?.map(p => 
                         `${normalizeLanguage(p.source_language)} → ${normalizeLanguage(p.target_language)}`
                     ) || [];
-                    const hasMatch = criteria.languagePairs.some(pair => freelancerPairs.includes(pair));
+                    const hasMatch = criteria.languagePairs.some(pair => {
+                        return freelancerPairs.includes(pair);
+                    });
                     if (!hasMatch) return false;
                 }
 
@@ -205,12 +189,15 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
                             </Button>
                         </div>
                         <div className="flex flex-wrap gap-2 mt-2">
-                            {criteria.languagePairs.map(pair => (
-                                <Badge key={pair} variant="secondary" className="gap-1">
-                                    {pair}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => removeItem('languagePairs', pair)} />
-                                </Badge>
-                            ))}
+                            {criteria.languagePairs.map(pair => {
+                                const [source, target] = pair.split(' → ');
+                                return (
+                                    <Badge key={pair} variant="secondary" className="gap-1">
+                                        {getLanguageName(source)} → {getLanguageName(target)}
+                                        <X className="w-3 h-3 cursor-pointer" onClick={() => removeItem('languagePairs', pair)} />
+                                    </Badge>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -388,7 +375,7 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
                                                             {freelancer.availability && <div>⏰ {freelancer.availability}</div>}
                                                             {freelancer.language_pairs?.slice(0, 2).map((pair, idx) => (
                                                                 <div key={idx}>
-                                                                    🌐 {normalizeLanguage(pair.source_language)} → {normalizeLanguage(pair.target_language)}
+                                                                    🌐 {getLanguageName(normalizeLanguage(pair.source_language))} → {getLanguageName(normalizeLanguage(pair.target_language))}
                                                                 </div>
                                                             ))}
                                                         </div>
