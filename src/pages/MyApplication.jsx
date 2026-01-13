@@ -14,6 +14,7 @@ import FreelancerJobOffers from "../components/jobs/FreelancerJobOffers";
 import FreelancerDashboard from "../components/freelancers/FreelancerDashboard";
 import PaymentInfoForm from "../components/freelancers/PaymentInfoForm";
 import QuizResultsView from "../components/quiz/QuizResultsView";
+import AssignedQuizzesSection from "../components/quiz/AssignedQuizzesSection";
 import ProfessionalOverview from "../components/freelancers/ProfessionalOverview";
 import WorkPreferencesForm from "../components/freelancers/WorkPreferencesForm";
 import PortfolioSection from "../components/freelancers/PortfolioSection";
@@ -474,7 +475,16 @@ export default function MyApplicationPage() {
                    </TabsContent>
 
                    <TabsContent value="quizzes" className="space-y-6">
-                       <QuizResultsView freelancerId={application.id} />
+                       <div className="space-y-6">
+                           <div>
+                               <h2 className="text-2xl font-bold mb-4">Assigned Quizzes</h2>
+                               <AssignedQuizzesSection freelancerId={application.id} />
+                           </div>
+                           <div className="border-t pt-6">
+                               <h2 className="text-2xl font-bold mb-4">Quiz Results</h2>
+                               <QuizResultsView freelancerId={application.id} />
+                           </div>
+                       </div>
                    </TabsContent>
 
                    <TabsContent value="availability">
