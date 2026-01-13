@@ -4,9 +4,14 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings as SettingsIcon, Mail, Plus, Pencil, Trash2, Power, PowerOff } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import EmailTemplateForm from "../components/settings/EmailTemplateForm";
+import PipelineSettings from "../components/settings/PipelineSettings";
+import QuizSettings from "../components/settings/QuizSettings";
+import NotificationSettings from "../components/settings/NotificationSettings";
+import ApplicationSettings from "../components/settings/ApplicationSettings";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -128,20 +133,28 @@ export default function SettingsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <SettingsIcon className="w-8 h-8 text-blue-600" />
-                            Settings
-                        </h1>
-                        <p className="text-gray-600 mt-1">
-                            Manage email templates, notifications, and system configuration
-                        </p>
-                    </div>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <SettingsIcon className="w-8 h-8 text-blue-600" />
+                        Settings
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        Manage your freelancer platform configuration
+                    </p>
                 </div>
 
-                {/* Email Templates Section */}
-                <Card className="mb-6">
+                <Tabs defaultValue="email" className="space-y-6">
+                    <TabsList className="grid grid-cols-5 w-full max-w-4xl">
+                        <TabsTrigger value="email">Email</TabsTrigger>
+                        <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+                        <TabsTrigger value="quiz">Quizzes</TabsTrigger>
+                        <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                        <TabsTrigger value="application">Application</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="email">
+                        {/* Email Templates Section */}
+                        <Card className="mb-6">
                     <CardHeader>
                         <div className="flex justify-between items-center">
                             <div>
