@@ -18,6 +18,8 @@ import SmartMatchDialog from "../components/freelancers/SmartMatchDialog";
 import FreelancerPipelineCard from "../components/pipeline/FreelancerPipelineCard";
 import FreelancerDetailDrawer from "../components/pipeline/FreelancerDetailDrawer";
 import PipelineTableView from "../components/pipeline/PipelineTableView";
+import TeamAvailabilityView from "../components/views/TeamAvailabilityView";
+import AnalyticsView from "../components/views/AnalyticsView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { normalizeLanguage } from "../components/utils/languageUtils";
 
@@ -641,14 +643,4 @@ export default function FreelancersPage() {
             </div>
         </div>
     );
-}
-
-function TeamAvailabilityView() {
-    const TeamAvailabilityPage = require('./TeamAvailability').default;
-    return <div className="-m-6"><TeamAvailabilityPage /></div>;
-}
-
-function AnalyticsView() {
-    const AnalyticsPage = require('./Analytics').default;
-    return <div className="-m-6"><AnalyticsPage /></div>;
 }
