@@ -161,7 +161,8 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 size="sm"
                                 onClick={() => setActiveTab('quizzes')}
                             >
-                                Quiz Results
+                                <Award className="w-4 h-4 mr-2" />
+                                Quizzes
                             </Button>
                         </div>
                         <Button

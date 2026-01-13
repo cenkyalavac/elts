@@ -430,25 +430,23 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         </button>
                         {expandedSections.quiz && (
                             <div className="space-y-3 pl-6">
-                                <div>
-                                    <Label htmlFor="quizStatus" className="text-xs text-gray-500">Quiz Status</Label>
-                                    <Select
-                                        value={filters.quizPassed || 'all'}
-                                        onValueChange={(value) => onFilterChange({ ...filters, quizPassed: value })}
-                                    >
-                                        <SelectTrigger className="mt-1 h-8">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All</SelectItem>
-                                            <SelectItem value="passed">Passed</SelectItem>
-                                            <SelectItem value="failed">Failed</SelectItem>
-                                            <SelectItem value="not_taken">Not Taken</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                <div className="flex flex-wrap gap-2">
+                                    {['all', 'passed', 'failed', 'not_taken'].map(status => (
+                                        <Badge
+                                            key={status}
+                                            variant={filters.quizPassed === status ? "default" : "outline"}
+                                            className="cursor-pointer text-xs"
+                                            onClick={() => onFilterChange({ ...filters, quizPassed: status })}
+                                        >
+                                            {status === 'all' ? 'All' : 
+                                             status === 'passed' ? '✓ Passed' : 
+                                             status === 'failed' ? '✗ Failed' : 
+                                             'Not Taken'}
+                                        </Badge>
+                                    ))}
                                 </div>
                                 <div>
-                                    <Label htmlFor="minQuizScore" className="text-xs text-gray-500">Min Quiz Score (%)</Label>
+                                    <Label htmlFor="minQuizScore" className="text-xs text-gray-500">Min Score (%)</Label>
                                     <Input
                                         id="minQuizScore"
                                         type="number"

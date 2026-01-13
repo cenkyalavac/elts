@@ -50,20 +50,14 @@ export default function FreelancerCard({ freelancer }) {
                             </div>
                         )}
                     </div>
-                    <div className="flex flex-col gap-1 items-end">
+                    <div className="flex flex-col gap-1.5 items-end">
                         <Badge className={`${statusColors[freelancer.status]} border`}>
                             {freelancer.status}
                         </Badge>
                         {hasPassedQuiz && (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <Badge className="bg-green-500 text-white">
                                 <CheckCircle className="w-3 h-3 mr-1" />
-                                Quiz Passed
-                            </Badge>
-                        )}
-                        {avgScore !== null && (
-                            <Badge variant="outline" className="text-xs">
-                                <Award className="w-3 h-3 mr-1" />
-                                {avgScore}% avg
+                                {avgScore}%
                             </Badge>
                         )}
                     </div>
