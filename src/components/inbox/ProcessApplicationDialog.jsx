@@ -127,6 +127,41 @@ export default function ProcessApplicationDialog({ email, open, onOpenChange, on
                             </div>
                         </div>
 
+                        {/* AI Summary & Insights */}
+                        {extractedData?.summary && (
+                            <Card className="p-4 bg-blue-50 border-blue-200">
+                                <h4 className="font-semibold text-blue-900 mb-2">Profile Summary</h4>
+                                <p className="text-sm text-blue-800">{extractedData.summary}</p>
+                            </Card>
+                        )}
+
+                        {extractedData?.key_skills?.length > 0 && (
+                            <Card className="p-4 bg-amber-50 border-amber-200">
+                                <h4 className="font-semibold text-amber-900 mb-2">Key Skills Identified</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {extractedData.key_skills.map((skill, idx) => (
+                                        <span key={idx} className="inline-block bg-amber-200 text-amber-900 px-3 py-1 rounded-full text-sm font-medium">
+                                            {skill}
+                                        </span>
+                                    ))}
+                                </div>
+                            </Card>
+                        )}
+
+                        {extractedData?.suggested_roles?.length > 0 && (
+                            <Card className="p-4 bg-purple-50 border-purple-200">
+                                <h4 className="font-semibold text-purple-900 mb-2">Suggested Job Roles</h4>
+                                <div className="space-y-2">
+                                    {extractedData.suggested_roles.map((role, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 text-sm text-purple-800">
+                                            <div className="w-2 h-2 bg-purple-600 rounded-full" />
+                                            {role}
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        )}
+
                         <div className="space-y-3 max-h-96 overflow-y-auto">
                             {extractedData?.full_name && (
                                 <Card className="p-3 space-y-1">
