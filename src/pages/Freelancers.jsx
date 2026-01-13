@@ -278,9 +278,9 @@ export default function FreelancersPage() {
                         <div className="text-2xl font-bold text-gray-900">{freelancers.length}</div>
                     </div>
                     <div className="bg-white rounded-lg shadow p-4">
-                        <div className="text-sm text-gray-600">New</div>
+                        <div className="text-sm text-gray-600">New Applications</div>
                         <div className="text-2xl font-bold text-blue-600">
-                            {freelancers.filter(f => f.status === 'New').length}
+                            {freelancers.filter(f => f.status === 'New Application').length}
                         </div>
                     </div>
                     <div className="bg-white rounded-lg shadow p-4">
