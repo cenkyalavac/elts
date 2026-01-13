@@ -9,6 +9,8 @@ import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar as CalendarIcon, 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import AvailabilityCalendar from "../components/availability/AvailabilityCalendar";
+import FreelancerProfileForm from "../components/freelancers/FreelancerProfileForm";
+import FreelancerJobOffers from "../components/jobs/FreelancerJobOffers";
 
 export default function MyApplicationPage() {
     const queryClient = useQueryClient();
@@ -133,7 +135,9 @@ export default function MyApplicationPage() {
                 <Tabs defaultValue="application" className="space-y-6">
                     <TabsList>
                         <TabsTrigger value="application">Application Status</TabsTrigger>
+                        <TabsTrigger value="profile">Edit Profile</TabsTrigger>
                         <TabsTrigger value="availability">My Availability</TabsTrigger>
+                        <TabsTrigger value="jobs">Job Offers</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="application" className="space-y-8">
@@ -435,10 +439,18 @@ export default function MyApplicationPage() {
                 )}
                    </TabsContent>
 
+                   <TabsContent value="profile" className="space-y-6">
+                       <FreelancerProfileForm freelancer={application} onSaveSuccess={() => {}} />
+                   </TabsContent>
+
                    <TabsContent value="availability">
                        <AvailabilityCalendar freelancerId={application.id} readOnly={false} />
                    </TabsContent>
-                </Tabs>
+
+                   <TabsContent value="jobs">
+                       <FreelancerJobOffers freelancer={application} />
+                   </TabsContent>
+                   </Tabs>
                 </div>
                 </div>
                 );
