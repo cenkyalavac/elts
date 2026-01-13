@@ -4,9 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "./utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
     LayoutGrid, Users, Briefcase, FileText, 
-    UserCircle, LogOut, Settings, Shield, Menu, X, Upload 
+    UserCircle, LogOut, Settings, Shield, Menu, X, Upload, MessageSquare 
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -40,13 +41,31 @@ export default function Layout({ children, currentPageName }) {
         return <>{children}</>;
     }
 
+    // Fetch unread message count
+    const { data: unreadCount = 0 } = useQuery({
+        queryKey: ['unreadMessages', user?.email],
+        queryFn: async () => {
+            if (!user) return 0;
+            const conversations = await base44.entities.Conversation.list();
+            const userConvs = conversations.filter(c => 
+                c.participant_emails?.includes(user.email) &&
+                c.unread_by?.includes(user.email)
+            );
+            return userConvs.length;
+        },
+        enabled: !!user,
+        refetchInterval: 30000, // Refetch every 30 seconds
+    });
+
     const navItems = isApplicant ? [
         { name: 'MyApplication', label: 'My Application', icon: FileText },
+        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
     ] : [
         { name: 'Pipeline', label: 'Pipeline', icon: LayoutGrid },
         { name: 'Freelancers', label: 'Freelancers', icon: Users },
         { name: 'Jobs', label: 'Jobs', icon: Briefcase },
         { name: 'Analytics', label: 'Analytics', icon: LayoutGrid },
+        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
     ];
 
     const adminItems = isAdmin ? [
@@ -84,6 +103,9 @@ export default function Layout({ children, currentPageName }) {
                                         >
                                             <item.icon className="w-4 h-4" />
                                             {item.label}
+                                            {item.badge > 0 && (
+                                                <Badge className="bg-red-500 ml-1">{item.badge}</Badge>
+                                            )}
                                         </Button>
                                     </Link>
                                 ))}
@@ -147,6 +169,9 @@ export default function Layout({ children, currentPageName }) {
                                     >
                                         <item.icon className="w-5 h-5" />
                                         {item.label}
+                                        {item.badge > 0 && (
+                                            <Badge className="bg-red-500 ml-auto">{item.badge}</Badge>
+                                        )}
                                     </Button>
                                 </Link>
                             ))}
