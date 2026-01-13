@@ -17,19 +17,19 @@ export default function FreelancerPipelineCard({ freelancer, daysInStage, isDrag
                     </div>
                 </div>
 
-                {freelancer.languages && freelancer.languages.length > 0 && (
+                {freelancer.language_pairs && freelancer.language_pairs.length > 0 && (
                     <div className="flex items-center gap-1 text-xs text-gray-600">
                         <Globe className="w-3 h-3" />
                         <span className="truncate">
-                            {freelancer.languages.slice(0, 2).map(l => l.language).join(', ')}
-                            {freelancer.languages.length > 2 && ` +${freelancer.languages.length - 2}`}
+                            {freelancer.language_pairs.slice(0, 2).map(l => `${l.source_language}-${l.target_language}`).join(', ')}
+                            {freelancer.language_pairs.length > 2 && ` +${freelancer.language_pairs.length - 2}`}
                         </span>
                     </div>
                 )}
 
-                {freelancer.rate && (
+                {freelancer.rates && freelancer.rates.length > 0 && (
                     <div className="text-xs font-medium text-blue-600">
-                        {freelancer.rate}
+                        {freelancer.rates[0].rate_value} {freelancer.rates[0].currency}/{freelancer.rates[0].rate_type.replace('per_', '')}
                     </div>
                 )}
 
