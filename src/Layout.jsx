@@ -58,14 +58,15 @@ export default function Layout({ children, currentPageName }) {
     }
 
     const navItems = isApplicant ? [
-        { name: 'MyApplication', label: 'My Application', icon: FileText },
-        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-    ] : [
-        { name: 'Dashboard', label: 'Dashboard', icon: LayoutGrid },
-        { name: 'Freelancers', label: 'Freelancers', icon: Users },
-        { name: 'Jobs', label: 'Jobs', icon: Briefcase },
-        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-    ];
+            { name: 'MyApplication', label: 'My Application', icon: FileText },
+            { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
+        ] : [
+            { name: 'Dashboard', label: 'Dashboard', icon: LayoutGrid },
+            { name: 'Freelancers', label: 'Freelancers', icon: Users },
+            { name: 'Jobs', label: 'Jobs', icon: Briefcase },
+            { name: 'Inbox', label: 'Inbox', icon: MessageSquare },
+            { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
+        ];
 
     const adminItems = isAdmin ? [
         { name: 'Settings', label: 'Settings', icon: Settings },
