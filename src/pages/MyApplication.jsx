@@ -4,9 +4,12 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar, MessageSquare, ArrowRight } from "lucide-react";
+import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar, MessageSquare, ArrowRight, CheckCircle2, AlertCircle, Upload } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function MyApplicationPage() {
+    const queryClient = useQueryClient();
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
@@ -27,6 +30,60 @@ export default function MyApplicationPage() {
         )),
         enabled: !!applications[0]?.id,
     });
+
+    const updateFreelancerMutation = useMutation({
+        mutationFn: async ({ id, data, updateType }) => {
+            await base44.entities.Freelancer.update(id, data);
+            await base44.functions.invoke('onboarding', { 
+                action: 'notifyAdminOfUpdate', 
+                freelancerId: id,
+                updateType
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['myApplication']);
+            toast.success("Document uploaded successfully");
+        },
+        onError: () => {
+            toast.error("Failed to upload document");
+        }
+    });
+
+    const handleFileUpload = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            toast.loading("Uploading...");
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            
+            let updateData = {};
+            let updateType = "";
+
+            if (type === 'nda') {
+                updateData = { nda_file_url: file_url, nda: true };
+                updateType = "NDA Uploaded";
+            } else if (type === 'portfolio') {
+                updateData = { portfolio_file_url: file_url };
+                updateType = "Portfolio Uploaded";
+            } else if (type === 'certification') {
+                // Append to existing cert files or create new array if needed. 
+                // Since schema has certification_files array.
+                const currentFiles = application.certification_files || [];
+                updateData = { certification_files: [...currentFiles, file_url] };
+                updateType = "Certification Uploaded";
+            }
+
+            updateFreelancerMutation.mutate({ 
+                id: application.id, 
+                data: updateData,
+                updateType
+            });
+        } catch (error) {
+            console.error(error);
+            toast.error("Upload failed");
+        }
+    };
 
     const application = applications[0];
 
@@ -102,6 +159,146 @@ export default function MyApplicationPage() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Onboarding Checklist */}
+                <Card className="mb-8 border-0 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                            <div className="p-2 bg-green-100 rounded-lg">
+                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            </div>
+                            Onboarding Checklist
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* CV */}
+                            <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    {application.cv_file_url ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                    ) : (
+                                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">Curriculum Vitae</div>
+                                        <div className="text-sm text-gray-500">
+                                            {application.cv_file_url ? 'Uploaded' : 'Required'}
+                                        </div>
+                                    </div>
+                                </div>
+                                {application.cv_file_url && (
+                                    <a href={application.cv_file_url} target="_blank" rel="noopener noreferrer">
+                                        <Button variant="outline" size="sm">View CV</Button>
+                                    </a>
+                                )}
+                            </div>
+
+                            {/* NDA */}
+                            <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    {application.nda ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                    ) : (
+                                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">Non-Disclosure Agreement (NDA)</div>
+                                        <div className="text-sm text-gray-500">
+                                            {application.nda ? 'Signed & Uploaded' : 'Required'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {application.nda_file_url && (
+                                        <a href={application.nda_file_url} target="_blank" rel="noopener noreferrer">
+                                            <Button variant="outline" size="sm">View NDA</Button>
+                                        </a>
+                                    )}
+                                    {!application.nda && (
+                                        <div className="relative">
+                                            <input 
+                                                type="file" 
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                                onChange={(e) => handleFileUpload(e, 'nda')}
+                                                accept=".pdf,.doc,.docx"
+                                            />
+                                            <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                                                <Upload className="w-4 h-4 mr-2" /> Upload Signed NDA
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Portfolio */}
+                            <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    {application.portfolio_file_url ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                    ) : (
+                                        <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">Portfolio</div>
+                                        <div className="text-sm text-gray-500">
+                                            {application.portfolio_file_url ? 'Uploaded' : 'Optional'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {application.portfolio_file_url && (
+                                        <a href={application.portfolio_file_url} target="_blank" rel="noopener noreferrer">
+                                            <Button variant="outline" size="sm">View Portfolio</Button>
+                                        </a>
+                                    )}
+                                    <div className="relative">
+                                        <input 
+                                            type="file" 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                            onChange={(e) => handleFileUpload(e, 'portfolio')}
+                                            accept=".pdf,.doc,.docx,.zip"
+                                        />
+                                        <Button variant={application.portfolio_file_url ? "outline" : "secondary"} size="sm">
+                                            <Upload className="w-4 h-4 mr-2" /> 
+                                            {application.portfolio_file_url ? 'Update Portfolio' : 'Upload Portfolio'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Certifications */}
+                            <div className="flex items-center justify-between p-4 bg-white border rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    {(application.certification_files?.length > 0) ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                    ) : (
+                                        <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">Certifications</div>
+                                        <div className="text-sm text-gray-500">
+                                            {application.certification_files?.length || 0} files uploaded
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="relative">
+                                        <input 
+                                            type="file" 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                            onChange={(e) => handleFileUpload(e, 'certification')}
+                                            accept=".pdf,.doc,.docx,.jpg,.png"
+                                        />
+                                        <Button variant="secondary" size="sm">
+                                            <Upload className="w-4 h-4 mr-2" /> Add Certification
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </CardContent>

@@ -47,9 +47,19 @@ export default function FreelancerOnboarding() {
     ];
 
     const createFreelancerMutation = useMutation({
-        mutationFn: (data) => base44.entities.Freelancer.create(data),
+        mutationFn: async (data) => {
+            const freelancer = await base44.entities.Freelancer.create(data);
+            // Trigger welcome email
+            await base44.functions.invoke('onboarding', { 
+                action: 'sendWelcomeEmail', 
+                freelancerId: freelancer.id 
+            });
+            return freelancer;
+        },
         onSuccess: () => {
-            navigate(createPageUrl('Freelancers'));
+            // If user is authenticated as applicant, go to MyApplication
+            // Otherwise go to home/login
+             navigate(createPageUrl('MyApplication'));
         },
     });
 
