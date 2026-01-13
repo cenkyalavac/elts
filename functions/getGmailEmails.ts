@@ -120,8 +120,8 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Failed to refresh Gmail token', code: 'TOKEN_REFRESH_FAILED' }, { status: 401 });
         }
 
-        // Search for emails from/to this address, or all recent emails
-        const query = email ? `from:${email} OR to:${email}` : '';
+        // Search for emails from/to this address, or all recent emails (INBOX only)
+        const query = email ? `from:${email} OR to:${email}` : 'in:inbox';
         const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?` +
             `q=${encodeURIComponent(query)}&maxResults=${Math.min(maxResults, 50)}`;
 

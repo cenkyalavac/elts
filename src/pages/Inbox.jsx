@@ -36,11 +36,9 @@ export default function InboxPage() {
                 const response = await base44.functions.invoke('getGmailEmails', {
                     maxResults: maxResults
                 });
-                console.log('Email response:', response);
-                if (!response.data) {
-                    throw new Error('No data returned from Gmail function');
-                }
-                return response.data?.emails ? response.data : { emails: response.data };
+                const emails = response.data?.emails || [];
+                console.log('Fetched emails:', emails.length);
+                return { emails };
             } catch (err) {
                 console.error('Error fetching emails:', err);
                 throw err;
