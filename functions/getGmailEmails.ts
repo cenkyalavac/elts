@@ -140,15 +140,17 @@ Deno.serve(async (req) => {
         }
 
         // Get details for each email
-        const emails = await Promise.all(
-            searchData.messages.map(msg => getEmailDetails(msg.id, accessToken))
-        );
+         console.log('Fetching details for', searchData.messages.length, 'messages');
+         const emails = await Promise.all(
+             searchData.messages.map(msg => getEmailDetails(msg.id, accessToken))
+         );
 
-        // Filter out null entries (failed requests)
-        const validEmails = emails.filter(email => email !== null);
+         // Filter out null entries (failed requests)
+         const validEmails = emails.filter(email => email !== null);
+         console.log('Valid emails after fetch:', validEmails.length, '(failed:', searchData.messages.length - validEmails.length, ')');
 
-        // Parse emails
-        const parsedEmails = validEmails.map(email => {
+         // Parse emails
+         const parsedEmails = validEmails.map(email => {
             const headers = email.payload.headers;
             const getHeader = (name) => headers.find(h => h.name === name)?.value || '';
 
@@ -169,7 +171,8 @@ Deno.serve(async (req) => {
             };
         });
 
-        return Response.json({ emails: parsedEmails });
+        console.log('Returning', parsedEmails.length, 'parsed emails');
+         return Response.json({ emails: parsedEmails });
 
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
