@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import EmailThread from "../gmail/EmailThread";
 import { 
     X, Mail, Phone, MapPin, Globe, Calendar, 
-    FileText, Save, Bell, MessageSquare, Activity
+    FileText, Save, Bell, MessageSquare, Activity, Send
 } from "lucide-react";
+import SendEmailDialog from "../freelancers/SendEmailDialog";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 
@@ -29,6 +30,7 @@ const stages = [
 export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }) {
     const [activeTab, setActiveTab] = useState('details');
     const [editMode, setEditMode] = useState(false);
+    const [showEmailDialog, setShowEmailDialog] = useState(false);
     const [formData, setFormData] = useState({
         status: freelancer.status || 'New Application',
         notes: freelancer.notes || '',
@@ -135,22 +137,33 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                         </Button>
                     </div>
 
-                    {/* Tabs */}
-                    <div className="flex gap-2 mt-4">
+                    {/* Tabs & Actions */}
+                    <div className="flex justify-between items-center mt-4">
+                        <div className="flex gap-2">
+                            <Button
+                                variant={activeTab === 'details' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setActiveTab('details')}
+                            >
+                                Details
+                            </Button>
+                            <Button
+                                variant={activeTab === 'activity' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setActiveTab('activity')}
+                            >
+                                <Activity className="w-4 h-4 mr-2" />
+                                Activity ({activities.length})
+                            </Button>
+                        </div>
                         <Button
-                            variant={activeTab === 'details' ? 'default' : 'ghost'}
                             size="sm"
-                            onClick={() => setActiveTab('details')}
+                            variant="outline"
+                            onClick={() => setShowEmailDialog(true)}
+                            className="gap-2"
                         >
-                            Details
-                        </Button>
-                        <Button
-                            variant={activeTab === 'activity' ? 'default' : 'ghost'}
-                            size="sm"
-                            onClick={() => setActiveTab('activity')}
-                        >
-                            <Activity className="w-4 h-4 mr-2" />
-                            Activity ({activities.length})
+                            <Send className="w-4 h-4" />
+                            Send Email
                         </Button>
                     </div>
                 </div>
@@ -438,6 +451,13 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                         </div>
                     )}
                 </div>
+
+                {/* Send Email Dialog */}
+                <SendEmailDialog
+                    open={showEmailDialog}
+                    onOpenChange={setShowEmailDialog}
+                    freelancer={freelancer}
+                />
             </div>
         </div>
     );
