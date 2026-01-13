@@ -20,6 +20,7 @@ import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
 import Inbox from './pages/Inbox';
+import DocumentCompliance from './pages/DocumentCompliance';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
     "Inbox": Inbox,
+    "DocumentCompliance": DocumentCompliance,
 }
 
 export const pagesConfig = {

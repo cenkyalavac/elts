@@ -69,8 +69,9 @@ export default function Layout({ children, currentPageName }) {
         ];
 
     const adminItems = isAdmin ? [
-        { name: 'Settings', label: 'Settings', icon: Settings },
-    ] : [];
+            { name: 'DocumentCompliance', label: 'Document Compliance', icon: FileText },
+            { name: 'Settings', label: 'Settings', icon: Settings },
+        ] : [];
 
     // Don't show navigation on public pages
     if (isPublicPage) {
