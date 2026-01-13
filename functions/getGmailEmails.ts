@@ -4,27 +4,45 @@ async function getAccessToken(refreshToken) {
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
     const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
 
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            refresh_token: refreshToken,
-            client_id: clientId,
-            client_secret: clientSecret,
-            grant_type: 'refresh_token'
-        })
-    });
+    try {
+        const response = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                refresh_token: refreshToken,
+                client_id: clientId,
+                client_secret: clientSecret,
+                grant_type: 'refresh_token'
+            })
+        });
 
-    const data = await response.json();
-    return data.access_token;
+        const data = await response.json();
+        if (data.error) {
+            console.error('Token refresh error:', data.error_description);
+            return null;
+        }
+        return data.access_token;
+    } catch (error) {
+        console.error('Token refresh exception:', error.message);
+        return null;
+    }
 }
 
 async function getEmailDetails(messageId, accessToken) {
-    const response = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`,
-        { headers: { 'Authorization': `Bearer ${accessToken}` }}
-    );
-    return await response.json();
+    try {
+        const response = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`,
+            { headers: { 'Authorization': `Bearer ${accessToken}` }}
+        );
+        if (!response.ok) {
+            console.error(`Failed to fetch message ${messageId}:`, response.statusText);
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching message ${messageId}:`, error.message);
+        return null;
+    }
 }
 
 function extractBodyFromPayload(payload) {
@@ -88,7 +106,12 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' }, { status: 403 });
         }
 
-        const body = await req.json();
+        let body = {};
+        try {
+            body = await req.json();
+        } catch (e) {
+            console.log('Could not parse JSON body:', e.message);
+        }
         const { email, maxResults = 20 } = body || {};
 
         const accessToken = await getAccessToken(user.gmailRefreshToken);
@@ -122,8 +145,11 @@ Deno.serve(async (req) => {
             searchData.messages.map(msg => getEmailDetails(msg.id, accessToken))
         );
 
+        // Filter out null entries (failed requests)
+        const validEmails = emails.filter(email => email !== null);
+
         // Parse emails
-        const parsedEmails = emails.map(email => {
+        const parsedEmails = validEmails.map(email => {
             const headers = email.payload.headers;
             const getHeader = (name) => headers.find(h => h.name === name)?.value || '';
 
