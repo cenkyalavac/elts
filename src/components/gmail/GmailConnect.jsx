@@ -25,6 +25,11 @@ export default function GmailConnect() {
     });
 
     const isConnected = user?.gmailRefreshToken;
+    const isAdmin = user?.role === 'admin';
+
+    if (!isAdmin) {
+        return null;
+    }
 
     return (
         <Card>
