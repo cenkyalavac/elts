@@ -329,6 +329,24 @@ export default function SettingsPage() {
                         )}
                     </CardContent>
                 </Card>
+                    </TabsContent>
+
+                    <TabsContent value="pipeline">
+                        <PipelineSettings />
+                    </TabsContent>
+
+                    <TabsContent value="quiz">
+                        <QuizSettings />
+                    </TabsContent>
+
+                    <TabsContent value="notifications">
+                        <NotificationSettings />
+                    </TabsContent>
+
+                    <TabsContent value="application">
+                        <ApplicationSettings />
+                    </TabsContent>
+                </Tabs>
 
                 {/* Template Form Dialog */}
                 <Dialog open={showTemplateForm} onOpenChange={setShowTemplateForm}>
