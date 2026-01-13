@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import AvailabilityCalendar from "../components/availability/AvailabilityCalendar";
 import FreelancerProfileForm from "../components/freelancers/FreelancerProfileForm";
 import FreelancerJobOffers from "../components/jobs/FreelancerJobOffers";
+import FreelancerDashboard from "../components/freelancers/FreelancerDashboard";
+import PaymentInfoForm from "../components/freelancers/PaymentInfoForm";
+import QuizResultsView from "../components/quiz/QuizResultsView";
 
 export default function MyApplicationPage() {
     const queryClient = useQueryClient();
@@ -132,13 +135,19 @@ export default function MyApplicationPage() {
                     <p className="text-gray-600">Manage your freelancer profile and availability</p>
                 </div>
 
-                <Tabs defaultValue="application" className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="application">Application Status</TabsTrigger>
-                        <TabsTrigger value="profile">Edit Profile</TabsTrigger>
-                        <TabsTrigger value="availability">My Availability</TabsTrigger>
-                        <TabsTrigger value="jobs">Job Offers</TabsTrigger>
+                <Tabs defaultValue="dashboard" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                        <TabsTrigger value="application">Status</TabsTrigger>
+                        <TabsTrigger value="profile">Profile</TabsTrigger>
+                        <TabsTrigger value="payment">Payment</TabsTrigger>
+                        <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
+                        <TabsTrigger value="jobs">Jobs</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="dashboard" className="space-y-6">
+                        <FreelancerDashboard freelancer={application} />
+                    </TabsContent>
 
                     <TabsContent value="application" className="space-y-8">
 
@@ -441,6 +450,14 @@ export default function MyApplicationPage() {
 
                    <TabsContent value="profile" className="space-y-6">
                        <FreelancerProfileForm freelancer={application} onSaveSuccess={() => {}} />
+                   </TabsContent>
+
+                   <TabsContent value="payment" className="space-y-6">
+                       <PaymentInfoForm freelancer={application} />
+                   </TabsContent>
+
+                   <TabsContent value="quizzes" className="space-y-6">
+                       <QuizResultsView freelancerId={application.id} />
                    </TabsContent>
 
                    <TabsContent value="availability">
