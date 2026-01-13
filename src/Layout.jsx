@@ -61,7 +61,6 @@ export default function Layout({ children, currentPageName }) {
         { name: 'MyApplication', label: 'My Application', icon: FileText },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
     ] : [
-        { name: 'Pipeline', label: 'Pipeline', icon: LayoutGrid },
         { name: 'Freelancers', label: 'Freelancers', icon: Users },
         { name: 'Jobs', label: 'Jobs', icon: Briefcase },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
@@ -83,7 +82,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-8">
-                            <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Pipeline')} className="flex items-center gap-2">
+                            <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Freelancers')} className="flex items-center gap-2">
                                 <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-lg border border-white/30">
                                     et
                                 </div>

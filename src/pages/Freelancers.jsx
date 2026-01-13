@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp } from "lucide-react";
+import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import FreelancerCard from "../components/freelancers/FreelancerCard";
@@ -12,14 +15,30 @@ import UploadCV from "../components/freelancers/UploadCV";
 import AdvancedFilters from "../components/freelancers/AdvancedFilters";
 import BulkStatusDialog from "../components/freelancers/BulkStatusDialog";
 import SmartMatchDialog from "../components/freelancers/SmartMatchDialog";
+import FreelancerPipelineCard from "../components/pipeline/FreelancerPipelineCard";
+import FreelancerDetailDrawer from "../components/pipeline/FreelancerDetailDrawer";
+import PipelineTableView from "../components/pipeline/PipelineTableView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { normalizeLanguage } from "../components/utils/languageUtils";
 
+const stages = [
+    { id: 'New Application', label: 'New Application', color: 'bg-blue-50 border-blue-200' },
+    { id: 'Form Sent', label: 'Form Sent', color: 'bg-purple-50 border-purple-200' },
+    { id: 'Price Negotiation', label: 'Price Negotiation', color: 'bg-yellow-50 border-yellow-200' },
+    { id: 'Test Sent', label: 'Test Sent', color: 'bg-indigo-50 border-indigo-200' },
+    { id: 'Approved', label: 'Approved', color: 'bg-green-50 border-green-200' },
+    { id: 'On Hold', label: 'On Hold', color: 'bg-gray-50 border-gray-200' },
+    { id: 'Rejected', label: 'Rejected', color: 'bg-red-50 border-red-200' },
+    { id: 'Red Flag', label: 'Red Flag', color: 'bg-orange-50 border-orange-200' }
+];
+
 export default function FreelancersPage() {
+    const [viewMode, setViewMode] = useState('list'); // 'list', 'board', 'table'
     const [showUpload, setShowUpload] = useState(false);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [showBulkDialog, setShowBulkDialog] = useState(false);
     const [showSmartMatch, setShowSmartMatch] = useState(false);
+    const [selectedFreelancer, setSelectedFreelancer] = useState(null);
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
@@ -60,11 +79,63 @@ export default function FreelancersPage() {
         staleTime: 30000, // Data stays fresh for 30 seconds
     });
 
+    const updateFreelancerMutation = useMutation({
+        mutationFn: ({ id, data }) => base44.entities.Freelancer.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['freelancers'] });
+        },
+    });
+
+    const createActivityMutation = useMutation({
+        mutationFn: (data) => base44.entities.FreelancerActivity.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['activities'] });
+        },
+    });
+
     const { data: allQuizAttempts = [] } = useQuery({
         queryKey: ['allQuizAttempts'],
         queryFn: () => base44.entities.QuizAttempt.list(),
         staleTime: 30000,
     });
+
+    const handleDragEnd = async (result) => {
+        if (!result.destination) return;
+
+        const freelancerId = result.draggableId;
+        const newStatus = result.destination.droppableId;
+        const freelancer = freelancers.find(f => f.id === freelancerId);
+
+        if (!freelancer || freelancer.status === newStatus) return;
+
+        const oldStatus = freelancer.status;
+
+        await updateFreelancerMutation.mutateAsync({
+            id: freelancerId,
+            data: {
+                status: newStatus,
+                stage_changed_date: new Date().toISOString()
+            }
+        });
+
+        await createActivityMutation.mutateAsync({
+            freelancer_id: freelancerId,
+            activity_type: 'Stage Changed',
+            description: `Stage changed from ${oldStatus} to ${newStatus}`,
+            old_value: oldStatus,
+            new_value: newStatus,
+            performed_by: user?.email
+        });
+    };
+
+    const getDaysInStage = (freelancer) => {
+        if (!freelancer.stage_changed_date) return null;
+        const stageDate = new Date(freelancer.stage_changed_date);
+        const now = new Date();
+        const diffTime = Math.abs(now - stageDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    };
 
     const handleUploadSuccess = () => {
         setShowUpload(false);
@@ -224,6 +295,14 @@ export default function FreelancersPage() {
         return true;
     }), [freelancers, filters, allQuizAttempts]);
 
+    const freelancersByStage = useMemo(() => {
+        const result = {};
+        stages.forEach(stage => {
+            result[stage.id] = filteredFreelancers.filter(f => f.status === stage.id);
+        });
+        return result;
+    }, [filteredFreelancers]);
+
     if (userLoading || !user) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -261,6 +340,32 @@ export default function FreelancersPage() {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <div className="flex gap-1 border rounded-lg p-1 bg-white">
+                            <Button 
+                                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('list')}
+                            >
+                                <List className="w-4 h-4 mr-2" />
+                                List
+                            </Button>
+                            <Button 
+                                variant={viewMode === 'board' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('board')}
+                            >
+                                <LayoutGrid className="w-4 h-4 mr-2" />
+                                Board
+                            </Button>
+                            <Button 
+                                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('table')}
+                            >
+                                <Table className="w-4 h-4 mr-2" />
+                                Table
+                            </Button>
+                        </div>
                         <Button
                             variant="outline"
                             onClick={() => setShowSmartMatch(true)}
@@ -269,12 +374,6 @@ export default function FreelancersPage() {
                             <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
                             Smart Match
                         </Button>
-                        <Link to={createPageUrl('Pipeline')}>
-                            <Button variant="outline">
-                                <LayoutGrid className="w-5 h-5 mr-2" />
-                                Pipeline View
-                            </Button>
-                        </Link>
                         <Button
                             onClick={() => window.location.href = createPageUrl('FreelancerOnboarding')}
                             className="bg-blue-600 hover:bg-blue-700"
@@ -340,18 +439,19 @@ export default function FreelancersPage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Filters */}
-                    <div className="lg:col-span-1">
-                        <AdvancedFilters 
-                            filters={filters} 
-                            onFilterChange={setFilters}
-                            freelancers={freelancers}
-                        />
-                    </div>
+                {viewMode === 'list' ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        {/* Filters */}
+                        <div className="lg:col-span-1">
+                            <AdvancedFilters 
+                                filters={filters} 
+                                onFilterChange={setFilters}
+                                freelancers={freelancers}
+                            />
+                        </div>
 
-                    {/* Freelancer List */}
-                    <div className="lg:col-span-3">
+                        {/* Freelancer List */}
+                        <div className="lg:col-span-3">
                         {/* Bulk Actions Toolbar */}
                         {selectedIds.size > 0 && (
                             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
@@ -419,8 +519,93 @@ export default function FreelancersPage() {
                                 ))}
                             </div>
                         )}
+                        </div>
                     </div>
-                </div>
+                ) : viewMode === 'board' ? (
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <div className="flex gap-4 overflow-x-auto pb-4">
+                            {stages.map(stage => {
+                                const stageFreelancers = freelancersByStage[stage.id] || [];
+                                
+                                return (
+                                    <div key={stage.id} className="flex-shrink-0 w-80">
+                                        <Card className={`${stage.color} border-2`}>
+                                            <CardHeader className="pb-3">
+                                                <CardTitle className="text-base flex items-center justify-between">
+                                                    <span>{stage.label}</span>
+                                                    <Badge variant="secondary">
+                                                        {stageFreelancers.length}
+                                                    </Badge>
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <Droppable droppableId={stage.id}>
+                                                    {(provided, snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.droppableProps}
+                                                            className={`space-y-3 min-h-[500px] ${
+                                                                snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg' : ''
+                                                            }`}
+                                                        >
+                                                            {stageFreelancers.map((freelancer, index) => (
+                                                                <Draggable
+                                                                    key={freelancer.id}
+                                                                    draggableId={freelancer.id}
+                                                                    index={index}
+                                                                >
+                                                                    {(provided, snapshot) => (
+                                                                        <div
+                                                                            ref={provided.innerRef}
+                                                                            {...provided.draggableProps}
+                                                                            {...provided.dragHandleProps}
+                                                                            onClick={() => setSelectedFreelancer(freelancer)}
+                                                                        >
+                                                                            <FreelancerPipelineCard
+                                                                                freelancer={freelancer}
+                                                                                daysInStage={getDaysInStage(freelancer)}
+                                                                                isDragging={snapshot.isDragging}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+                                                                </Draggable>
+                                                            ))}
+                                                            {provided.placeholder}
+                                                        </div>
+                                                    )}
+                                                </Droppable>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </DragDropContext>
+                ) : (
+                    <PipelineTableView
+                        freelancers={filteredFreelancers}
+                        stages={stages}
+                        onStageChange={async (freelancerId, newStage, oldStage) => {
+                            await updateFreelancerMutation.mutateAsync({
+                                id: freelancerId,
+                                data: {
+                                    status: newStage,
+                                    stage_changed_date: new Date().toISOString()
+                                }
+                            });
+                            await createActivityMutation.mutateAsync({
+                                freelancer_id: freelancerId,
+                                activity_type: 'Stage Changed',
+                                description: `Stage changed from ${oldStage} to ${newStage}`,
+                                old_value: oldStage,
+                                new_value: newStage,
+                                performed_by: user?.email
+                            });
+                        }}
+                        onFreelancerClick={setSelectedFreelancer}
+                        getDaysInStage={getDaysInStage}
+                    />
+                )}
 
                 {/* Bulk Status Dialog */}
                 <BulkStatusDialog 
@@ -429,6 +614,20 @@ export default function FreelancersPage() {
                     selectedIds={Array.from(selectedIds)}
                     freelancers={filteredFreelancers}
                 />
+
+                {/* Detail Drawer */}
+                {selectedFreelancer && (
+                    <FreelancerDetailDrawer
+                        freelancer={selectedFreelancer}
+                        onClose={() => setSelectedFreelancer(null)}
+                        onUpdate={(data) => {
+                            updateFreelancerMutation.mutate({
+                                id: selectedFreelancer.id,
+                                data
+                            });
+                        }}
+                    />
+                )}
                     </TabsContent>
 
                     <TabsContent value="availability">
