@@ -76,7 +76,9 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             ndaSigned: false,
             tested: false,
             certified: false,
-            minRating: ''
+            minRating: '',
+            quizPassed: 'all',
+            minQuizScore: ''
         });
     };
 

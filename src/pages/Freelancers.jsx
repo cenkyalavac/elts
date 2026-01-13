@@ -32,7 +32,9 @@ export default function FreelancersPage() {
         ndaSigned: false,
         tested: false,
         certified: false,
-        minRating: ''
+        minRating: '',
+        quizPassed: 'all',
+        minQuizScore: ''
     });
 
     const queryClient = useQueryClient();
@@ -55,6 +57,12 @@ export default function FreelancersPage() {
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-created_date'),
         staleTime: 30000, // Data stays fresh for 30 seconds
+    });
+
+    const { data: allQuizAttempts = [] } = useQuery({
+        queryKey: ['allQuizAttempts'],
+        queryFn: () => base44.entities.QuizAttempt.list(),
+        staleTime: 30000,
     });
 
     const handleUploadSuccess = () => {
@@ -85,6 +93,31 @@ export default function FreelancersPage() {
     };
 
     const filteredFreelancers = useMemo(() => freelancers.filter(freelancer => {
+        // Quiz performance filters
+        const freelancerAttempts = allQuizAttempts.filter(a => a.freelancer_id === freelancer.id);
+        const hasPassed = freelancerAttempts.some(a => a.passed === true);
+        const hasFailed = freelancerAttempts.some(a => a.passed === false);
+        const avgScore = freelancerAttempts.length > 0
+            ? freelancerAttempts.reduce((sum, a) => sum + a.percentage, 0) / freelancerAttempts.length
+            : null;
+
+        if (filters.quizPassed === 'passed' && !hasPassed) {
+            return false;
+        }
+        if (filters.quizPassed === 'failed' && !hasFailed) {
+            return false;
+        }
+        if (filters.quizPassed === 'not_taken' && freelancerAttempts.length > 0) {
+            return false;
+        }
+
+        if (filters.minQuizScore) {
+            const minScore = parseFloat(filters.minQuizScore);
+            if (avgScore === null || avgScore < minScore) {
+                return false;
+            }
+        }
+
         // Search filter
         if (filters.search) {
             const searchLower = filters.search.toLowerCase();
@@ -188,7 +221,7 @@ export default function FreelancersPage() {
         }
 
         return true;
-    }), [freelancers, filters]);
+    }), [freelancers, filters, allQuizAttempts]);
 
     if (userLoading || !user) {
         return (

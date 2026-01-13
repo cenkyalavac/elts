@@ -13,6 +13,7 @@ import {
     FileText, Save, Bell, MessageSquare, Activity, Send
 } from "lucide-react";
 import SendEmailDialog from "../freelancers/SendEmailDialog";
+import QuizAttemptsView from "../quiz/QuizAttemptsView";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 
@@ -154,6 +155,13 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             >
                                 <Activity className="w-4 h-4 mr-2" />
                                 Activity ({activities.length})
+                            </Button>
+                            <Button
+                                variant={activeTab === 'quizzes' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setActiveTab('quizzes')}
+                            >
+                                Quiz Results
                             </Button>
                         </div>
                         <Button
@@ -420,6 +428,9 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 </Link>
                             </div>
                         </>
+                    ) : activeTab === 'quizzes' ? (
+                        /* Quizzes Tab */
+                        <QuizAttemptsView freelancerId={freelancer.id} />
                     ) : (
                         /* Activity Tab */
                         <div className="space-y-4">

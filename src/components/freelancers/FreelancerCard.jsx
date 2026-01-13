@@ -24,6 +24,17 @@ const availabilityColors = {
 };
 
 export default function FreelancerCard({ freelancer }) {
+    const { data: quizAttempts = [] } = useQuery({
+        queryKey: ['quizAttempts', freelancer.id],
+        queryFn: () => base44.entities.QuizAttempt.filter({ freelancer_id: freelancer.id }),
+    });
+
+    const passedQuizzes = quizAttempts.filter(a => a.passed === true);
+    const hasPassedQuiz = passedQuizzes.length > 0;
+    const avgScore = quizAttempts.length > 0
+        ? Math.round(quizAttempts.reduce((sum, a) => sum + a.percentage, 0) / quizAttempts.length)
+        : null;
+
     return (
         <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
