@@ -415,11 +415,9 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             </div>
 
                             {/* Email Conversations */}
-                            {currentUser?.gmailRefreshToken && (
-                                <div className="border-t pt-6">
-                                    <EmailThread freelancerEmail={freelancer.email} />
-                                </div>
-                            )}
+                            <div className="border-t pt-6">
+                                <GmailIntegration freelancerEmail={freelancer.email} />
+                            </div>
 
                             <div className="border-t pt-4">
                                 <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>
