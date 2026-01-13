@@ -116,12 +116,16 @@ export default function InboxPage() {
     }
 
     if (error) {
+        console.error('Full error:', error);
         return (
             <div className="min-h-screen bg-gray-50 p-6">
                 <div className="max-w-4xl mx-auto">
                     <Card className="p-8 text-center border-red-200 bg-red-50">
                         <h2 className="text-xl font-semibold text-red-900">Error Loading Emails</h2>
                         <p className="text-red-700 mt-2">{error?.message || 'Failed to fetch emails from Gmail'}</p>
+                        <p className="text-xs text-red-600 mt-4 font-mono bg-white p-2 rounded overflow-auto max-h-32">
+                            {JSON.stringify(error, null, 2)}
+                        </p>
                         <Button onClick={() => refetch()} className="mt-4">Retry</Button>
                     </Card>
                 </div>
@@ -189,6 +193,10 @@ export default function InboxPage() {
                     <Card className="p-8 text-center">
                         <Mail className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                         <p className="text-gray-600">No emails in inbox</p>
+                        <p className="text-xs text-gray-500 mt-2">Debug: user={user?.email}, hasToken={!!user?.gmailRefreshToken}</p>
+                        <Button onClick={() => refetch()} variant="outline" className="mt-4">
+                            Try Again
+                        </Button>
                     </Card>
                 ) : filteredEmails.length === 0 ? (
                     <Card className="p-8 text-center">
