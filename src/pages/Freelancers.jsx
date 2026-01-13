@@ -21,7 +21,7 @@ export default function FreelancersPage() {
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
-        selectedLanguages: [],
+        selectedLanguagePairs: [],
         selectedSpecializations: [],
         selectedServices: [],
         minExperience: '',
@@ -83,6 +83,25 @@ export default function FreelancersPage() {
         setSelectedIds(new Set());
     };
 
+    // Normalize language names
+    const normalizeLanguage = (lang) => {
+        const normalized = {
+            'Fransızca': 'French',
+            'French': 'French',
+            'Almanca': 'German',
+            'German': 'German',
+            'İngilizce': 'English',
+            'English': 'English',
+            'Türkçe': 'Turkish',
+            'Turkish': 'Turkish',
+            'İspanyolca': 'Spanish',
+            'Spanish': 'Spanish',
+            'İtalyanca': 'Italian',
+            'Italian': 'Italian'
+        };
+        return normalized[lang] || lang;
+    };
+
     const filteredFreelancers = useMemo(() => freelancers.filter(freelancer => {
         // Search filter
         if (filters.search) {
@@ -92,7 +111,10 @@ export default function FreelancersPage() {
                 freelancer.email?.toLowerCase().includes(searchLower) ||
                 freelancer.skills?.some(skill => skill.toLowerCase().includes(searchLower)) ||
                 freelancer.specializations?.some(spec => spec.toLowerCase().includes(searchLower)) ||
-                freelancer.languages?.some(lang => lang.language?.toLowerCase().includes(searchLower));
+                freelancer.language_pairs?.some(pair => 
+                    normalizeLanguage(pair.source_language)?.toLowerCase().includes(searchLower) ||
+                    normalizeLanguage(pair.target_language)?.toLowerCase().includes(searchLower)
+                );
             
             if (!matchesSearch) return false;
         }
@@ -102,13 +124,15 @@ export default function FreelancersPage() {
             return false;
         }
 
-        // Languages filter (multi-select)
-        if (filters.selectedLanguages?.length > 0) {
-            const freelancerLanguages = freelancer.language_pairs?.flatMap(p => [p.source_language, p.target_language]) || [];
-            const hasMatchingLanguage = filters.selectedLanguages.some(lang => 
-                freelancerLanguages.includes(lang)
+        // Language pairs filter (multi-select)
+        if (filters.selectedLanguagePairs?.length > 0) {
+            const freelancerPairs = freelancer.language_pairs?.map(p => 
+                `${normalizeLanguage(p.source_language)} → ${normalizeLanguage(p.target_language)}`
+            ) || [];
+            const hasMatchingPair = filters.selectedLanguagePairs.some(filterPair => 
+                freelancerPairs.includes(filterPair)
             );
-            if (!hasMatchingLanguage) return false;
+            if (!hasMatchingPair) return false;
         }
 
         // Specializations filter (multi-select)

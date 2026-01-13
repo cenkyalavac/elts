@@ -23,10 +23,37 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         experience: true
     });
 
-    // Extract unique values from freelancers - memoized to prevent recalculation
-    const allLanguages = useMemo(() => [...new Set(
-        freelancers.flatMap(f => f.languages?.map(l => l.language) || [])
-    )].sort(), [freelancers]);
+    // Normalize language names
+    const normalizeLanguage = (lang) => {
+        const normalized = {
+            'Fransızca': 'French',
+            'French': 'French',
+            'Almanca': 'German',
+            'German': 'German',
+            'İngilizce': 'English',
+            'English': 'English',
+            'Türkçe': 'Turkish',
+            'Turkish': 'Turkish',
+            'İspanyolca': 'Spanish',
+            'Spanish': 'Spanish',
+            'İtalyanca': 'Italian',
+            'Italian': 'Italian'
+        };
+        return normalized[lang] || lang;
+    };
+
+    // Extract unique language pairs - memoized to prevent recalculation
+    const allLanguagePairs = useMemo(() => {
+        const pairs = new Set();
+        freelancers.forEach(f => {
+            f.language_pairs?.forEach(pair => {
+                const source = normalizeLanguage(pair.source_language);
+                const target = normalizeLanguage(pair.target_language);
+                pairs.add(`${source} → ${target}`);
+            });
+        });
+        return [...pairs].sort();
+    }, [freelancers]);
 
     const allSpecializations = useMemo(() => [...new Set(
         freelancers.flatMap(f => f.specializations || [])
@@ -56,7 +83,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         onFilterChange({
             search: '',
             status: 'all',
-            selectedLanguages: [],
+            selectedLanguagePairs: [],
             selectedSpecializations: [],
             selectedServices: [],
             minExperience: '',
@@ -71,7 +98,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
     };
 
     const activeFilterCount = 
-        (filters.selectedLanguages?.length || 0) +
+        (filters.selectedLanguagePairs?.length || 0) +
         (filters.selectedSpecializations?.length || 0) +
         (filters.selectedServices?.length || 0) +
         (filters.status !== 'all' ? 1 : 0) +
@@ -142,7 +169,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         </div>
                     </div>
 
-                    {/* Languages */}
+                    {/* Language Pairs */}
                     <div className="border-t pt-4">
                         <button
                             onClick={() => toggleSection('languages')}
@@ -150,10 +177,10 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         >
                             <div className="flex items-center gap-2">
                                 <Globe className="w-4 h-4 text-gray-500" />
-                                <Label className="text-sm cursor-pointer">Languages</Label>
-                                {filters.selectedLanguages?.length > 0 && (
+                                <Label className="text-sm cursor-pointer">Language Pairs</Label>
+                                {filters.selectedLanguagePairs?.length > 0 && (
                                     <Badge variant="secondary" className="text-xs">
-                                        {filters.selectedLanguages.length}
+                                        {filters.selectedLanguagePairs.length}
                                     </Badge>
                                 )}
                             </div>
@@ -164,18 +191,18 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         </button>
                         {expandedSections.languages && (
                             <div className="space-y-2 max-h-48 overflow-y-auto pl-6">
-                                {allLanguages.map(lang => (
-                                    <div key={lang} className="flex items-center gap-2">
+                                {allLanguagePairs.map(pair => (
+                                    <div key={pair} className="flex items-center gap-2">
                                         <Checkbox
-                                            id={`lang-${lang}`}
-                                            checked={filters.selectedLanguages?.includes(lang)}
-                                            onCheckedChange={() => toggleArrayFilter('selectedLanguages', lang)}
+                                            id={`pair-${pair}`}
+                                            checked={filters.selectedLanguagePairs?.includes(pair)}
+                                            onCheckedChange={() => toggleArrayFilter('selectedLanguagePairs', pair)}
                                         />
                                         <label
-                                            htmlFor={`lang-${lang}`}
+                                            htmlFor={`pair-${pair}`}
                                             className="text-sm cursor-pointer"
                                         >
-                                            {lang}
+                                            {pair}
                                         </label>
                                     </div>
                                 ))}
