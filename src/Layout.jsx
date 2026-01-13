@@ -70,6 +70,7 @@ export default function Layout({ children, currentPageName }) {
 
     const adminItems = isAdmin ? [
         { name: 'OpenPositions', label: 'Open Positions', icon: Briefcase },
+        { name: 'QuizManagement', label: 'Quiz Management', icon: FileText },
         { name: 'UserManagement', label: 'User Management', icon: Shield },
         { name: 'ImportFreelancers', label: 'Import Freelancers', icon: Upload },
         { name: 'Settings', label: 'Settings', icon: Settings },

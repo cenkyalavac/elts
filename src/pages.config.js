@@ -14,6 +14,8 @@ import UserManagement from './pages/UserManagement';
 import Messages from './pages/Messages';
 import NormalizeLanguages from './pages/NormalizeLanguages';
 import Settings from './pages/Settings';
+import QuizManagement from './pages/QuizManagement';
+import TakeQuiz from './pages/TakeQuiz';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +36,8 @@ export const PAGES = {
     "Messages": Messages,
     "NormalizeLanguages": NormalizeLanguages,
     "Settings": Settings,
+    "QuizManagement": QuizManagement,
+    "TakeQuiz": TakeQuiz,
 }
 
 export const pagesConfig = {
