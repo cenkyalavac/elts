@@ -25,9 +25,9 @@ export default function GmailConnect() {
     });
 
     const isConnected = user?.gmailRefreshToken;
-    const isAdmin = user?.role === 'admin';
+    const isAdminOrManager = user?.role === 'admin' || user?.role === 'project_manager';
 
-    if (!isAdmin) {
+    if (!isAdminOrManager) {
         return null;
     }
 
