@@ -21,11 +21,17 @@ Deno.serve(async (req) => {
 
         // Invite the user using Base44's built-in invitation system
         console.log('Inviting user:', email, 'with role:', role);
-        const result = await base44.users.inviteUser(email, role);
-        console.log('Invite result:', result);
-
-        return Response.json({ success: true, message: 'Invitation sent successfully' });
+        
+        try {
+            const result = await base44.users.inviteUser(email, role);
+            console.log('Invite result:', result);
+            return Response.json({ success: true, message: 'Invitation sent successfully' });
+        } catch (inviteError) {
+            console.error('Error from inviteUser:', inviteError);
+            return Response.json({ error: 'Failed to send invitation: ' + inviteError.message }, { status: 500 });
+        }
     } catch (error) {
+        console.error('Top level error:', error);
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
