@@ -2,9 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 const statusColors = {
     'New': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -48,9 +50,23 @@ export default function FreelancerCard({ freelancer }) {
                             </div>
                         )}
                     </div>
-                    <Badge className={`${statusColors[freelancer.status]} border`}>
-                        {freelancer.status}
-                    </Badge>
+                    <div className="flex flex-col gap-1 items-end">
+                        <Badge className={`${statusColors[freelancer.status]} border`}>
+                            {freelancer.status}
+                        </Badge>
+                        {hasPassedQuiz && (
+                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Quiz Passed
+                            </Badge>
+                        )}
+                        {avgScore !== null && (
+                            <Badge variant="outline" className="text-xs">
+                                <Award className="w-3 h-3 mr-1" />
+                                {avgScore}% avg
+                            </Badge>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
             
