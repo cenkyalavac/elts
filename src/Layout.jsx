@@ -61,6 +61,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'MyApplication', label: 'My Application', icon: FileText },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
     ] : [
+        { name: 'Dashboard', label: 'Dashboard', icon: LayoutGrid },
         { name: 'Freelancers', label: 'Freelancers', icon: Users },
         { name: 'Jobs', label: 'Jobs', icon: Briefcase },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
