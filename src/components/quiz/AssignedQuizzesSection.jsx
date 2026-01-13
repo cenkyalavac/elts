@@ -113,13 +113,18 @@ export default function AssignedQuizzesSection({ freelancerId }) {
                                 </div>
                             )}
 
-                            {!isCompleted && (
+                            {!isCompleted ? (
                                 <Link to={createPageUrl(`TakeQuiz?quizId=${assignment.quiz_id}`)}>
                                     <Button className="w-full gap-2">
                                         <Clock className="w-4 h-4" />
                                         Take Quiz
                                     </Button>
                                 </Link>
+                            ) : (
+                                <Button disabled className="w-full gap-2" variant="outline">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Completed
+                                </Button>
                             )}
                         </CardContent>
                     </Card>
