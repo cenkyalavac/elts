@@ -20,6 +20,7 @@ import FreelancerDetailDrawer from "../components/pipeline/FreelancerDetailDrawe
 import PipelineTableView from "../components/pipeline/PipelineTableView";
 import TeamAvailabilityView from "../components/views/TeamAvailabilityView";
 import AnalyticsView from "../components/views/AnalyticsView";
+import BulkQuizAssignment from "../components/quiz/BulkQuizAssignment";
 import { Skeleton } from "@/components/ui/skeleton";
 import { normalizeLanguage } from "../components/utils/languageUtils";
 
@@ -341,7 +342,7 @@ export default function FreelancersPage() {
                             Manage applications, availability, and performance
                         </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                         <div className="flex gap-1 border rounded-lg p-1 bg-white">
                             <Button 
                                 variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -368,6 +369,7 @@ export default function FreelancersPage() {
                                 Table
                             </Button>
                         </div>
+                        <BulkQuizAssignment freelancers={filteredFreelancers} />
                         <Button
                             variant="outline"
                             onClick={() => setShowSmartMatch(true)}
