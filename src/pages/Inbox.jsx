@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mail, FileText, Clock, ChevronDown, ChevronUp, Loader2, RefreshCw } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import ProcessApplicationDialog from '@/components/inbox/ProcessApplicationDialog';
 
 export default function InboxPage() {
     const [expandedEmail, setExpandedEmail] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [maxResults, setMaxResults] = useState(30);
+    const [selectedEmail, setSelectedEmail] = useState(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     // Check if user is admin
     const { data: user } = useQuery({
@@ -35,6 +38,11 @@ export default function InboxPage() {
         },
         enabled: !!user && user.role === 'admin',
     });
+
+    const handleProcessEmail = (email) => {
+        setSelectedEmail(email);
+        setDialogOpen(true);
+    };
 
     if (!user || user.role !== 'admin') {
         return (
@@ -201,7 +209,7 @@ export default function InboxPage() {
                                                     className="flex-1"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        // Will implement in Phase 2
+                                                        handleProcessEmail(email);
                                                     }}
                                                 >
                                                     Process as Application
@@ -226,6 +234,14 @@ export default function InboxPage() {
                         )}
                     </div>
                 )}
+
+                {/* Process Application Dialog */}
+                <ProcessApplicationDialog
+                    email={selectedEmail}
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={() => refetch()}
+                />
             </div>
         </div>
     );
