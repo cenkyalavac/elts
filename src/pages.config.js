@@ -16,6 +16,8 @@ import NormalizeLanguages from './pages/NormalizeLanguages';
 import Settings from './pages/Settings';
 import QuizManagement from './pages/QuizManagement';
 import TakeQuiz from './pages/TakeQuiz';
+import MyAvailability from './pages/MyAvailability';
+import TeamAvailability from './pages/TeamAvailability';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +40,8 @@ export const PAGES = {
     "Settings": Settings,
     "QuizManagement": QuizManagement,
     "TakeQuiz": TakeQuiz,
+    "MyAvailability": MyAvailability,
+    "TeamAvailability": TeamAvailability,
 }
 
 export const pagesConfig = {
