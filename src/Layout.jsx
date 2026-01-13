@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
     LayoutGrid, Users, Briefcase, FileText, 
-    UserCircle, LogOut, Settings, Shield, Menu, X, Upload, MessageSquare 
+    UserCircle, LogOut, Settings, Shield, Menu, X, Upload, MessageSquare, Calendar as CalendarIcon
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -59,10 +59,12 @@ export default function Layout({ children, currentPageName }) {
 
     const navItems = isApplicant ? [
         { name: 'MyApplication', label: 'My Application', icon: FileText },
+        { name: 'MyAvailability', label: 'My Availability', icon: CalendarIcon },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
     ] : [
         { name: 'Pipeline', label: 'Pipeline', icon: LayoutGrid },
         { name: 'Freelancers', label: 'Freelancers', icon: Users },
+        { name: 'TeamAvailability', label: 'Team Availability', icon: CalendarIcon },
         { name: 'Jobs', label: 'Jobs', icon: Briefcase },
         { name: 'Analytics', label: 'Analytics', icon: LayoutGrid },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
