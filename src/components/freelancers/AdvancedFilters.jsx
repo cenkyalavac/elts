@@ -61,7 +61,12 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             selectedServices: [],
             minExperience: '',
             maxExperience: '',
-            availability: 'all'
+            availability: 'all',
+            maxRate: '',
+            ndaSigned: false,
+            tested: false,
+            certified: false,
+            minRating: ''
         });
     };
 
@@ -72,7 +77,12 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         (filters.status !== 'all' ? 1 : 0) +
         (filters.availability !== 'all' ? 1 : 0) +
         (filters.minExperience ? 1 : 0) +
-        (filters.maxExperience ? 1 : 0);
+        (filters.maxExperience ? 1 : 0) +
+        (filters.maxRate ? 1 : 0) +
+        (filters.ndaSigned ? 1 : 0) +
+        (filters.tested ? 1 : 0) +
+        (filters.certified ? 1 : 0) +
+        (filters.minRating ? 1 : 0);
 
     return (
         <Card>
@@ -320,6 +330,78 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                                 </Badge>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Max Rate */}
+                    <div className="border-t pt-4">
+                        <Label htmlFor="maxRate" className="text-sm">Max Rate (USD per word)</Label>
+                        <Input
+                            id="maxRate"
+                            type="number"
+                            step="0.01"
+                            placeholder="e.g. 0.15"
+                            value={filters.maxRate || ''}
+                            onChange={(e) => onFilterChange({ ...filters, maxRate: e.target.value })}
+                            className="mt-2"
+                        />
+                    </div>
+
+                    {/* Qualifications */}
+                    <div className="border-t pt-4">
+                        <Label className="text-sm mb-3 block">Qualifications</Label>
+                        <div className="space-y-2 pl-6">
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="nda-signed"
+                                    checked={filters.ndaSigned || false}
+                                    onCheckedChange={(checked) => 
+                                        onFilterChange({ ...filters, ndaSigned: checked })
+                                    }
+                                />
+                                <label htmlFor="nda-signed" className="text-sm cursor-pointer">
+                                    NDA Signed
+                                </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="tested"
+                                    checked={filters.tested || false}
+                                    onCheckedChange={(checked) => 
+                                        onFilterChange({ ...filters, tested: checked })
+                                    }
+                                />
+                                <label htmlFor="tested" className="text-sm cursor-pointer">
+                                    Tested
+                                </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="certified"
+                                    checked={filters.certified || false}
+                                    onCheckedChange={(checked) => 
+                                        onFilterChange({ ...filters, certified: checked })
+                                    }
+                                />
+                                <label htmlFor="certified" className="text-sm cursor-pointer">
+                                    Certified
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Min Rating */}
+                    <div className="border-t pt-4">
+                        <Label htmlFor="minRating" className="text-sm">Min Rating</Label>
+                        <Input
+                            id="minRating"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="e.g. 80"
+                            value={filters.minRating || ''}
+                            onChange={(e) => onFilterChange({ ...filters, minRating: e.target.value })}
+                            className="mt-2"
+                        />
                     </div>
                 </div>
             </CardContent>
