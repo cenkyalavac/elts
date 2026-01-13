@@ -12,6 +12,7 @@ import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
 import Messages from './pages/Messages';
+import NormalizeLanguages from './pages/NormalizeLanguages';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "Pipeline": Pipeline,
     "UserManagement": UserManagement,
     "Messages": Messages,
+    "NormalizeLanguages": NormalizeLanguages,
 }
 
 export const pagesConfig = {
