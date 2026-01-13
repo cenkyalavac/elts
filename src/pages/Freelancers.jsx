@@ -12,6 +12,7 @@ import AdvancedFilters from "../components/freelancers/AdvancedFilters";
 import BulkStatusDialog from "../components/freelancers/BulkStatusDialog";
 import SmartMatchDialog from "../components/freelancers/SmartMatchDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { normalizeLanguage } from "../components/utils/languageUtils";
 
 export default function FreelancersPage() {
     const [showUpload, setShowUpload] = useState(false);
@@ -108,7 +109,7 @@ export default function FreelancersPage() {
         // Language pairs filter (multi-select)
         if (filters.selectedLanguagePairs?.length > 0) {
             const freelancerPairs = freelancer.language_pairs?.map(p => 
-                `${p.source_language} → ${p.target_language}`
+                `${normalizeLanguage(p.source_language)} → ${normalizeLanguage(p.target_language)}`
             ) || [];
             const hasMatchingPair = filters.selectedLanguagePairs.some(filterPair => 
                 freelancerPairs.includes(filterPair)

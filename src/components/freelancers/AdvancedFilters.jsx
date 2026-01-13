@@ -14,6 +14,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { normalizeLanguage, getLanguageName } from "../utils/languageUtils";
 
 export default function AdvancedFilters({ filters, onFilterChange, freelancers }) {
     const [expandedSections, setExpandedSections] = useState({
@@ -28,7 +29,9 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         const pairs = new Set();
         freelancers.forEach(f => {
             f.language_pairs?.forEach(pair => {
-                const pairStr = `${pair.source_language} → ${pair.target_language}`;
+                const normalizedSource = normalizeLanguage(pair.source_language);
+                const normalizedTarget = normalizeLanguage(pair.target_language);
+                const pairStr = `${normalizedSource} → ${normalizedTarget}`;
                 pairs.add(pairStr);
             });
         });
@@ -171,21 +174,24 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         </button>
                         {expandedSections.languages && (
                             <div className="space-y-2 max-h-48 overflow-y-auto pl-6">
-                                {allLanguagePairs.map(pair => (
-                                    <div key={pair} className="flex items-center gap-2">
-                                        <Checkbox
-                                            id={`pair-${pair}`}
-                                            checked={filters.selectedLanguagePairs?.includes(pair)}
-                                            onCheckedChange={() => toggleArrayFilter('selectedLanguagePairs', pair)}
-                                        />
-                                        <label
-                                            htmlFor={`pair-${pair}`}
-                                            className="text-sm cursor-pointer"
-                                        >
-                                            {pair}
-                                        </label>
-                                    </div>
-                                ))}
+                                {allLanguagePairs.map(pair => {
+                                    const [source, target] = pair.split(' → ');
+                                    return (
+                                        <div key={pair} className="flex items-center gap-2">
+                                            <Checkbox
+                                                id={`pair-${pair}`}
+                                                checked={filters.selectedLanguagePairs?.includes(pair)}
+                                                onCheckedChange={() => toggleArrayFilter('selectedLanguagePairs', pair)}
+                                            />
+                                            <label
+                                                htmlFor={`pair-${pair}`}
+                                                className="text-sm cursor-pointer"
+                                            >
+                                                {getLanguageName(source)} → {getLanguageName(target)}
+                                            </label>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
