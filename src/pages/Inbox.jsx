@@ -44,13 +44,39 @@ export default function InboxPage() {
         setDialogOpen(true);
     };
 
-    if (!user || user.role !== 'admin') {
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-6">
+                <div className="max-w-4xl mx-auto">
+                    <Card className="p-8 text-center">
+                        <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
+    if (user.role !== 'admin') {
         return (
             <div className="min-h-screen bg-gray-50 p-6">
                 <div className="max-w-4xl mx-auto">
                     <Card className="p-8 text-center">
                         <h2 className="text-xl font-semibold text-gray-900">Access Denied</h2>
                         <p className="text-gray-600 mt-2">Only administrators can access the inbox.</p>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user.gmailRefreshToken) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-6">
+                <div className="max-w-4xl mx-auto">
+                    <Card className="p-8 text-center">
+                        <h2 className="text-xl font-semibold text-gray-900">Gmail Not Connected</h2>
+                        <p className="text-gray-600 mt-2">Please connect your Gmail account to use the inbox feature.</p>
+                        <Button className="mt-4">Connect Gmail</Button>
                     </Card>
                 </div>
             </div>
@@ -113,10 +139,15 @@ export default function InboxPage() {
                         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                         <p className="text-gray-600">Loading emails...</p>
                     </Card>
+                ) : emailData.emails?.length === 0 ? (
+                    <Card className="p-8 text-center">
+                        <Mail className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                        <p className="text-gray-600">No emails in inbox</p>
+                    </Card>
                 ) : filteredEmails.length === 0 ? (
                     <Card className="p-8 text-center">
                         <Mail className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-600">No emails found</p>
+                        <p className="text-gray-600">No emails match your search</p>
                     </Card>
                 ) : (
                     <div className="space-y-2">

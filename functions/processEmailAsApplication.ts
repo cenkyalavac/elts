@@ -114,44 +114,80 @@ ${emailContent}`,
         });
 
         // Validate required fields
-        if (!response.email || !response.full_name) {
+        if (!response.email) {
             return Response.json({
-                error: 'Could not extract required fields (email and full_name) from email',
+                error: 'Could not extract email from application. Please ensure the email contains valid contact information.',
+                extracted: response
+            }, { status: 400 });
+        }
+
+        if (!response.full_name) {
+            return Response.json({
+                error: 'Could not extract applicant name from email. Please ensure the email contains the applicant\'s full name.',
+                extracted: response
+            }, { status: 400 });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(response.email)) {
+            return Response.json({
+                error: 'Invalid email format extracted',
                 extracted: response
             }, { status: 400 });
         }
 
         // Check if freelancer with this email already exists
-        const existingFreelancers = await base44.asServiceRole.entities.Freelancer.filter({
-            email: response.email
-        });
+        let existingFreelancers = [];
+        try {
+            existingFreelancers = await base44.asServiceRole.entities.Freelancer.filter({
+                email: response.email
+            });
+        } catch (filterError) {
+            console.log('Filter error (may be expected if no records exist):', filterError.message);
+        }
 
         if (existingFreelancers.length > 0) {
             return Response.json({
                 error: 'Freelancer with this email already exists',
-                freelancer_id: existingFreelancers[0].id
+                freelancer_id: existingFreelancers[0].id,
+                code: 'DUPLICATE_EMAIL'
             }, { status: 409 });
         }
 
         // Set default status for new applications
+        const sourceNote = `Source: Email from ${email.from} on ${email.date}`;
         const freelancerData = {
             ...response,
             status: 'New Application',
             resource_type: 'Freelancer',
             date_added: new Date().toISOString().split('T')[0],
-            notes: (response.notes || '') + `\n\nSource: Email from ${email.from} on ${email.date}`
+            notes: (response.notes ? response.notes + '\n\n' : '') + sourceNote
         };
 
         // Create the freelancer record
-        const createdFreelancer = await base44.asServiceRole.entities.Freelancer.create(freelancerData);
+        let createdFreelancer;
+        try {
+            createdFreelancer = await base44.asServiceRole.entities.Freelancer.create(freelancerData);
+        } catch (createError) {
+            console.error('Failed to create freelancer:', createError);
+            return Response.json({
+                error: 'Failed to create freelancer record: ' + createError.message,
+                extracted: response
+            }, { status: 500 });
+        }
 
-        // Log activity
-        await base44.asServiceRole.entities.FreelancerActivity.create({
-            freelancer_id: createdFreelancer.id,
-            activity_type: 'Email Sent',
-            description: `Application created from email: ${email.subject}`,
-            performed_by: user.email
-        });
+        // Log activity (non-critical, don't fail if this errors)
+        try {
+            await base44.asServiceRole.entities.FreelancerActivity.create({
+                freelancer_id: createdFreelancer.id,
+                activity_type: 'Email Sent',
+                description: `Application created from email: ${email.subject}`,
+                performed_by: user.email
+            });
+        } catch (activityError) {
+            console.warn('Failed to log activity:', activityError.message);
+        }
 
         return Response.json({
             success: true,

@@ -27,21 +27,35 @@ export default function ProcessApplicationDialog({ email, open, onOpenChange, on
                 const response = await base44.functions.invoke('processEmailAsApplication', {
                     email: email
                 });
-                setExtractedData(response.data.extracted_data);
-                setShowReview(true);
+                if (response.data.success) {
+                    setExtractedData(response.data.extracted_data);
+                    setShowReview(true);
+                }
                 return response.data;
             } finally {
                 setIsExtracting(false);
             }
         },
         onError: (error) => {
-            toast.error(error.response?.data?.error || 'Failed to process email');
+            const errorMsg = error.response?.data?.error || 'Failed to process email';
+            const errorCode = error.response?.data?.code;
+            
+            let userMessage = errorMsg;
+            if (errorCode === 'DUPLICATE_EMAIL') {
+                userMessage = 'This email address is already registered in the system.';
+            } else if (errorCode === 'GMAIL_NOT_CONNECTED') {
+                userMessage = 'Gmail is not connected. Please reconnect your Gmail account.';
+            }
+            
+            toast.error(userMessage);
         },
         onSuccess: (data) => {
             if (data.success) {
                 toast.success(`Application created for ${data.freelancer.full_name}`);
                 onOpenChange(false);
                 onSuccess?.();
+            } else {
+                toast.error(data.error || 'Failed to create application');
             }
         }
     });
