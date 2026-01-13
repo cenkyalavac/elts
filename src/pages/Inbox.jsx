@@ -133,6 +133,8 @@ export default function InboxPage() {
         );
     }
 
+    console.log('Inbox state:', { isLoading, error: error?.message, emailCount: emailData?.emails?.length, hasGmailToken: !!user?.gmailRefreshToken });
+    
     const filteredEmails = emailData.emails.filter(email => {
         const searchTerm = searchQuery.toLowerCase();
         return (
@@ -193,6 +195,11 @@ export default function InboxPage() {
                     <Card className="p-8 text-center">
                         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                         <p className="text-gray-600">Loading emails...</p>
+                    </Card>
+                ) : !emailData || !emailData.emails ? (
+                    <Card className="p-8 text-center bg-yellow-50 border-yellow-200">
+                        <h3 className="font-semibold text-yellow-900">No data loaded</h3>
+                        <p className="text-yellow-700 text-sm mt-2">emailData state issue - check console</p>
                     </Card>
                 ) : emailData.emails?.length === 0 ? (
                     <Card className="p-8 text-center">
