@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Info } from "lucide-react";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const PLACEHOLDERS = [
     { key: '{{name}}', description: 'Freelancer full name' },
@@ -132,13 +133,22 @@ export default function EmailTemplateForm({ template, onSave, onCancel }) {
 
             <div>
                 <Label htmlFor="body">Email Body *</Label>
-                <Textarea
-                    id="body"
+                <ReactQuill
+                    theme="snow"
                     value={formData.body}
-                    onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                    onChange={(value) => setFormData({ ...formData, body: value })}
                     placeholder="Write your email template here..."
-                    rows={10}
-                    required
+                    className="bg-white rounded-md"
+                    modules={{
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'color': [] }, { 'background': [] }],
+                            ['link'],
+                            ['clean']
+                        ]
+                    }}
                 />
             </div>
 

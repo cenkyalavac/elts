@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { freelancer_id, template_id, custom_subject, custom_body } = await req.json();
+        const { freelancer_id, template_id, custom_subject, custom_body, attachment_urls } = await req.json();
 
         if (!freelancer_id) {
             return Response.json({ error: 'freelancer_id is required' }, { status: 400 });
@@ -85,12 +85,26 @@ Deno.serve(async (req) => {
         subject = replacePlaceholders(subject, freelancer);
         body = replacePlaceholders(body, freelancer);
 
-        // Send email
-        await base44.integrations.Core.SendEmail({
+        // Prepare email data
+        const emailData = {
             to: freelancer.email,
             subject: subject,
             body: body
-        });
+        };
+
+        // Add attachments if provided
+        if (attachment_urls && attachment_urls.length > 0) {
+            // Convert attachment URLs to HTML links in the email body
+            let attachmentSection = '<br/><br/><strong>Attachments:</strong><br/>';
+            attachment_urls.forEach((url, index) => {
+                const filename = url.split('/').pop() || `attachment_${index + 1}`;
+                attachmentSection += `<a href="${url}">${filename}</a><br/>`;
+            });
+            emailData.body = body + attachmentSection;
+        }
+
+        // Send email
+        await base44.integrations.Core.SendEmail(emailData);
 
         return Response.json({ 
             success: true,
