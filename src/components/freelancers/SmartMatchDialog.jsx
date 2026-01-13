@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, X, TrendingUp, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
-import { normalizeLanguage, getLanguageName } from "../../utils/languageUtils";
+import { normalizeLanguage, getLanguageName } from "../utils/languageUtils";
 
 export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
 
