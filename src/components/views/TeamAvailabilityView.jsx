@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AvailabilityCalendar from "../availability/AvailabilityCalendar";
-import { Users, Search, Calendar, Clock } from "lucide-react";
+import AvailabilityFilters from "../freelancers/AvailabilityFilters";
+import { Users, Calendar, Clock } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks } from "date-fns";
 
 export default function TeamAvailabilityView() {
-    const [searchTerm, setSearchTerm] = useState('');
     const [selectedFreelancer, setSelectedFreelancer] = useState(null);
     const [currentWeek, setCurrentWeek] = useState(new Date());
+    const [filters, setFilters] = useState({
+        search: '',
+        status: 'all',
+        availability: 'all',
+        minHours: '',
+        maxHours: '',
+        languagePair: 'all'
+    });
 
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
@@ -30,9 +35,11 @@ export default function TeamAvailabilityView() {
         }
     });
 
-    const filteredFreelancers = freelancers.filter(f => {
-        const search = searchTerm.toLowerCase();
-        return (
+    const filteredFreelancers = useMemo(() => freelancers.filter(f => {
+        const search = filters.search.toLowerCase();
+        
+        // Search filter
+        const matchesSearch = !filters.search || (
             f.full_name?.toLowerCase().includes(search) ||
             f.email?.toLowerCase().includes(search) ||
             f.language_pairs?.some(lp => 
@@ -40,7 +47,62 @@ export default function TeamAvailabilityView() {
                 lp.target_language?.toLowerCase().includes(search)
             )
         );
-    });
+        if (!matchesSearch) return false;
+
+        // Status filter
+        if (filters.status !== 'all' && f.status !== filters.status) {
+            return false;
+        }
+
+        // Language pair filter
+        if (filters.languagePair !== 'all') {
+            const hasPair = f.language_pairs?.some(pair =>
+                `${pair.source_language} → ${pair.target_language}` === filters.languagePair
+            );
+            if (!hasPair) return false;
+        }
+
+        // Availability filter (based on this week's data)
+        if (filters.availability !== 'all') {
+            const weekAvailabilities = weekDays.map(day => 
+                allAvailabilities.find(a => 
+                    a.freelancer_id === f.id && 
+                    a.date === format(day, 'yyyy-MM-dd')
+                )
+            ).filter(Boolean);
+
+            if (filters.availability === 'available') {
+                const hasAllAvailable = weekAvailabilities.every(a => a?.status === 'available');
+                if (!hasAllAvailable && weekAvailabilities.length > 0) return false;
+            } else if (filters.availability === 'unavailable') {
+                const hasAnyUnavailable = weekAvailabilities.some(a => a?.status === 'unavailable');
+                if (!hasAnyUnavailable) return false;
+            } else if (filters.availability === 'partially_available') {
+                const hasPartial = weekAvailabilities.some(a => a?.status === 'partially_available');
+                if (!hasPartial) return false;
+            }
+        }
+
+        // Hours range filter
+        if (filters.minHours || filters.maxHours) {
+            const weekAvailabilities = weekDays.map(day =>
+                allAvailabilities.find(a => 
+                    a.freelancer_id === f.id && 
+                    a.date === format(day, 'yyyy-MM-dd')
+                )
+            ).filter(Boolean);
+
+            if (weekAvailabilities.length > 0) {
+                const totalHours = weekAvailabilities.reduce((sum, a) => sum + (a.hours_available || 0), 0);
+                const minHours = filters.minHours ? parseFloat(filters.minHours) : 0;
+                const maxHours = filters.maxHours ? parseFloat(filters.maxHours) : Infinity;
+                
+                if (totalHours < minHours || totalHours > maxHours) return false;
+            }
+        }
+
+        return true;
+    }), [freelancers, filters, allAvailabilities, weekDays]);
 
     const weekDays = eachDayOfInterval({
         start: startOfWeek(currentWeek),
@@ -62,20 +124,20 @@ export default function TeamAvailabilityView() {
 
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Filters */}
+                <AvailabilityFilters 
+                    filters={filters}
+                    onFilterChange={setFilters}
+                    freelancers={freelancers}
+                />
+
                 {/* Freelancer List */}
                 <Card className="lg:col-span-1">
                     <CardHeader>
-                        <CardTitle className="text-lg">Freelancers</CardTitle>
-                        <div className="relative mt-2">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                placeholder="Search freelancers..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
+                        <CardTitle className="text-lg">
+                            Freelancers ({filteredFreelancers.length})
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="max-h-[600px] overflow-y-auto">
                         <div className="space-y-2">
@@ -114,7 +176,7 @@ export default function TeamAvailabilityView() {
                 </Card>
 
                 {/* Weekly Overview */}
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-2 overflow-hidden">
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle className="flex items-center gap-2 text-lg">

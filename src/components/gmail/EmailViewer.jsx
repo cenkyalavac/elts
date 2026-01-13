@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reply, ReplyAll, Forward, Mail, ChevronDown, ChevronUp } from "lucide-react";
 import moment from "moment";
-import EmailComposer from "./EmailComposer";
+import EnhancedEmailComposer from "./EnhancedEmailComposer";
 
 export default function EmailViewer({ email, freelancerEmail }) {
     const [expanded, setExpanded] = useState(false);
@@ -69,13 +69,15 @@ export default function EmailViewer({ email, freelancerEmail }) {
                 )}
             </Card>
 
-            <EmailComposer
+            <EnhancedEmailComposer
                 open={showReply}
                 onOpenChange={setShowReply}
                 defaultTo={isFromFreelancer ? freelancerEmail : email.to}
                 defaultSubject={email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`}
                 defaultBody={`\n\n---\nOn ${moment(email.date).format('MMM D, YYYY [at] h:mm A')}, ${email.from} wrote:\n${email.snippet}`}
                 threadId={email.threadId}
+                email={email}
+                freelancer={{ email: freelancerEmail }}
             />
         </>
     );
