@@ -84,10 +84,10 @@ export default function Layout({ children, currentPageName }) {
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-8">
                             <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Pipeline')} className="flex items-center gap-2">
-                                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold text-sm">
+                                <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-lg border border-white/30">
                                     et
                                 </div>
-                                <span className="text-xl font-bold hidden sm:inline">el turco</span>
+                                <span className="text-xl font-bold hidden sm:inline tracking-wide">el turco</span>
                             </Link>
                             <div className="hidden md:flex items-center gap-1">
                                 {navItems.map(item => (

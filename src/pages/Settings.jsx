@@ -13,6 +13,7 @@ import QuizSettings from "../components/settings/QuizSettings";
 import NotificationSettings from "../components/settings/NotificationSettings";
 import ApplicationSettings from "../components/settings/ApplicationSettings";
 import AdminTools from "../components/settings/AdminTools";
+import StatusSettings from "../components/settings/StatusSettings";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -334,7 +335,10 @@ export default function SettingsPage() {
                     </TabsContent>
 
                     <TabsContent value="pipeline">
-                        <PipelineSettings />
+                        <div className="space-y-6">
+                            <StatusSettings />
+                            <PipelineSettings />
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="quiz">
