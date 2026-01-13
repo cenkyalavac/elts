@@ -72,6 +72,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'OpenPositions', label: 'Open Positions', icon: Briefcase },
         { name: 'UserManagement', label: 'User Management', icon: Shield },
         { name: 'ImportFreelancers', label: 'Import Freelancers', icon: Upload },
+        { name: 'Settings', label: 'Settings', icon: Settings },
     ] : [];
 
     // Don't show navigation on public pages
