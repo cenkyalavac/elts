@@ -14,6 +14,7 @@ import {
 import GmailIntegration from "../gmail/GmailIntegration";
 import SendEmailDialog from "../freelancers/SendEmailDialog";
 import QuizAttemptsView from "../quiz/QuizAttemptsView";
+import QuizAssignmentDialog from "../quiz/QuizAssignmentDialog";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 
@@ -32,6 +33,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
     const [activeTab, setActiveTab] = useState('details');
     const [editMode, setEditMode] = useState(false);
     const [showEmailDialog, setShowEmailDialog] = useState(false);
+    const [showQuizDialog, setShowQuizDialog] = useState(false);
     const [formData, setFormData] = useState({
         status: freelancer.status || 'New Application',
         notes: freelancer.notes || '',
@@ -165,15 +167,26 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 Quizzes
                             </Button>
                         </div>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setShowEmailDialog(true)}
-                            className="gap-2"
-                        >
-                            <Send className="w-4 h-4" />
-                            Send Email
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowQuizDialog(true)}
+                                className="gap-2"
+                            >
+                                <Award className="w-4 h-4" />
+                                Assign Quiz
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowEmailDialog(true)}
+                                className="gap-2"
+                            >
+                                <Send className="w-4 h-4" />
+                                Send Email
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -467,6 +480,14 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                     open={showEmailDialog}
                     onOpenChange={setShowEmailDialog}
                     freelancer={freelancer}
+                />
+
+                {/* Quiz Assignment Dialog */}
+                <QuizAssignmentDialog
+                    freelancerId={freelancer.id}
+                    freelancerEmail={freelancer.email}
+                    open={showQuizDialog}
+                    onOpenChange={setShowQuizDialog}
                 />
             </div>
         </div>
