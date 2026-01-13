@@ -4,9 +4,10 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, AlertCircle, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
+import { formatDistanceToNow, isPast } from "date-fns";
 
 export default function AssignedQuizzesSection({ freelancerId }) {
     const { data: assignments = [] } = useQuery({
@@ -31,6 +32,14 @@ export default function AssignedQuizzesSection({ freelancerId }) {
         return quizAttempts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
     };
 
+    const isDeadlineOverdue = (deadline) => deadline && isPast(new Date(deadline));
+    const getDeadlineStatus = (deadline) => {
+        if (!deadline) return null;
+        if (isPast(new Date(deadline))) return 'overdue';
+        const daysRemaining = Math.floor((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+        return daysRemaining <= 3 ? 'urgent' : 'normal';
+    };
+
     if (assignments.length === 0) {
         return (
             <Card>
@@ -48,9 +57,15 @@ export default function AssignedQuizzesSection({ freelancerId }) {
                 const quiz = getQuizDetails(assignment.quiz_id);
                 const attempt = getQuizAttempt(assignment.quiz_id);
                 const isCompleted = assignment.status === 'completed' || attempt?.status === 'submitted';
+                const deadlineStatus = getDeadlineStatus(assignment.deadline);
+                const isOverdue = isDeadlineOverdue(assignment.deadline);
 
                 return (
-                    <Card key={assignment.id}>
+                    <Card key={assignment.id} className={`${
+                        isOverdue && !isCompleted ? 'border-red-300 bg-red-50' :
+                        deadlineStatus === 'urgent' && !isCompleted ? 'border-yellow-300 bg-yellow-50' :
+                        ''
+                    }`}>
                         <CardHeader className="pb-3">
                             <div className="flex justify-between items-start">
                                 <div>
@@ -59,22 +74,40 @@ export default function AssignedQuizzesSection({ freelancerId }) {
                                         <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>
                                     )}
                                 </div>
-                                <Badge className={
-                                    isCompleted ? 'bg-green-100 text-green-800' :
-                                    assignment.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                                    'bg-yellow-100 text-yellow-800'
-                                }>
-                                    {isCompleted ? 'Completed' :
-                                     assignment.status === 'in_progress' ? 'In Progress' :
-                                     'Pending'}
-                                </Badge>
+                                <div className="flex gap-2">
+                                    {isOverdue && !isCompleted && (
+                                        <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" />
+                                            Overdue
+                                        </Badge>
+                                    )}
+                                    <Badge className={
+                                        isCompleted ? 'bg-green-100 text-green-800' :
+                                        assignment.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                                        deadlineStatus === 'urgent' ? 'bg-orange-100 text-orange-800' :
+                                        'bg-yellow-100 text-yellow-800'
+                                    }>
+                                        {isCompleted ? '✓ Completed' :
+                                         assignment.status === 'in_progress' ? 'In Progress' :
+                                         'Pending'}
+                                    </Badge>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {assignment.deadline && (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="w-4 h-4 text-gray-400" />
-                                    <span>Deadline: {new Date(assignment.deadline).toLocaleDateString()}</span>
+                                <div className={`flex items-center gap-2 text-sm p-2 rounded ${
+                                    isOverdue ? 'bg-red-100 text-red-800' :
+                                    deadlineStatus === 'urgent' ? 'bg-orange-100 text-orange-800' :
+                                    'bg-gray-50'
+                                }`}>
+                                    <Calendar className="w-4 h-4" />
+                                    <div>
+                                        <span className="font-medium">Deadline: {new Date(assignment.deadline).toLocaleDateString()}</span>
+                                        <span className="ml-2 text-xs opacity-75">
+                                            {isOverdue ? '(overdue)' : `(${formatDistanceToNow(new Date(assignment.deadline), { addSuffix: true })})`}
+                                        </span>
+                                    </div>
                                 </div>
                             )}
 
