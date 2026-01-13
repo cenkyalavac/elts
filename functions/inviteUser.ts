@@ -20,7 +20,9 @@ Deno.serve(async (req) => {
         }
 
         // Invite the user using Base44's built-in invitation system
-        await base44.asServiceRole.users.inviteUser(email, role);
+        console.log('Inviting user:', email, 'with role:', role);
+        const result = await base44.users.inviteUser(email, role);
+        console.log('Invite result:', result);
 
         return Response.json({ success: true, message: 'Invitation sent successfully' });
     } catch (error) {
