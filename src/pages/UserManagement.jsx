@@ -38,7 +38,8 @@ export default function UserManagementPage() {
 
     const inviteUserMutation = useMutation({
         mutationFn: async ({ email, role }) => {
-            await base44.users.inviteUser(email, role);
+            const response = await base44.functions.invoke('inviteUser', { email, role });
+            return response.data;
         },
         onSuccess: () => {
             toast.success(`Invitation sent to ${inviteEmail}`);
@@ -47,7 +48,7 @@ export default function UserManagementPage() {
             setShowInviteDialog(false);
         },
         onError: (error) => {
-            toast.error('Failed to send invitation: ' + error.message);
+            toast.error('Failed to send invitation: ' + (error.response?.data?.error || error.message));
         }
     });
 
