@@ -12,6 +12,7 @@ import PipelineSettings from "../components/settings/PipelineSettings";
 import QuizSettings from "../components/settings/QuizSettings";
 import NotificationSettings from "../components/settings/NotificationSettings";
 import ApplicationSettings from "../components/settings/ApplicationSettings";
+import AdminTools from "../components/settings/AdminTools";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -144,12 +145,13 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="email" className="space-y-6">
-                    <TabsList className="grid grid-cols-5 w-full max-w-4xl">
-                        <TabsTrigger value="email">Email</TabsTrigger>
+                    <TabsList className="flex flex-wrap gap-2">
+                        <TabsTrigger value="email">Email Templates</TabsTrigger>
                         <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                         <TabsTrigger value="quiz">Quizzes</TabsTrigger>
                         <TabsTrigger value="notifications">Notifications</TabsTrigger>
                         <TabsTrigger value="application">Application</TabsTrigger>
+                        <TabsTrigger value="admin">Admin Tools</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="email">
@@ -345,6 +347,10 @@ export default function SettingsPage() {
 
                     <TabsContent value="application">
                         <ApplicationSettings />
+                    </TabsContent>
+
+                    <TabsContent value="admin">
+                        <AdminTools />
                     </TabsContent>
                 </Tabs>
             </div>

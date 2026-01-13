@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, LayoutGrid, X, Sparkles } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -253,10 +254,10 @@ export default function FreelancersPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <Users className="w-8 h-8 text-blue-600" />
-                            Freelancer Applications
+                            Freelancers
                         </h1>
                         <p className="text-gray-600 mt-1">
-                            Manage and review freelance translator applications
+                            Manage applications, availability, and performance
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -279,30 +280,38 @@ export default function FreelancersPage() {
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             <Plus className="w-5 h-5 mr-2" />
-                            New Freelancer
-                        </Button>
-                        <Button
-                            onClick={() => setShowUpload(!showUpload)}
-                            variant="outline"
-                        >
-                            <Plus className="w-5 h-5 mr-2" />
-                            Bulk Upload CVs
+                            Add Freelancer
                         </Button>
                     </div>
                 </div>
+
+                <Tabs defaultValue="applications" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="applications">Applications</TabsTrigger>
+                        <TabsTrigger value="availability">Team Availability</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="applications" className="space-y-6">
+                        {showUpload && (
+                            <UploadCV onSuccess={handleUploadSuccess} />
+                        )}
+                        {!showUpload && (
+                            <Button
+                                onClick={() => setShowUpload(true)}
+                                variant="outline"
+                                size="sm"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Bulk Upload CVs
+                            </Button>
+                        )}
 
                 <SmartMatchDialog 
                     open={showSmartMatch} 
                     onOpenChange={setShowSmartMatch}
                     freelancers={freelancers}
                 />
-
-                {/* Upload Section */}
-                {showUpload && (
-                    <div className="mb-6">
-                        <UploadCV onSuccess={handleUploadSuccess} />
-                    </div>
-                )}
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -420,7 +429,27 @@ export default function FreelancersPage() {
                     selectedIds={Array.from(selectedIds)}
                     freelancers={filteredFreelancers}
                 />
+                    </TabsContent>
+
+                    <TabsContent value="availability">
+                        <TeamAvailabilityView />
+                    </TabsContent>
+
+                    <TabsContent value="analytics">
+                        <AnalyticsView />
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );
+}
+
+function TeamAvailabilityView() {
+    const TeamAvailabilityPage = require('./TeamAvailability').default;
+    return <div className="-m-6"><TeamAvailabilityPage /></div>;
+}
+
+function AnalyticsView() {
+    const AnalyticsPage = require('./Analytics').default;
+    return <div className="-m-6"><AnalyticsPage /></div>;
 }

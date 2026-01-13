@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar, MessageSquare, ArrowRight, CheckCircle2, AlertCircle, Upload } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar as CalendarIcon, MessageSquare, ArrowRight, CheckCircle2, AlertCircle, Upload } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import AvailabilityCalendar from "../components/availability/AvailabilityCalendar";
 
 export default function MyApplicationPage() {
     const queryClient = useQueryClient();
@@ -125,8 +127,16 @@ export default function MyApplicationPage() {
             <div className="max-w-5xl mx-auto">
                 <div className="mb-8">
                     <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">My Application</h1>
-                    <p className="text-gray-600">Track the status of your freelancer application</p>
+                    <p className="text-gray-600">Manage your freelancer profile and availability</p>
                 </div>
+
+                <Tabs defaultValue="application" className="space-y-6">
+                    <TabsList>
+                        <TabsTrigger value="application">Application Status</TabsTrigger>
+                        <TabsTrigger value="availability">My Availability</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="application" className="space-y-8">
 
                 {/* Status Card */}
                 <Card className="mb-8 border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
@@ -398,32 +408,38 @@ export default function MyApplicationPage() {
 
                 {/* Activity Timeline */}
                 {activities.length > 0 && (
-                    <Card className="border-0 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <div className="p-2 bg-purple-100 rounded-lg">
-                                    <MessageSquare className="w-5 h-5 text-purple-600" />
-                                </div>
-                                Activity & Updates
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {activities.map(activity => (
-                                    <div key={activity.id} className="relative pl-8 pb-6 border-l-2 border-purple-200 last:pb-0">
-                                        <div className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-purple-500 rounded-full border-4 border-white"></div>
-                                        <div className="font-semibold text-sm text-gray-900">{activity.activity_type}</div>
-                                        <div className="text-sm text-gray-600 mt-1">{activity.description}</div>
-                                        <div className="text-xs text-gray-500 mt-2">
-                                            {new Date(activity.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                   <Card className="border-0 shadow-sm">
+                       <CardHeader>
+                           <CardTitle className="flex items-center gap-3">
+                               <div className="p-2 bg-purple-100 rounded-lg">
+                                   <MessageSquare className="w-5 h-5 text-purple-600" />
+                               </div>
+                               Activity & Updates
+                           </CardTitle>
+                       </CardHeader>
+                       <CardContent>
+                           <div className="space-y-4">
+                               {activities.map(activity => (
+                                   <div key={activity.id} className="relative pl-8 pb-6 border-l-2 border-purple-200 last:pb-0">
+                                       <div className="absolute left-0 top-0 -translate-x-1/2 w-4 h-4 bg-purple-500 rounded-full border-4 border-white"></div>
+                                       <div className="font-semibold text-sm text-gray-900">{activity.activity_type}</div>
+                                       <div className="text-sm text-gray-600 mt-1">{activity.description}</div>
+                                       <div className="text-xs text-gray-500 mt-2">
+                                           {new Date(activity.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                       </CardContent>
+                   </Card>
                 )}
-            </div>
-        </div>
-    );
-}
+                   </TabsContent>
+
+                   <TabsContent value="availability">
+                       <AvailabilityCalendar freelancerId={application.id} readOnly={false} />
+                   </TabsContent>
+                </Tabs>
+                </div>
+                </div>
+                );
+                }
