@@ -13,6 +13,7 @@ import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
 import Messages from './pages/Messages';
 import NormalizeLanguages from './pages/NormalizeLanguages';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Messages": Messages,
     "NormalizeLanguages": NormalizeLanguages,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
