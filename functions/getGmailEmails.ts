@@ -27,6 +27,54 @@ async function getEmailDetails(messageId, accessToken) {
     return await response.json();
 }
 
+function extractBodyFromPayload(payload) {
+    let body = '';
+    
+    if (payload.body?.data) {
+        body = atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+    } else if (payload.parts) {
+        const findBody = (parts) => {
+            for (const part of parts) {
+                if ((part.mimeType === 'text/plain' || part.mimeType === 'text/html') && part.body?.data) {
+                    return atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+                }
+                if (part.parts) {
+                    const nestedBody = findBody(part.parts);
+                    if (nestedBody) return nestedBody;
+                }
+            }
+            return '';
+        };
+        body = findBody(payload.parts);
+    }
+    
+    return body;
+}
+
+function extractAttachments(payload) {
+    const attachments = [];
+    
+    const findAttachments = (parts) => {
+        if (!parts) return;
+        for (const part of parts) {
+            if (part.filename && part.body?.attachmentId) {
+                attachments.push({
+                    filename: part.filename,
+                    attachmentId: part.body.attachmentId,
+                    mimeType: part.mimeType,
+                    size: part.body.size || 0
+                });
+            }
+            if (part.parts) {
+                findAttachments(part.parts);
+            }
+        }
+    };
+    
+    findAttachments(payload.parts);
+    return attachments;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -40,7 +88,7 @@ Deno.serve(async (req) => {
 
         const accessToken = await getAccessToken(user.gmailRefreshToken);
 
-        // Search for emails from/to this address
+        // Search for emails from/to this address, or all recent emails
         const query = email ? `from:${email} OR to:${email}` : '';
         const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?` +
             `q=${encodeURIComponent(query)}&maxResults=${maxResults}`;
@@ -65,15 +113,8 @@ Deno.serve(async (req) => {
             const headers = email.payload.headers;
             const getHeader = (name) => headers.find(h => h.name === name)?.value || '';
 
-            let body = '';
-            if (email.payload.body.data) {
-                body = atob(email.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-            } else if (email.payload.parts) {
-                const textPart = email.payload.parts.find(p => p.mimeType === 'text/plain' || p.mimeType === 'text/html');
-                if (textPart?.body.data) {
-                    body = atob(textPart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-                }
-            }
+            const body = extractBodyFromPayload(email.payload);
+            const attachments = extractAttachments(email.payload);
 
             return {
                 id: email.id,
@@ -84,7 +125,8 @@ Deno.serve(async (req) => {
                 date: getHeader('Date'),
                 snippet: email.snippet,
                 body: body.substring(0, 5000), // Limit body length
-                labels: email.labelIds || []
+                labels: email.labelIds || [],
+                attachments: attachments
             };
         });
 
