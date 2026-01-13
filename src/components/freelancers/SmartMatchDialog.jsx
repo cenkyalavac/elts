@@ -5,14 +5,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, X, TrendingUp } from "lucide-react";
+import { Sparkles, X, TrendingUp, ArrowRight } from "lucide-react";
 import { calculateMatchScore } from "../jobs/FreelancerMatch";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 
 export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
+    // Normalize language names
+    const normalizeLanguage = (lang) => {
+        const normalized = {
+            'Fransızca': 'French',
+            'French': 'French',
+            'Almanca': 'German',
+            'German': 'German',
+            'İngilizce': 'English',
+            'English': 'English',
+            'Türkçe': 'Turkish',
+            'Turkish': 'Turkish',
+            'İspanyolca': 'Spanish',
+            'Spanish': 'Spanish',
+            'İtalyanca': 'Italian',
+            'Italian': 'Italian'
+        };
+        return normalized[lang] || lang;
+    };
+
     const [criteria, setCriteria] = useState({
-        languages: [],
+        languagePairs: [],
         services: [],
         specializations: [],
         minExperience: '',
@@ -20,7 +39,28 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
         maxRate: '',
         availability: ''
     });
-    const [inputValue, setInputValue] = useState({ languages: '', services: '', specializations: '', skills: '' });
+    const [inputValue, setInputValue] = useState({ 
+        sourceLanguage: '', 
+        targetLanguage: '',
+        services: '', 
+        specializations: '', 
+        skills: '' 
+    });
+
+    const addLanguagePair = () => {
+        const source = inputValue.sourceLanguage.trim();
+        const target = inputValue.targetLanguage.trim();
+        if (source && target) {
+            const pair = `${normalizeLanguage(source)} → ${normalizeLanguage(target)}`;
+            if (!criteria.languagePairs.includes(pair)) {
+                setCriteria(prev => ({
+                    ...prev,
+                    languagePairs: [...prev.languagePairs, pair]
+                }));
+                setInputValue(prev => ({ ...prev, sourceLanguage: '', targetLanguage: '' }));
+            }
+        }
+    };
 
     const addItem = (field, value) => {
         if (value.trim() && !criteria[field].includes(value.trim())) {
@@ -40,29 +80,59 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
     };
 
     const matchedFreelancers = useMemo(() => {
-        if (!criteria.languages.length && !criteria.services.length && 
+        if (!criteria.languagePairs.length && !criteria.services.length && 
             !criteria.specializations.length && !criteria.skills.length) {
             return [];
         }
 
-        // Create a pseudo-job based on criteria
-        const pseudoJob = {
-            required_languages: criteria.languages.map(lang => ({ language: lang, min_proficiency: 'Professional' })),
-            required_service_types: criteria.services,
-            required_specializations: criteria.specializations,
-            required_skills: criteria.skills,
-            min_experience_years: criteria.minExperience ? parseFloat(criteria.minExperience) : 0
-        };
-
         return freelancers
             .filter(f => {
-                // Status filter - only show approved or active freelancers
+                // Status filter
                 if (!['Approved', 'Price Negotiation', 'Test Sent'].includes(f.status)) return false;
+
+                // Language pairs filter
+                if (criteria.languagePairs.length > 0) {
+                    const freelancerPairs = f.language_pairs?.map(p => 
+                        `${normalizeLanguage(p.source_language)} → ${normalizeLanguage(p.target_language)}`
+                    ) || [];
+                    const hasMatch = criteria.languagePairs.some(pair => freelancerPairs.includes(pair));
+                    if (!hasMatch) return false;
+                }
+
+                // Services filter
+                if (criteria.services.length > 0) {
+                    const hasMatch = criteria.services.some(service => 
+                        f.service_types?.includes(service)
+                    );
+                    if (!hasMatch) return false;
+                }
+
+                // Specializations filter
+                if (criteria.specializations.length > 0) {
+                    const hasMatch = criteria.specializations.some(spec => 
+                        f.specializations?.includes(spec)
+                    );
+                    if (!hasMatch) return false;
+                }
+
+                // Skills filter
+                if (criteria.skills.length > 0) {
+                    const hasMatch = criteria.skills.some(skill => 
+                        f.skills?.includes(skill) || f.software?.includes(skill)
+                    );
+                    if (!hasMatch) return false;
+                }
+
+                // Experience filter
+                if (criteria.minExperience) {
+                    const minExp = parseFloat(criteria.minExperience);
+                    if (!f.experience_years || f.experience_years < minExp) return false;
+                }
 
                 // Availability filter
                 if (criteria.availability && f.availability !== criteria.availability) return false;
 
-                // Max rate filter - check if freelancer has ANY rate below the max
+                // Max rate filter
                 if (criteria.maxRate) {
                     const maxRateNum = parseFloat(criteria.maxRate);
                     const hasAffordableRate = f.rates?.some(rate => 
@@ -73,16 +143,20 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
 
                 return true;
             })
-            .map(freelancer => ({
-                freelancer,
-                matchData: calculateMatchScore(freelancer, pseudoJob)
-            }))
-            .filter(({ matchData }) => matchData.score >= 40) // Only show matches above 40%
-            .sort((a, b) => b.matchData.score - a.matchData.score)
-            .slice(0, 20); // Limit to top 20 matches
+            .map(freelancer => {
+                // Calculate match score
+                let score = 100;
+                
+                return {
+                    freelancer,
+                    score
+                };
+            })
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 20);
     }, [criteria, freelancers]);
 
-    const hasAnyCriteria = criteria.languages.length > 0 || criteria.services.length > 0 || 
+    const hasAnyCriteria = criteria.languagePairs.length > 0 || criteria.services.length > 0 || 
                           criteria.specializations.length > 0 || criteria.skills.length > 0;
 
     return (
@@ -99,34 +173,42 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
                 </DialogHeader>
 
                 <div className="space-y-6 mt-4">
-                    {/* Languages */}
+                    {/* Language Pairs */}
                     <div>
-                        <Label>Languages</Label>
+                        <Label>Language Pairs</Label>
                         <div className="flex gap-2 mt-2">
                             <Input
-                                placeholder="e.g. English, Spanish"
-                                value={inputValue.languages}
-                                onChange={(e) => setInputValue(prev => ({ ...prev, languages: e.target.value }))}
+                                placeholder="Source (e.g. English)"
+                                value={inputValue.sourceLanguage}
+                                onChange={(e) => setInputValue(prev => ({ ...prev, sourceLanguage: e.target.value }))}
+                                className="flex-1"
+                            />
+                            <ArrowRight className="w-4 h-4 mt-2 text-gray-400" />
+                            <Input
+                                placeholder="Target (e.g. French)"
+                                value={inputValue.targetLanguage}
+                                onChange={(e) => setInputValue(prev => ({ ...prev, targetLanguage: e.target.value }))}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
-                                        addItem('languages', inputValue.languages);
+                                        addLanguagePair();
                                     }
                                 }}
+                                className="flex-1"
                             />
                             <Button 
                                 type="button" 
                                 variant="secondary"
-                                onClick={() => addItem('languages', inputValue.languages)}
+                                onClick={addLanguagePair}
                             >
                                 Add
                             </Button>
                         </div>
                         <div className="flex flex-wrap gap-2 mt-2">
-                            {criteria.languages.map(lang => (
-                                <Badge key={lang} variant="secondary" className="gap-1">
-                                    {lang}
-                                    <X className="w-3 h-3 cursor-pointer" onClick={() => removeItem('languages', lang)} />
+                            {criteria.languagePairs.map(pair => (
+                                <Badge key={pair} variant="secondary" className="gap-1">
+                                    {pair}
+                                    <X className="w-3 h-3 cursor-pointer" onClick={() => removeItem('languagePairs', pair)} />
                                 </Badge>
                             ))}
                         </div>
@@ -279,7 +361,7 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold flex items-center gap-2">
                                     <TrendingUp className="w-5 h-5 text-green-600" />
-                                    Top Matches ({matchedFreelancers.length})
+                                    Matched Freelancers ({matchedFreelancers.length})
                                 </h3>
                             </div>
 
@@ -289,27 +371,26 @@ export default function SmartMatchDialog({ open, onOpenChange, freelancers }) {
                                 </div>
                             ) : (
                                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                                    {matchedFreelancers.map(({ freelancer, matchData }) => (
+                                    {matchedFreelancers.map(({ freelancer }) => (
                                         <Card key={freelancer.id} className="hover:shadow-md transition-shadow">
                                             <CardContent className="p-4">
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <h4 className="font-semibold">{freelancer.full_name}</h4>
-                                                            <Badge 
-                                                                className={
-                                                                    matchData.score >= 80 ? 'bg-green-100 text-green-800' :
-                                                                    matchData.score >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                                                                    'bg-orange-100 text-orange-800'
-                                                                }
-                                                            >
-                                                                {matchData.score}% Match
+                                                            <Badge className="bg-green-100 text-green-800">
+                                                                Match
                                                             </Badge>
                                                         </div>
                                                         <div className="text-sm text-gray-600 space-y-1">
                                                             {freelancer.location && <div>📍 {freelancer.location}</div>}
                                                             {freelancer.experience_years && <div>💼 {freelancer.experience_years} years experience</div>}
                                                             {freelancer.availability && <div>⏰ {freelancer.availability}</div>}
+                                                            {freelancer.language_pairs?.slice(0, 2).map((pair, idx) => (
+                                                                <div key={idx}>
+                                                                    🌐 {normalizeLanguage(pair.source_language)} → {normalizeLanguage(pair.target_language)}
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                     <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>
