@@ -19,6 +19,7 @@ import Settings from './pages/Settings';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
+import Inbox from './pages/Inbox';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +45,7 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
+    "Inbox": Inbox,
 }
 
 export const pagesConfig = {
