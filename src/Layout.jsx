@@ -24,6 +24,22 @@ export default function Layout({ children, currentPageName }) {
         },
     });
 
+    // Fetch unread message count (must be before any conditional returns)
+    const { data: unreadCount = 0 } = useQuery({
+        queryKey: ['unreadMessages', user?.email],
+        queryFn: async () => {
+            if (!user) return 0;
+            const conversations = await base44.entities.Conversation.list();
+            const userConvs = conversations.filter(c => 
+                c.participant_emails?.includes(user.email) &&
+                c.unread_by?.includes(user.email)
+            );
+            return userConvs.length;
+        },
+        enabled: !!user,
+        refetchInterval: 30000, // Refetch every 30 seconds
+    });
+
     const isAdmin = user?.role === 'admin';
     const isProjectManager = user?.role === 'project_manager';
     const isApplicant = user?.role === 'applicant';
@@ -40,22 +56,6 @@ export default function Layout({ children, currentPageName }) {
     if (!isPublicPage && !user) {
         return <>{children}</>;
     }
-
-    // Fetch unread message count
-    const { data: unreadCount = 0 } = useQuery({
-        queryKey: ['unreadMessages', user?.email],
-        queryFn: async () => {
-            if (!user) return 0;
-            const conversations = await base44.entities.Conversation.list();
-            const userConvs = conversations.filter(c => 
-                c.participant_emails?.includes(user.email) &&
-                c.unread_by?.includes(user.email)
-            );
-            return userConvs.length;
-        },
-        enabled: !!user,
-        refetchInterval: 30000, // Refetch every 30 seconds
-    });
 
     const navItems = isApplicant ? [
         { name: 'MyApplication', label: 'My Application', icon: FileText },
