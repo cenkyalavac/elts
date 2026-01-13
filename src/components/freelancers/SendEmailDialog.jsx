@@ -102,9 +102,36 @@ export default function SendEmailDialog({ open, onOpenChange, freelancer }) {
 
     const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
+    // Function to replace placeholders with actual freelancer data
+    const replacePlaceholders = (text) => {
+        if (!text) return '';
+        
+        let result = text;
+        result = result.replace(/\{\{name\}\}/g, freelancer?.full_name || '');
+        result = result.replace(/\{\{email\}\}/g, freelancer?.email || '');
+        result = result.replace(/\{\{status\}\}/g, freelancer?.status || '');
+        
+        // Language pairs
+        const languagePairs = freelancer?.language_pairs?.map(p => 
+            `${p.source_language} → ${p.target_language}`
+        ).join(', ') || '';
+        result = result.replace(/\{\{language_pairs\}\}/g, languagePairs);
+        
+        return result;
+    };
+
+    // Generate preview
+    const previewSubject = useTemplate && selectedTemplateData 
+        ? replacePlaceholders(selectedTemplateData.subject)
+        : replacePlaceholders(customSubject);
+    
+    const previewBody = useTemplate && selectedTemplateData
+        ? replacePlaceholders(selectedTemplateData.body)
+        : replacePlaceholders(customBody);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Send Email to {freelancer?.full_name}</DialogTitle>
                 </DialogHeader>
@@ -148,28 +175,6 @@ export default function SendEmailDialog({ open, onOpenChange, freelancer }) {
                                     ))}
                                 </SelectContent>
                             </Select>
-
-                            {selectedTemplateData && (
-                                <Card className="mt-4">
-                                    <CardContent className="pt-4">
-                                        <div className="space-y-2">
-                                            <div>
-                                                <strong className="text-sm">Subject:</strong>
-                                                <p className="text-sm text-gray-700 mt-1">
-                                                    {selectedTemplateData.subject}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <strong className="text-sm">Preview:</strong>
-                                                <div 
-                                                    className="text-sm text-gray-700 mt-1 prose prose-sm max-w-none"
-                                                    dangerouslySetInnerHTML={{ __html: selectedTemplateData.body }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -202,6 +207,47 @@ export default function SendEmailDialog({ open, onOpenChange, freelancer }) {
                                 />
                             </div>
                         </div>
+                    )}
+
+                    {/* Email Preview */}
+                    {((useTemplate && selectedTemplate) || (!useTemplate && (customSubject || customBody))) && (
+                        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                            <CardContent className="pt-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Badge variant="outline" className="bg-white">Preview</Badge>
+                                    <span className="text-xs text-gray-600">How the email will look</span>
+                                </div>
+                                <div className="bg-white rounded-lg border p-4 space-y-3">
+                                    {previewSubject && (
+                                        <div>
+                                            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Subject</div>
+                                            <div className="text-sm font-medium">{previewSubject}</div>
+                                        </div>
+                                    )}
+                                    {previewBody && (
+                                        <div>
+                                            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Message</div>
+                                            <div 
+                                                className="text-sm prose prose-sm max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: previewBody }}
+                                            />
+                                        </div>
+                                    )}
+                                    {attachments.length > 0 && (
+                                        <div>
+                                            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Attachments</div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {attachments.map((file, idx) => (
+                                                    <Badge key={idx} variant="outline" className="bg-gray-50">
+                                                        {file.name}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
 
                     {/* Attachments */}
