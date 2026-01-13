@@ -279,7 +279,14 @@ export default function InboxPage() {
                                     {/* AI Analysis Tags */}
                                     {emailAnalysis[email.id] && (
                                         <div className="mt-2">
-                                            <EmailAnalysis analysis={emailAnalysis[email.id]} />
+                                            <EmailAnalysis 
+                                                analysis={emailAnalysis[email.id]}
+                                                emailId={email.id}
+                                                emailData={email}
+                                                onCorrectionSaved={() => {
+                                                    // Optional: Refresh email analysis after correction
+                                                }}
+                                            />
                                         </div>
                                     )}
 
