@@ -5,12 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import GmailConnect from "../components/gmail/GmailConnect";
-import { Users, Shield, Eye } from "lucide-react";
+import { Users, Shield, Eye, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UserManagementPage() {
     const queryClient = useQueryClient();
+    const [showInviteDialog, setShowInviteDialog] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteRole, setInviteRole] = useState('project_manager');
 
     const { data: currentUser } = useQuery({
         queryKey: ['currentUser'],
@@ -28,6 +34,21 @@ export default function UserManagementPage() {
             queryClient.invalidateQueries({ queryKey: ['users'] });
             toast.success('User role updated successfully');
         },
+    });
+
+    const inviteUserMutation = useMutation({
+        mutationFn: async () => {
+            await base44.users.inviteUser(inviteEmail, inviteRole);
+        },
+        onSuccess: () => {
+            toast.success(`Invitation sent to ${inviteEmail}`);
+            setInviteEmail('');
+            setInviteRole('project_manager');
+            setShowInviteDialog(false);
+        },
+        onError: (error) => {
+            toast.error('Failed to send invitation: ' + error.message);
+        }
     });
 
     const isAdmin = currentUser?.role === 'admin';
@@ -100,7 +121,13 @@ export default function UserManagementPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>All Users</CardTitle>
+                        <div className="flex justify-between items-center">
+                            <CardTitle>All Users</CardTitle>
+                            <Button onClick={() => setShowInviteDialog(true)} className="gap-2 bg-blue-600 hover:bg-blue-700">
+                                <Plus className="w-4 h-4" />
+                                Invite User
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -182,6 +209,51 @@ export default function UserManagementPage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Invite User Dialog */}
+                <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Invite New User</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="email">Email Address</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="user@example.com"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="role">Role</Label>
+                                <Select value={inviteRole} onValueChange={setInviteRole}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Administrator</SelectItem>
+                                        <SelectItem value="project_manager">Project Manager</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                onClick={() => inviteUserMutation.mutate()}
+                                disabled={!inviteEmail || inviteUserMutation.isPending}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                {inviteUserMutation.isPending ? 'Sending...' : 'Send Invitation'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );
