@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
     Search, Filter, X, ChevronDown, ChevronUp, 
-    Globe, Briefcase, Award, Calendar 
+    Globe, Briefcase, Award, Calendar, FileQuestion 
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Popover,
     PopoverContent,
@@ -21,7 +22,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         languages: true,
         specializations: true,
         services: true,
-        experience: true
+        experience: true,
+        quiz: false
     });
 
     // Extract unique language pairs - memoized to prevent recalculation
@@ -94,7 +96,9 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         (filters.ndaSigned ? 1 : 0) +
         (filters.tested ? 1 : 0) +
         (filters.certified ? 1 : 0) +
-        (filters.minRating ? 1 : 0);
+        (filters.minRating ? 1 : 0) +
+        (filters.quizPassed !== 'all' ? 1 : 0) +
+        (filters.minQuizScore ? 1 : 0);
 
     return (
         <Card>
@@ -402,6 +406,62 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                                 </label>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Quiz Performance */}
+                    <div className="border-t pt-4">
+                        <button
+                            onClick={() => toggleSection('quiz')}
+                            className="flex items-center justify-between w-full mb-2"
+                        >
+                            <div className="flex items-center gap-2">
+                                <FileQuestion className="w-4 h-4 text-gray-500" />
+                                <Label className="text-sm cursor-pointer">Quiz Performance</Label>
+                                {((filters.quizPassed !== 'all' ? 1 : 0) + (filters.minQuizScore ? 1 : 0)) > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        {(filters.quizPassed !== 'all' ? 1 : 0) + (filters.minQuizScore ? 1 : 0)}
+                                    </Badge>
+                                )}
+                            </div>
+                            {expandedSections.quiz ? 
+                                <ChevronUp className="w-4 h-4" /> : 
+                                <ChevronDown className="w-4 h-4" />
+                            }
+                        </button>
+                        {expandedSections.quiz && (
+                            <div className="space-y-3 pl-6">
+                                <div>
+                                    <Label htmlFor="quizStatus" className="text-xs text-gray-500">Quiz Status</Label>
+                                    <Select
+                                        value={filters.quizPassed || 'all'}
+                                        onValueChange={(value) => onFilterChange({ ...filters, quizPassed: value })}
+                                    >
+                                        <SelectTrigger className="mt-1 h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All</SelectItem>
+                                            <SelectItem value="passed">Passed</SelectItem>
+                                            <SelectItem value="failed">Failed</SelectItem>
+                                            <SelectItem value="not_taken">Not Taken</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="minQuizScore" className="text-xs text-gray-500">Min Quiz Score (%)</Label>
+                                    <Input
+                                        id="minQuizScore"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        placeholder="e.g. 80"
+                                        value={filters.minQuizScore || ''}
+                                        onChange={(e) => onFilterChange({ ...filters, minQuizScore: e.target.value })}
+                                        className="mt-1 h-8"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Min Rating */}
