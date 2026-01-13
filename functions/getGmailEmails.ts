@@ -106,13 +106,9 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Gmail not connected', code: 'GMAIL_NOT_CONNECTED' }, { status: 403 });
         }
 
-        let body = {};
-        try {
-            body = await req.json();
-        } catch (e) {
-            console.log('Could not parse JSON body:', e.message);
-        }
-        const { email, maxResults = 20 } = body || {};
+        const body = await req.json().catch(() => ({}));
+        const { maxResults = 20 } = body;
+        console.log('getGmailEmails called with maxResults:', maxResults);
 
         const accessToken = await getAccessToken(user.gmailRefreshToken);
 
@@ -120,10 +116,11 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Failed to refresh Gmail token', code: 'TOKEN_REFRESH_FAILED' }, { status: 401 });
         }
 
-        // Search for emails from/to this address, or all recent emails (INBOX only)
-        const query = email ? `from:${email} OR to:${email}` : 'in:inbox';
+        // Search for emails in INBOX
+        const query = 'in:inbox';
         const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?` +
             `q=${encodeURIComponent(query)}&maxResults=${Math.min(maxResults, 50)}`;
+        console.log('Gmail search URL:', searchUrl);
 
         const searchResponse = await fetch(searchUrl, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -135,8 +132,10 @@ Deno.serve(async (req) => {
         }
 
         const searchData = await searchResponse.json();
+        console.log('Gmail search response:', { messageCount: searchData.messages?.length });
 
-        if (!searchData.messages) {
+        if (!searchData.messages || searchData.messages.length === 0) {
+            console.log('No messages found in inbox');
             return Response.json({ emails: [] });
         }
 
