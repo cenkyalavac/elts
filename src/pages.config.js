@@ -1,5 +1,6 @@
 import Analytics from './pages/Analytics';
 import Apply from './pages/Apply';
+import Dashboard from './pages/Dashboard';
 import FreelancerDetail from './pages/FreelancerDetail';
 import FreelancerOnboarding from './pages/FreelancerOnboarding';
 import Freelancers from './pages/Freelancers';
@@ -18,13 +19,13 @@ import Settings from './pages/Settings';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Analytics": Analytics,
     "Apply": Apply,
+    "Dashboard": Dashboard,
     "FreelancerDetail": FreelancerDetail,
     "FreelancerOnboarding": FreelancerOnboarding,
     "Freelancers": Freelancers,
@@ -43,7 +44,6 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

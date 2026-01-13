@@ -165,6 +165,7 @@ export default function UserManagementPage() {
                                     <li>• View all freelancer applications</li>
                                     <li>• Add notes to applications</li>
                                     <li>• View activity logs</li>
+                                    <li>• Connect and manage Gmail integration</li>
                                     <li>• Cannot change statuses</li>
                                     <li>• Cannot manage users</li>
                                 </ul>
