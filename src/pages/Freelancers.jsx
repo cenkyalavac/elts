@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, LayoutGrid, X } from "lucide-react";
+import { Plus, Users, LayoutGrid, X, Sparkles } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -10,12 +10,14 @@ import FreelancerCard from "../components/freelancers/FreelancerCard";
 import UploadCV from "../components/freelancers/UploadCV";
 import AdvancedFilters from "../components/freelancers/AdvancedFilters";
 import BulkStatusDialog from "../components/freelancers/BulkStatusDialog";
+import SmartMatchDialog from "../components/freelancers/SmartMatchDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FreelancersPage() {
     const [showUpload, setShowUpload] = useState(false);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [showBulkDialog, setShowBulkDialog] = useState(false);
+    const [showSmartMatch, setShowSmartMatch] = useState(false);
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
@@ -24,7 +26,12 @@ export default function FreelancersPage() {
         selectedServices: [],
         minExperience: '',
         maxExperience: '',
-        availability: 'all'
+        availability: 'all',
+        maxRate: '',
+        ndaSigned: false,
+        tested: false,
+        certified: false,
+        minRating: ''
     });
 
     const queryClient = useQueryClient();
@@ -140,6 +147,40 @@ export default function FreelancersPage() {
             return false;
         }
 
+        // Max rate filter
+        if (filters.maxRate) {
+            const maxRateNum = parseFloat(filters.maxRate);
+            const hasAffordableRate = freelancer.rates?.some(rate => 
+                rate.rate_value && rate.rate_value <= maxRateNum
+            );
+            if (!hasAffordableRate && freelancer.rates?.length > 0) {
+                return false;
+            }
+        }
+
+        // NDA filter
+        if (filters.ndaSigned && !freelancer.nda) {
+            return false;
+        }
+
+        // Tested filter
+        if (filters.tested && !freelancer.tested) {
+            return false;
+        }
+
+        // Certified filter
+        if (filters.certified && !freelancer.certified) {
+            return false;
+        }
+
+        // Min rating filter
+        if (filters.minRating) {
+            const minRatingNum = parseFloat(filters.minRating);
+            if (!freelancer.resource_rating || freelancer.resource_rating < minRatingNum) {
+                return false;
+            }
+        }
+
         return true;
     }), [freelancers, filters]);
 
@@ -180,6 +221,14 @@ export default function FreelancersPage() {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowSmartMatch(true)}
+                            className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100"
+                        >
+                            <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                            Smart Match
+                        </Button>
                         <Link to={createPageUrl('Pipeline')}>
                             <Button variant="outline">
                                 <LayoutGrid className="w-5 h-5 mr-2" />
@@ -202,6 +251,12 @@ export default function FreelancersPage() {
                         </Button>
                     </div>
                 </div>
+
+                <SmartMatchDialog 
+                    open={showSmartMatch} 
+                    onOpenChange={setShowSmartMatch}
+                    freelancers={freelancers}
+                />
 
                 {/* Upload Section */}
                 {showUpload && (
