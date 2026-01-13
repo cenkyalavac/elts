@@ -157,6 +157,11 @@ export default function InboxPage() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-6xl mx-auto">
+                {/* Debug Info */}
+                <div className="mb-4 text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                    Status: isLoading={isLoading ? 'true' : 'false'}, hasError={error ? 'true' : 'false'}, emailCount={emailData?.emails?.length || 0}
+                </div>
+
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div>
