@@ -19,16 +19,28 @@ async function getAccessToken(refreshToken) {
     return data.access_token;
 }
 
-function createRawEmail(to, subject, body, threadId = null) {
-    const email = [
+function createRawEmail(to, subject, body, threadId = null, cc = null, bcc = null) {
+    const headers = [
         `To: ${to}`,
+    ];
+    
+    if (cc) {
+        headers.push(`Cc: ${cc}`);
+    }
+    if (bcc) {
+        headers.push(`Bcc: ${bcc}`);
+    }
+    
+    headers.push(
         `Subject: ${subject}`,
         'Content-Type: text/html; charset=utf-8',
         '',
         body
-    ].join('\r\n');
+    );
 
-    const encodedEmail = btoa(email)
+    const email = headers.join('\r\n');
+
+    const encodedEmail = btoa(unescape(encodeURIComponent(email)))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
