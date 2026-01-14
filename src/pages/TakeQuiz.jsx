@@ -560,14 +560,6 @@ export default function TakeQuiz() {
                             <div className="mb-8">
                                 <div className="flex items-center gap-3 mb-4">
                                     <span className="text-white/40 text-sm">{t.question} {currentIndex + 1}</span>
-                                    <Badge className="bg-white/10 text-white/70 border-0">
-                                        {currentQuestion?.points} {t.pts}
-                                    </Badge>
-                                    {currentQuestion?.section && (
-                                        <Badge className="bg-purple-500/20 text-purple-300 border-0">
-                                            {currentQuestion.section}
-                                        </Badge>
-                                    )}
                                 </div>
                                 <h2 
                                     className="text-2xl md:text-4xl font-bold text-white leading-relaxed"
@@ -615,55 +607,91 @@ export default function TakeQuiz() {
             </div>
 
             {/* Navigation */}
-            <div className="p-6">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <Button
-                        onClick={goPrev}
-                        disabled={currentIndex === 0}
-                        variant="ghost"
-                        className="text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30"
-                    >
-                        <ChevronLeft className="w-5 h-5 mr-2" />
-                        {t.previous}
-                    </Button>
-
-                    {/* Question dots */}
-                    <div className="hidden md:flex gap-1.5 flex-wrap justify-center max-w-md">
-                        {questions.map((q, idx) => (
-                            <button
-                                key={q.id}
-                                onClick={() => {
-                                    setDirection(idx > currentIndex ? 1 : -1);
-                                    setCurrentIndex(idx);
-                                }}
-                                className={`w-3 h-3 rounded-full transition-all ${
-                                    idx === currentIndex
-                                        ? 'bg-white scale-125'
-                                        : answers[q.id]
-                                            ? 'bg-green-400'
-                                            : 'bg-white/30 hover:bg-white/50'
-                                }`}
-                            />
-                        ))}
+            <div className="p-4 md:p-6">
+                <div className="max-w-3xl mx-auto">
+                    {/* Mobile navigation buttons */}
+                    <div className="flex md:hidden gap-3 mb-4">
+                        <Button
+                            onClick={goPrev}
+                            disabled={currentIndex === 0}
+                            variant="ghost"
+                            size="lg"
+                            className="flex-1 text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                        >
+                            <ChevronLeft className="w-5 h-5 mr-2" />
+                            {t.previous}
+                        </Button>
+                        {currentIndex === questions.length - 1 ? (
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={submitQuizMutation.isPending}
+                                size="lg"
+                                className="flex-1 bg-white text-purple-900 hover:bg-white/90"
+                            >
+                                {submitQuizMutation.isPending ? t.submitting : isPreview ? t.endPreview : t.submit}
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={goNext}
+                                size="lg"
+                                className="flex-1 bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                            >
+                                {t.next}
+                                <ChevronRight className="w-5 h-5 ml-2" />
+                            </Button>
+                        )}
                     </div>
 
-                    {currentIndex === questions.length - 1 ? (
+                    {/* Desktop navigation */}
+                    <div className="hidden md:flex items-center justify-between">
                         <Button
-                            onClick={handleSubmit}
-                            disabled={submitQuizMutation.isPending}
-                            className="bg-white text-purple-900 hover:bg-white/90 px-8"
+                            onClick={goPrev}
+                            disabled={currentIndex === 0}
+                            variant="ghost"
+                            className="text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30"
                         >
-                            {submitQuizMutation.isPending ? t.submitting : isPreview ? t.endPreview : t.submit}
+                            <ChevronLeft className="w-5 h-5 mr-2" />
+                            {t.previous}
                         </Button>
-                    ) : (
-                        <Button
-                            onClick={goNext}
-                            className="bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                        >
-                            {t.next}
-                            <ChevronRight className="w-5 h-5 ml-2" />
-                        </Button>
-                    )}
+
+                        {/* Question dots */}
+                        <div className="flex gap-1.5 flex-wrap justify-center max-w-md">
+                            {questions.map((q, idx) => (
+                                <button
+                                    key={q.id}
+                                    onClick={() => {
+                                        setDirection(idx > currentIndex ? 1 : -1);
+                                        setCurrentIndex(idx);
+                                    }}
+                                    className={`w-3 h-3 rounded-full transition-all ${
+                                        idx === currentIndex
+                                            ? 'bg-white scale-125'
+                                            : answers[q.id]
+                                                ? 'bg-green-400'
+                                                : 'bg-white/30 hover:bg-white/50'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+
+                        {currentIndex === questions.length - 1 ? (
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={submitQuizMutation.isPending}
+                                className="bg-white text-purple-900 hover:bg-white/90 px-8"
+                            >
+                                {submitQuizMutation.isPending ? t.submitting : isPreview ? t.endPreview : t.submit}
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={goNext}
+                                className="bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                            >
+                                {t.next}
+                                <ChevronRight className="w-5 h-5 ml-2" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

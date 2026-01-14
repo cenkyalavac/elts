@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, FileQuestion, BarChart, X, Eye } from "lucide-react
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import QuizForm from "../components/quiz/QuizForm";
-import QuizAnalytics from "../components/quiz/QuizAnalytics";
+import EnhancedQuizAnalytics from "../components/quiz/EnhancedQuizAnalytics";
 import ImportFromGoogleDoc from "../components/quiz/ImportFromGoogleDoc";
 import { toast } from "sonner";
 
@@ -233,7 +233,7 @@ export default function QuizManagement() {
                                             
                                             {isExpanded && (
                                                 <div className="mt-6 pt-6 border-t">
-                                                    <QuizAnalytics quizId={quiz.id} quiz={quiz} />
+                                                    <EnhancedQuizAnalytics quizId={quiz.id} quiz={quiz} />
                                                 </div>
                                             )}
                                         </CardContent>
