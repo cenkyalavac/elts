@@ -191,6 +191,77 @@ export default function InboxPage() {
         setReplyDialogOpen(true);
     };
 
+    const handleForward = (email) => {
+        setForwardEmail(email);
+        setComposeOpen(true);
+    };
+
+    const handleSnooze = (email, snoozeUntil) => {
+        setSnoozedEmails(prev => ({
+            ...prev,
+            [email.id]: snoozeUntil
+        }));
+    };
+
+    // Gmail actions mutation
+    const gmailActionMutation = useMutation({
+        mutationFn: async ({ action, messageId, messageIds }) => {
+            const response = await base44.functions.invoke('gmailActions', {
+                action,
+                messageId,
+                messageIds
+            });
+            return response.data;
+        },
+        onSuccess: (data, variables) => {
+            const { action } = variables;
+            const messages = {
+                archive: 'Email archived',
+                trash: 'Email moved to trash',
+                markRead: 'Marked as read',
+                markUnread: 'Marked as unread',
+                star: 'Email starred',
+                unstar: 'Star removed'
+            };
+            toast.success(messages[action] || 'Action completed');
+            refetch();
+        },
+        onError: (error) => {
+            toast.error('Action failed: ' + (error.message || 'Unknown error'));
+        }
+    });
+
+    const handleArchive = (emailId) => {
+        gmailActionMutation.mutate({ action: 'archive', messageId: emailId });
+    };
+
+    const handleTrash = (emailId) => {
+        gmailActionMutation.mutate({ action: 'trash', messageId: emailId });
+    };
+
+    const handleGmailStar = (emailId, isCurrentlyStarred) => {
+        gmailActionMutation.mutate({ 
+            action: isCurrentlyStarred ? 'unstar' : 'star', 
+            messageId: emailId 
+        });
+    };
+
+    const bulkArchive = () => {
+        gmailActionMutation.mutate({ 
+            action: 'archive', 
+            messageIds: Array.from(selectedEmails) 
+        });
+        setSelectedEmails(new Set());
+    };
+
+    const bulkTrash = () => {
+        gmailActionMutation.mutate({ 
+            action: 'trash', 
+            messageIds: Array.from(selectedEmails) 
+        });
+        setSelectedEmails(new Set());
+    };
+
     const toggleEmailSelection = (emailId) => {
         setSelectedEmails(prev => {
             const newSet = new Set(prev);
