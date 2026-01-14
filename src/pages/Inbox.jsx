@@ -343,6 +343,7 @@ export default function InboxPage() {
         total: emailData?.emails?.length || 0,
         starred: starredEmails.size,
         withAttachments: (emailData?.emails || []).filter(e => e?.attachments?.length > 0).length,
+        unread: (emailData?.emails || []).filter(e => !readEmails.has(e?.id)).length,
         applications: (emailData?.emails || []).filter(e => {
             const cat = getEmailCategory(e);
             return cat === 'Application' || cat === 'New Application Inquiry';
