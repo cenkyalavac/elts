@@ -1135,6 +1135,17 @@ export default function InboxPage() {
                                                                                     {attachment.mimeType} • {Math.round(attachment.size / 1024)}KB
                                                                                 </p>
                                                                             </div>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="ghost"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    toast.info('Attachment download coming soon');
+                                                                                }}
+                                                                                className="gap-1"
+                                                                            >
+                                                                                <Download className="w-4 h-4" />
+                                                                            </Button>
                                                                         </div>
                                                                     ))}
                                                                 </div>
