@@ -46,6 +46,7 @@ export default function FreelancersPage() {
         search: '',
         status: 'all',
         selectedStatuses: [],
+        selectedResourceTypes: [],
         selectedLanguagePairs: [],
         selectedSpecializations: [],
         selectedServices: [],
@@ -217,6 +218,14 @@ export default function FreelancersPage() {
             }
         } else if (filters.status !== 'all' && freelancer.status !== filters.status) {
             return false;
+        }
+
+        // Resource type filter
+        if (filters.selectedResourceTypes?.length > 0) {
+            const resourceType = freelancer.resource_type || 'Freelancer';
+            if (!filters.selectedResourceTypes.includes(resourceType)) {
+                return false;
+            }
         }
 
         // Language pairs filter (multi-select)

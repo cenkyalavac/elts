@@ -150,11 +150,19 @@ export default function FreelancerDetailPage() {
                     <div className="bg-white rounded-xl shadow-sm border p-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="flex items-start gap-4">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl font-bold">
-                                    {freelancer.full_name?.charAt(0)?.toUpperCase() || 'F'}
-                                </div>
-                                <div>
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl font-bold">
+                                {freelancer.full_name?.charAt(0)?.toUpperCase() || 'F'}
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-3">
                                     <h1 className="text-2xl font-bold text-gray-900">{freelancer.full_name}</h1>
+                                    {freelancer.resource_type === 'Agency' && (
+                                        <Badge className="bg-purple-100 text-purple-800 border-purple-200">Agency</Badge>
+                                    )}
+                                </div>
+                                {freelancer.resource_type === 'Agency' && freelancer.company_name && (
+                                    <div className="text-lg font-medium text-purple-600">{freelancer.company_name}</div>
+                                )}
                                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                                         <Badge className={`${status.color} border`}>
                                             <StatusIcon className="w-3 h-3 mr-1" />

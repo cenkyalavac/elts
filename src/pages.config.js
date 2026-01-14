@@ -16,12 +16,12 @@ import MyAvailability from './pages/MyAvailability';
 import NormalizeLanguages from './pages/NormalizeLanguages';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
+import Position from './pages/Position';
 import QuizManagement from './pages/QuizManagement';
 import Settings from './pages/Settings';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import Position from './pages/Position';
 import __Layout from './Layout.jsx';
 
 
@@ -44,12 +44,12 @@ export const PAGES = {
     "NormalizeLanguages": NormalizeLanguages,
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
+    "Position": Position,
     "QuizManagement": QuizManagement,
     "Settings": Settings,
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "Position": Position,
 }
 
 export const pagesConfig = {
