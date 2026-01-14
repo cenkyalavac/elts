@@ -10,11 +10,13 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import QuizForm from "../components/quiz/QuizForm";
 import QuizAnalytics from "../components/quiz/QuizAnalytics";
+import ImportFromGoogleDoc from "../components/quiz/ImportFromGoogleDoc";
 import { toast } from "sonner";
 
 export default function QuizManagement() {
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [showImport, setShowImport] = useState(false);
     const [expandedQuizId, setExpandedQuizId] = useState(null);
 
     const queryClient = useQueryClient();
@@ -86,19 +88,40 @@ export default function QuizManagement() {
                         </h1>
                         <p className="text-gray-600 mt-1">Create and manage applicant assessment quizzes</p>
                     </div>
-                    <Button
-                        onClick={() => {
-                            setSelectedQuiz(null);
-                            setShowForm(true);
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700"
-                    >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Create Quiz
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => {
+                                setShowImport(true);
+                                setShowForm(false);
+                            }}
+                            variant="outline"
+                            className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                        >
+                            <FileText className="w-5 h-5 mr-2" />
+                            Import from Google Docs
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setSelectedQuiz(null);
+                                setShowForm(true);
+                                setShowImport(false);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <Plus className="w-5 h-5 mr-2" />
+                            Create Quiz
+                        </Button>
+                    </div>
                 </div>
 
-                {showForm ? (
+                {showImport ? (
+                    <ImportFromGoogleDoc
+                        onSuccess={() => {
+                            setShowImport(false);
+                            queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+                        }}
+                    />
+                ) : showForm ? (
                     <QuizForm
                         quiz={selectedQuiz}
                         onClose={() => {
