@@ -975,6 +975,18 @@ export default function InboxPage() {
                                                                 <Reply className="w-4 h-4" />
                                                                 Reply
                                                             </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleForward(email);
+                                                                }}
+                                                                className="gap-2"
+                                                            >
+                                                                <Forward className="w-4 h-4" />
+                                                                Forward
+                                                            </Button>
                                                             {!hasAnalysis && (
                                                                 <Button
                                                                     size="sm"
@@ -1011,11 +1023,27 @@ export default function InboxPage() {
                                                                 <DropdownMenuContent align="end">
                                                                     <DropdownMenuItem onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        window.open(`https://mail.google.com/mail/u/0/#inbox/${email.id}`, '_blank');
+                                                                        handleArchive(email.id);
                                                                     }}>
-                                                                        <ExternalLink className="w-4 h-4 mr-2" />
-                                                                        Open in Gmail
+                                                                        <Archive className="w-4 h-4 mr-2" />
+                                                                        Archive
                                                                     </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSnoozeEmail(email);
+                                                                        setSnoozeDialogOpen(true);
+                                                                    }}>
+                                                                        <Bell className="w-4 h-4 mr-2" />
+                                                                        Snooze
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleGmailStar(email.id, isStarred);
+                                                                    }}>
+                                                                        <Star className="w-4 h-4 mr-2" />
+                                                                        {isStarred ? 'Remove star' : 'Star in Gmail'}
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator />
                                                                     <DropdownMenuItem onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         navigator.clipboard.writeText(extractEmailAddress(email.from));
@@ -1024,7 +1052,6 @@ export default function InboxPage() {
                                                                         <Copy className="w-4 h-4 mr-2" />
                                                                         Copy sender email
                                                                     </DropdownMenuItem>
-                                                                    <DropdownMenuSeparator />
                                                                     <DropdownMenuItem onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setReadEmails(prev => {
@@ -1048,6 +1075,17 @@ export default function InboxPage() {
                                                                                 Mark as read
                                                                             </>
                                                                         )}
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleTrash(email.id);
+                                                                        }}
+                                                                        className="text-red-600 focus:text-red-600"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4 mr-2" />
+                                                                        Move to trash
                                                                     </DropdownMenuItem>
                                                                 </DropdownMenuContent>
                                                             </DropdownMenu>
