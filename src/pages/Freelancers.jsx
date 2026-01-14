@@ -210,8 +210,12 @@ export default function FreelancersPage() {
             if (!matchesSearch) return false;
         }
 
-        // Status filter
-        if (filters.status !== 'all' && freelancer.status !== filters.status) {
+        // Status filter (multi-select)
+        if (filters.selectedStatuses?.length > 0) {
+            if (!filters.selectedStatuses.includes(freelancer.status)) {
+                return false;
+            }
+        } else if (filters.status !== 'all' && freelancer.status !== filters.status) {
             return false;
         }
 
