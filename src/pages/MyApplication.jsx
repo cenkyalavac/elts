@@ -184,7 +184,7 @@ export default function MyApplicationPage() {
                                 {application.stage_changed_date && (
                                     <div className="flex items-center gap-3 text-sm text-gray-700">
                                         <div className="p-2 bg-purple-100 rounded-lg">
-                                            <Calendar className="w-4 h-4 text-purple-600" />
+                                            <CalendarIcon className="w-4 h-4 text-purple-600" />
                                         </div>
                                         <div>
                                             <div className="font-medium">Last updated</div>
