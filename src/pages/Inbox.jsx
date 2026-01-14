@@ -473,7 +473,7 @@ export default function InboxPage() {
                 {isConnected && (
                     <>
                         {/* Stats Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                             <Card 
                                 className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md ${activeFilter === 'all' ? 'ring-2 ring-purple-500' : ''}`}
                                 onClick={() => setActiveFilter('all')}
@@ -486,6 +486,22 @@ export default function InboxPage() {
                                         </div>
                                         <div className="p-2 bg-purple-100 rounded-lg">
                                             <Mail className="w-5 h-5 text-purple-600" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card 
+                                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md ${activeFilter === 'unread' ? 'ring-2 ring-indigo-500' : ''}`}
+                                onClick={() => setActiveFilter('unread')}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Unread</p>
+                                            <p className="text-2xl font-bold text-gray-900">{stats.unread}</p>
+                                        </div>
+                                        <div className="p-2 bg-indigo-100 rounded-lg">
+                                            <MailCheck className="w-5 h-5 text-indigo-600" />
                                         </div>
                                     </div>
                                 </CardContent>
