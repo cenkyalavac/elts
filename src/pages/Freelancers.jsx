@@ -23,6 +23,7 @@ import AnalyticsView from "../components/views/AnalyticsView";
 import BulkQuizAssignment from "../components/quiz/BulkQuizAssignment";
 import { Skeleton } from "@/components/ui/skeleton";
 import { normalizeLanguage } from "../components/utils/languageUtils";
+import { CurrencyProvider, ExchangeRateWidget } from "../components/utils/CurrencyConverter";
 
 const stages = [
     { id: 'New Application', label: 'New Application', color: 'bg-blue-50 border-blue-200' },
@@ -363,6 +364,7 @@ export default function FreelancersPage() {
     }
 
     return (
+        <CurrencyProvider>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
@@ -375,6 +377,9 @@ export default function FreelancersPage() {
                         <p className="text-gray-600 mt-1">
                             Manage applications, availability, and performance
                         </p>
+                        <div className="mt-2">
+                            <ExchangeRateWidget currencies={['EUR', 'GBP', 'TRY']} />
+                        </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
                         <div className="flex gap-1 border rounded-lg p-1 bg-white">
@@ -682,5 +687,6 @@ export default function FreelancersPage() {
                 </Tabs>
             </div>
         </div>
+        </CurrencyProvider>
     );
 }
