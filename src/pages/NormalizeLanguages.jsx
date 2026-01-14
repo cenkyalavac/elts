@@ -29,7 +29,7 @@ export default function NormalizeLanguagesPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-gray-600">
-                            This will convert all language pair names (e.g., "English", "German") to ISO 639-1 codes (e.g., "en", "de").
+                            This will convert all language pair names to ISO 639-1 codes (e.g., "English" → "EN") and normalize the format to use hyphens (EN-TR instead of EN → TR).
                         </p>
 
                         <Button 

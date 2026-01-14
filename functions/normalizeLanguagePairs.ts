@@ -41,7 +41,9 @@ const LANGUAGE_CODES = {
 
 const normalizeLanguage = (lang) => {
     if (!lang) return null;
-    return LANGUAGE_CODES[lang] || lang;
+    const normalized = LANGUAGE_CODES[lang] || lang;
+    // Convert to uppercase for consistency (EN, TR, etc.)
+    return normalized.toUpperCase();
 };
 
 Deno.serve(async (req) => {
