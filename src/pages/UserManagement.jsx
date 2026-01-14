@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import GmailConnect from "../components/gmail/GmailConnect";
 import { Users, Shield, Eye, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -216,6 +216,7 @@ export default function UserManagementPage() {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Invite New User</DialogTitle>
+                            <DialogDescription>Send an invitation email to add a new team member.</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div>
