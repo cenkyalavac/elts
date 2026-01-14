@@ -1040,6 +1040,14 @@ export default function InboxPage() {
                     onOpenChange={setDialogOpen}
                     onSuccess={() => refetch()}
                 />
+
+                {/* Quick Reply Dialog */}
+                <QuickReplyDialog
+                    email={replyEmail}
+                    open={replyDialogOpen}
+                    onOpenChange={setReplyDialogOpen}
+                    draftReply={replyEmail ? emailAnalysis[replyEmail.id]?.draft_reply : null}
+                />
             </div>
         </div>
     );
