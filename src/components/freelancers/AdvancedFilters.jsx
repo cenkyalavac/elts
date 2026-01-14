@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
     Search, Filter, X, ChevronDown, ChevronUp, 
-    Globe, Briefcase, Award, Calendar, FileQuestion 
+    Globe, Briefcase, Award, Calendar, FileQuestion, Star
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -16,6 +16,19 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { normalizeLanguage, getLanguageName } from "../utils/languageUtils";
+
+const PIPELINE_STAGES = [
+    { id: 'New Application', label: 'New Application', color: 'bg-blue-100 text-blue-800' },
+    { id: 'Form Sent', label: 'Form Sent', color: 'bg-purple-100 text-purple-800' },
+    { id: 'Price Negotiation', label: 'Price Negotiation', color: 'bg-yellow-100 text-yellow-800' },
+    { id: 'Test Sent', label: 'Test Sent', color: 'bg-indigo-100 text-indigo-800' },
+    { id: 'Approved', label: 'Approved', color: 'bg-green-100 text-green-800' },
+    { id: 'On Hold', label: 'On Hold', color: 'bg-gray-100 text-gray-800' },
+    { id: 'Rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' },
+    { id: 'Red Flag', label: 'Red Flag', color: 'bg-orange-100 text-orange-800' }
+];
+
+const FILTER_STORAGE_KEY = 'freelancer_filters';
 
 export default function AdvancedFilters({ filters, onFilterChange, freelancers }) {
     const [expandedSections, setExpandedSections] = useState({
