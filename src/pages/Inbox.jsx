@@ -95,6 +95,29 @@ export default function InboxPage() {
                         if (email) handleReply(email);
                     }
                     break;
+                case 'e':
+                    // Archive current email
+                    if (expandedEmail) {
+                        handleArchive(expandedEmail);
+                    }
+                    break;
+                case '#':
+                    // Delete current email
+                    if (expandedEmail) {
+                        handleTrash(expandedEmail);
+                    }
+                    break;
+                case 'c':
+                    // Compose new email
+                    setComposeOpen(true);
+                    break;
+                case 'f':
+                    // Forward current email
+                    if (expandedEmail) {
+                        const email = filteredEmails.find(em => em.id === expandedEmail);
+                        if (email) handleForward(email);
+                    }
+                    break;
                 case 'Escape':
                     setExpandedEmail(null);
                     break;
