@@ -17,7 +17,23 @@ export default function Layout({ children, currentPageName }) {
         queryKey: ['currentUser'],
         queryFn: async () => {
             try {
-                return await base44.auth.me();
+                const currentUser = await base44.auth.me();
+                
+                // Check and apply any pending role assignments
+                if (currentUser) {
+                    try {
+                        const roleResult = await base44.functions.invoke('applyPendingRole', {});
+                        if (roleResult.data?.applied) {
+                            // Refetch user to get updated role
+                            return await base44.auth.me();
+                        }
+                    } catch (e) {
+                        // Silent fail - role check is optional
+                        console.log('Role check skipped:', e.message);
+                    }
+                }
+                
+                return currentUser;
             } catch {
                 return null;
             }
