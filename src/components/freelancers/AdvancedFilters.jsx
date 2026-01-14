@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
     Search, Filter, X, ChevronDown, ChevronUp, 
-    Globe, Briefcase, Award, Calendar, FileQuestion, Star
+    Globe, Briefcase, Award, Calendar, FileQuestion, Star, Building2, User
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -33,6 +33,7 @@ const FILTER_STORAGE_KEY = 'freelancer_filters';
 export default function AdvancedFilters({ filters, onFilterChange, freelancers }) {
     const [expandedSections, setExpandedSections] = useState({
         status: true,
+        resourceType: true,
         languages: true,
         specializations: true,
         services: true,
@@ -97,7 +98,14 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
 
     const allServices = [
         "Translation", "Interpretation", "Proofreading", 
-        "Localization", "Transcription", "Subtitling"
+        "Localization", "Transcription", "Subtitling",
+        "MTPE", "Review", "LQA", "Transcreation"
+    ];
+
+    const resourceTypes = [
+        { id: 'Freelancer', label: 'Freelancer' },
+        { id: 'Agency', label: 'Agency' },
+        { id: 'In-house', label: 'In-house' }
     ];
 
     const toggleSection = (section) => {
@@ -121,6 +129,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             search: '',
             status: 'all',
             selectedStatuses: [],
+            selectedResourceTypes: [],
             selectedLanguagePairs: [],
             selectedSpecializations: [],
             selectedServices: [],
@@ -139,6 +148,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
 
     const activeFilterCount = 
         (filters.selectedStatuses?.length || 0) +
+        (filters.selectedResourceTypes?.length || 0) +
         (filters.selectedLanguagePairs?.length || 0) +
         (filters.selectedSpecializations?.length || 0) +
         (filters.selectedServices?.length || 0) +
@@ -231,6 +241,52 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                                             <span className={`px-2 py-0.5 rounded text-xs ${stage.color}`}>
                                                 {stage.label}
                                             </span>
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Resource Type */}
+                    <div className="border-t pt-4">
+                        <button
+                            onClick={() => toggleSection('resourceType')}
+                            className="flex items-center justify-between w-full mb-2"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-gray-500" />
+                                <Label className="text-sm cursor-pointer">Resource Type</Label>
+                                {filters.selectedResourceTypes?.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        {filters.selectedResourceTypes.length}
+                                    </Badge>
+                                )}
+                            </div>
+                            {expandedSections.resourceType ? 
+                                <ChevronUp className="w-4 h-4" /> : 
+                                <ChevronDown className="w-4 h-4" />
+                            }
+                        </button>
+                        {expandedSections.resourceType && (
+                            <div className="space-y-2 pl-6">
+                                {resourceTypes.map(type => (
+                                    <div key={type.id} className="flex items-center gap-2">
+                                        <Checkbox
+                                            id={`type-${type.id}`}
+                                            checked={filters.selectedResourceTypes?.includes(type.id)}
+                                            onCheckedChange={() => toggleArrayFilter('selectedResourceTypes', type.id)}
+                                        />
+                                        <label
+                                            htmlFor={`type-${type.id}`}
+                                            className="text-sm cursor-pointer flex items-center gap-2"
+                                        >
+                                            {type.id === 'Agency' ? (
+                                                <Building2 className="w-3 h-3 text-purple-600" />
+                                            ) : (
+                                                <User className="w-3 h-3 text-blue-600" />
+                                            )}
+                                            {type.label}
                                         </label>
                                     </div>
                                 ))}
