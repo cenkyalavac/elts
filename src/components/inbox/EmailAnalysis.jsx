@@ -14,20 +14,40 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 
-export default function EmailAnalysis({ analysis, emailId, emailData, onCorrectionSaved }) {
+export default function EmailAnalysis({ analysis, emailId, emailData, onCorrectionSaved, compact = false }) {
     if (!analysis) return null;
 
     const [isEditing, setIsEditing] = useState(false);
     const [correctedCategory, setCorrectedCategory] = useState(analysis.category);
 
+    // Compact view for non-expanded emails
+    if (compact) {
+        return (
+            <div className="flex flex-wrap items-center gap-2">
+                <Badge className={categoryColors[analysis.category] || categoryColors['Other']}>
+                    {analysis.category}
+                </Badge>
+                <Badge variant={analysis.urgency === 'high' ? 'destructive' : 'secondary'} className="text-xs">
+                    {analysis.urgency} priority
+                </Badge>
+                {analysis.is_spam && (
+                    <Badge variant="destructive" className="text-xs">Spam</Badge>
+                )}
+            </div>
+        );
+    }
+
     const categoryColors = {
         'New Application Inquiry': 'bg-blue-100 text-blue-800',
+        'Application': 'bg-blue-100 text-blue-800',
         'Urgent Support': 'bg-red-100 text-red-800',
+        'Urgent': 'bg-red-100 text-red-800',
         'Billing Issue': 'bg-orange-100 text-orange-800',
         'Feedback': 'bg-purple-100 text-purple-800',
         'Job Inquiry': 'bg-green-100 text-green-800',
         'Notification': 'bg-gray-100 text-gray-800',
         'Follow-up': 'bg-indigo-100 text-indigo-800',
+        'Has Attachments': 'bg-cyan-100 text-cyan-800',
         'Other': 'bg-slate-100 text-slate-800'
     };
 

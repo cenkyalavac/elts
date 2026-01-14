@@ -5,11 +5,15 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
     Mail, FileText, Clock, ChevronDown, ChevronUp, 
-    Loader2, RefreshCw, LinkIcon, CheckCircle, AlertCircle 
+    Loader2, RefreshCw, LinkIcon, CheckCircle, AlertCircle,
+    Search, Inbox, Star, Archive, Trash2, Reply, Forward,
+    Paperclip, Sparkles, UserPlus, ExternalLink, Filter,
+    MailOpen, Tag, Zap
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import ProcessApplicationDialog from '@/components/inbox/ProcessApplicationDialog';
 import EmailAnalysis from '@/components/inbox/EmailAnalysis';
@@ -21,10 +25,12 @@ export default function InboxPage() {
     const [selectedEmail, setSelectedEmail] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [emailAnalysis, setEmailAnalysis] = useState({});
+    const [activeFilter, setActiveFilter] = useState('all');
+    const [starredEmails, setStarredEmails] = useState(new Set());
     const queryClient = useQueryClient();
 
     // Fetch current user
-    const { data: user, isLoading: userLoading, error: userError } = useQuery({
+    const { data: user, isLoading: userLoading } = useQuery({
         queryKey: ['currentUser'],
         queryFn: async () => {
             try {
@@ -48,7 +54,7 @@ export default function InboxPage() {
             }
         },
         onError: (error) => {
-            toast.error('Gmail bağlantısı başlatılamadı');
+            toast.error('Failed to connect Gmail');
             console.error('Connect error:', error);
         }
     });
@@ -89,6 +95,10 @@ export default function InboxPage() {
                 ...prev,
                 [variables.id]: data
             }));
+            toast.success('Email analyzed successfully');
+        },
+        onError: () => {
+            toast.error('Failed to analyze email');
         }
     });
 
@@ -99,10 +109,25 @@ export default function InboxPage() {
 
     const formatEmailDate = (dateStr) => {
         try {
-            return format(parseISO(dateStr), 'MMM d, yyyy HH:mm');
+            const date = parseISO(dateStr);
+            const now = new Date();
+            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                return format(date, 'h:mm a');
+            } else if (diffDays < 7) {
+                return formatDistanceToNow(date, { addSuffix: true });
+            }
+            return format(date, 'MMM d, yyyy');
         } catch {
             return dateStr;
         }
+    };
+
+    const extractSenderName = (fromString) => {
+        if (!fromString) return 'Unknown';
+        const match = fromString.match(/^([^<]+)/);
+        return match ? match[1].trim().replace(/"/g, '') : fromString;
     };
 
     const extractEmailAddress = (fromString) => {
@@ -110,23 +135,80 @@ export default function InboxPage() {
         return match ? match[1] : fromString;
     };
 
+    const toggleStar = (e, emailId) => {
+        e.stopPropagation();
+        setStarredEmails(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(emailId)) {
+                newSet.delete(emailId);
+            } else {
+                newSet.add(emailId);
+            }
+            return newSet;
+        });
+    };
+
+    const getEmailCategory = (email) => {
+        const analysis = emailAnalysis[email.id];
+        if (analysis) return analysis.category;
+        
+        // Quick detection based on subject/content
+        const subject = (email.subject || '').toLowerCase();
+        const body = (email.body || email.snippet || '').toLowerCase();
+        
+        if (subject.includes('application') || subject.includes('cv') || subject.includes('resume') || 
+            body.includes('apply') || body.includes('position')) {
+            return 'Application';
+        }
+        if (subject.includes('urgent') || subject.includes('asap')) {
+            return 'Urgent';
+        }
+        if (email.attachments?.length > 0) {
+            return 'Has Attachments';
+        }
+        return null;
+    };
+
     const filteredEmails = (emailData?.emails || []).filter(email => {
         if (!email) return false;
         const searchTerm = searchQuery.toLowerCase();
-        return (
+        const matchesSearch = (
             (email.subject || '').toLowerCase().includes(searchTerm) ||
-            (email.from || '').toLowerCase().includes(searchTerm)
+            (email.from || '').toLowerCase().includes(searchTerm) ||
+            (email.snippet || '').toLowerCase().includes(searchTerm)
         );
+        
+        if (!matchesSearch) return false;
+        
+        if (activeFilter === 'starred') return starredEmails.has(email.id);
+        if (activeFilter === 'attachments') return email.attachments?.length > 0;
+        if (activeFilter === 'applications') {
+            const category = getEmailCategory(email);
+            return category === 'Application' || category === 'New Application Inquiry';
+        }
+        
+        return true;
     });
+
+    // Stats for quick view
+    const stats = {
+        total: emailData?.emails?.length || 0,
+        starred: starredEmails.size,
+        withAttachments: (emailData?.emails || []).filter(e => e?.attachments?.length > 0).length,
+        applications: (emailData?.emails || []).filter(e => {
+            const cat = getEmailCategory(e);
+            return cat === 'Application' || cat === 'New Application Inquiry';
+        }).length
+    };
 
     // Loading state
     if (userLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 p-6">
-                <div className="max-w-6xl mx-auto">
-                    <Card className="p-8 text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                        <p className="text-gray-600">Yükleniyor...</p>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="p-12 text-center border-0 shadow-lg">
+                        <Loader2 className="w-10 h-10 animate-spin mx-auto mb-3 text-purple-600" />
+                        <p className="text-gray-600 font-medium">Loading...</p>
                     </Card>
                 </div>
             </div>
@@ -136,12 +218,12 @@ export default function InboxPage() {
     // Not logged in
     if (!user) {
         return (
-            <div className="min-h-screen bg-gray-50 p-6">
-                <div className="max-w-6xl mx-auto">
-                    <Card className="p-8 text-center">
-                        <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold text-gray-900">Giriş Gerekli</h2>
-                        <p className="text-gray-600 mt-2">Bu sayfayı görüntülemek için giriş yapmalısınız.</p>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="p-12 text-center border-0 shadow-lg">
+                        <AlertCircle className="w-16 h-16 text-amber-400 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-900">Login Required</h2>
+                        <p className="text-gray-600 mt-2">Please log in to access your inbox.</p>
                     </Card>
                 </div>
             </div>
@@ -151,12 +233,12 @@ export default function InboxPage() {
     // Access denied for non-admins
     if (user.role !== 'admin') {
         return (
-            <div className="min-h-screen bg-gray-50 p-6">
-                <div className="max-w-6xl mx-auto">
-                    <Card className="p-8 text-center">
-                        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold text-gray-900">Erişim Reddedildi</h2>
-                        <p className="text-gray-600 mt-2">Gelen kutusuna yalnızca yöneticiler erişebilir.</p>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                <div className="max-w-7xl mx-auto">
+                    <Card className="p-12 text-center border-0 shadow-lg">
+                        <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
+                        <p className="text-gray-600 mt-2">Only administrators can access the inbox.</p>
                     </Card>
                 </div>
             </div>
@@ -166,249 +248,452 @@ export default function InboxPage() {
     const isConnected = !!user?.gmailRefreshToken;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+            <div className="max-w-7xl mx-auto p-6">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Gelen Kutusu</h1>
-                        <p className="text-gray-600 mt-1">Gmail e-postalarınızı görüntüleyin ve yönetin</p>
+                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl">
+                                <Inbox className="w-7 h-7 text-white" />
+                            </div>
+                            Inbox
+                        </h1>
+                        <p className="text-gray-500 mt-1 ml-14">Manage and process incoming emails</p>
                     </div>
                     {isConnected && (
-                        <Button
-                            onClick={() => refetch()}
-                            disabled={emailsLoading}
-                            className="gap-2"
-                        >
-                            <RefreshCw className={`w-4 h-4 ${emailsLoading ? 'animate-spin' : ''}`} />
-                            Yenile
-                        </Button>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => refetch()}
+                                disabled={emailsLoading}
+                                className="gap-2"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${emailsLoading ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </Button>
+                        </div>
                     )}
                 </div>
 
-                {/* Gmail Connection Status Card */}
-                <Card className="mb-6">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Mail className="w-5 h-5" />
-                            Gmail Entegrasyonu
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {isConnected ? (
-                            <div className="flex items-center gap-3">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                                <div>
-                                    <div className="font-medium text-green-800">Bağlı</div>
-                                    <div className="text-sm text-gray-600">{user.email}</div>
+                {/* Gmail Connection Card - Compact when connected */}
+                {!isConnected ? (
+                    <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                        <CardContent className="p-8">
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                                <div className="p-4 bg-white/20 rounded-2xl">
+                                    <Mail className="w-12 h-12" />
                                 </div>
-                            </div>
-                        ) : (
-                            <div>
-                                <p className="text-sm text-gray-600 mb-4">
-                                    Gelen kutunuzdaki e-postaları görüntülemek için Gmail hesabınızı bağlayın.
-                                </p>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h2 className="text-2xl font-bold mb-2">Connect Your Gmail</h2>
+                                    <p className="text-purple-100">
+                                        Connect your Gmail account to view and process emails directly from this dashboard.
+                                        You can analyze applications, manage communications, and more.
+                                    </p>
+                                </div>
                                 <Button 
                                     onClick={() => connectMutation.mutate()}
                                     disabled={connectMutation.isPending}
-                                    className="gap-2"
+                                    size="lg"
+                                    className="bg-white text-purple-700 hover:bg-purple-50 gap-2"
                                 >
-                                    <LinkIcon className="w-4 h-4" />
-                                    {connectMutation.isPending ? 'Bağlanıyor...' : 'Gmail Hesabını Bağla'}
+                                    <LinkIcon className="w-5 h-5" />
+                                    {connectMutation.isPending ? 'Connecting...' : 'Connect Gmail'}
                                 </Button>
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Card className="mb-6 border-0 shadow-sm bg-green-50">
+                        <CardContent className="py-3 px-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                    <span className="font-medium text-green-800">Gmail Connected</span>
+                                    <span className="text-green-600 text-sm">{user.email}</span>
+                                </div>
+                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                    Active
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Email Content - Only show if connected */}
                 {isConnected && (
                     <>
-                        {/* Search Bar */}
-                        <div className="mb-6">
-                            <Input
-                                placeholder="Konu veya göndericiye göre ara..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="max-w-md"
-                            />
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <Card 
+                                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md ${activeFilter === 'all' ? 'ring-2 ring-purple-500' : ''}`}
+                                onClick={() => setActiveFilter('all')}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-500">All Emails</p>
+                                            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                                        </div>
+                                        <div className="p-2 bg-purple-100 rounded-lg">
+                                            <Mail className="w-5 h-5 text-purple-600" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card 
+                                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md ${activeFilter === 'starred' ? 'ring-2 ring-yellow-500' : ''}`}
+                                onClick={() => setActiveFilter('starred')}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Starred</p>
+                                            <p className="text-2xl font-bold text-gray-900">{stats.starred}</p>
+                                        </div>
+                                        <div className="p-2 bg-yellow-100 rounded-lg">
+                                            <Star className="w-5 h-5 text-yellow-600" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card 
+                                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md ${activeFilter === 'attachments' ? 'ring-2 ring-blue-500' : ''}`}
+                                onClick={() => setActiveFilter('attachments')}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-500">With Files</p>
+                                            <p className="text-2xl font-bold text-gray-900">{stats.withAttachments}</p>
+                                        </div>
+                                        <div className="p-2 bg-blue-100 rounded-lg">
+                                            <Paperclip className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card 
+                                className={`border-0 shadow-sm cursor-pointer transition-all hover:shadow-md ${activeFilter === 'applications' ? 'ring-2 ring-green-500' : ''}`}
+                                onClick={() => setActiveFilter('applications')}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Applications</p>
+                                            <p className="text-2xl font-bold text-gray-900">{stats.applications}</p>
+                                        </div>
+                                        <div className="p-2 bg-green-100 rounded-lg">
+                                            <UserPlus className="w-5 h-5 text-green-600" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
+
+                        {/* Search Bar */}
+                        <Card className="mb-6 border-0 shadow-sm">
+                            <CardContent className="p-4">
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <Input
+                                            placeholder="Search by subject, sender, or content..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10 h-11 border-gray-200"
+                                        />
+                                    </div>
+                                    {activeFilter !== 'all' && (
+                                        <Button 
+                                            variant="outline" 
+                                            onClick={() => setActiveFilter('all')}
+                                            className="gap-2"
+                                        >
+                                            <Filter className="w-4 h-4" />
+                                            Clear Filter
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Error State */}
                         {emailsError && (
                             <Card className="p-8 text-center border-red-200 bg-red-50 mb-6">
                                 <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                                <h2 className="text-xl font-semibold text-red-900">E-postalar Yüklenemedi</h2>
-                                <p className="text-red-700 mt-2">{emailsError?.message || 'Gmail\'den e-postalar alınamadı'}</p>
-                                <Button onClick={() => refetch()} className="mt-4">Tekrar Dene</Button>
+                                <h2 className="text-xl font-semibold text-red-900">Failed to Load Emails</h2>
+                                <p className="text-red-700 mt-2">{emailsError?.message || 'Could not fetch emails from Gmail'}</p>
+                                <Button onClick={() => refetch()} className="mt-4">Try Again</Button>
                             </Card>
                         )}
 
                         {/* Loading Emails */}
                         {emailsLoading && (
-                            <Card className="p-8 text-center">
-                                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                                <p className="text-gray-600">E-postalar yükleniyor...</p>
+                            <Card className="p-12 text-center border-0 shadow-lg">
+                                <Loader2 className="w-10 h-10 animate-spin mx-auto mb-3 text-purple-600" />
+                                <p className="text-gray-600 font-medium">Loading emails...</p>
                             </Card>
                         )}
 
                         {/* Empty State */}
                         {!emailsLoading && !emailsError && emailData.emails.length === 0 && (
-                            <Card className="p-8 text-center">
-                                <Mail className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                <p className="text-gray-600">Gelen kutusunda e-posta yok</p>
+                            <Card className="p-12 text-center border-0 shadow-lg">
+                                <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                                    <Inbox className="w-10 h-10 text-gray-400" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900">No emails found</h3>
+                                <p className="text-gray-500 mt-2">Your inbox is empty</p>
                                 <Button onClick={() => refetch()} variant="outline" className="mt-4">
-                                    Tekrar Dene
+                                    Refresh Inbox
                                 </Button>
                             </Card>
                         )}
 
                         {/* No Search Results */}
                         {!emailsLoading && !emailsError && emailData.emails.length > 0 && filteredEmails.length === 0 && (
-                            <Card className="p-8 text-center">
-                                <Mail className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                <p className="text-gray-600">Aramanızla eşleşen e-posta bulunamadı</p>
+                            <Card className="p-12 text-center border-0 shadow-lg">
+                                <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-900">No matches found</h3>
+                                <p className="text-gray-500 mt-2">Try adjusting your search or filter</p>
+                                <Button variant="outline" onClick={() => { setSearchQuery(''); setActiveFilter('all'); }} className="mt-4">
+                                    Clear Search
+                                </Button>
                             </Card>
                         )}
 
                         {/* Email List */}
                         {!emailsLoading && !emailsError && filteredEmails.length > 0 && (
-                            <div className="space-y-2">
-                                <div className="text-sm text-gray-600 mb-4">
-                                    {filteredEmails.length} / {emailData.emails.length} e-posta gösteriliyor
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between px-1">
+                                    <p className="text-sm text-gray-500">
+                                        Showing {filteredEmails.length} of {emailData.emails.length} emails
+                                        {activeFilter !== 'all' && (
+                                            <Badge variant="secondary" className="ml-2">{activeFilter}</Badge>
+                                        )}
+                                    </p>
                                 </div>
 
-                                {filteredEmails.map((email) => (
-                                    <Card
-                                        key={email.id}
-                                        className="hover:shadow-md transition-shadow cursor-pointer"
-                                        onClick={() => setExpandedEmail(expandedEmail === email.id ? null : email.id)}
-                                    >
-                                        <div className="p-4">
-                                            {/* Email Header */}
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                        <h3 className="font-semibold text-gray-900 truncate">
-                                                            {email.subject || '(Konu yok)'}
-                                                        </h3>
+                                {filteredEmails.map((email) => {
+                                    const category = getEmailCategory(email);
+                                    const isStarred = starredEmails.has(email.id);
+                                    const isExpanded = expandedEmail === email.id;
+                                    const hasAnalysis = !!emailAnalysis[email.id];
+                                    
+                                    return (
+                                        <Card
+                                            key={email.id}
+                                            className={`border-0 shadow-sm hover:shadow-md transition-all cursor-pointer ${
+                                                isExpanded ? 'ring-2 ring-purple-200' : ''
+                                            }`}
+                                            onClick={() => setExpandedEmail(isExpanded ? null : email.id)}
+                                        >
+                                            <div className="p-4">
+                                                {/* Email Header */}
+                                                <div className="flex items-start gap-3">
+                                                    {/* Star Button */}
+                                                    <button
+                                                        onClick={(e) => toggleStar(e, email.id)}
+                                                        className={`mt-1 p-1 rounded hover:bg-gray-100 transition-colors ${
+                                                            isStarred ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-500'
+                                                        }`}
+                                                    >
+                                                        <Star className={`w-5 h-5 ${isStarred ? 'fill-current' : ''}`} />
+                                                    </button>
+
+                                                    {/* Sender Avatar */}
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                                                        {extractSenderName(email.from).charAt(0).toUpperCase()}
                                                     </div>
-                                                    <p className="text-sm text-gray-600 truncate">
-                                                        Gönderen: {extractEmailAddress(email.from)}
-                                                    </p>
-                                                    <div className="flex items-center gap-4 mt-1">
-                                                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            {formatEmailDate(email.date)}
-                                                        </span>
-                                                        {email.attachments?.length > 0 && (
-                                                            <span className="text-xs text-blue-600 flex items-center gap-1">
-                                                                <FileText className="w-3 h-3" />
-                                                                {email.attachments.length} ek
-                                                            </span>
+
+                                                    {/* Email Content */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div className="min-w-0">
+                                                                <h3 className="font-semibold text-gray-900 truncate">
+                                                                    {extractSenderName(email.from)}
+                                                                </h3>
+                                                                <p className="text-xs text-gray-500 truncate">
+                                                                    {extractEmailAddress(email.from)}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                                <span className="text-xs text-gray-500">
+                                                                    {formatEmailDate(email.date)}
+                                                                </span>
+                                                                {isExpanded ? (
+                                                                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                                                                ) : (
+                                                                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Subject */}
+                                                        <p className="font-medium text-gray-800 mt-1 truncate">
+                                                            {email.subject || '(No Subject)'}
+                                                        </p>
+
+                                                        {/* Labels & Badges */}
+                                                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                            {category && (
+                                                                <Badge variant="secondary" className="text-xs">
+                                                                    <Tag className="w-3 h-3 mr-1" />
+                                                                    {category}
+                                                                </Badge>
+                                                            )}
+                                                            {email.attachments?.length > 0 && (
+                                                                <Badge variant="outline" className="text-xs text-blue-600 border-blue-200 bg-blue-50">
+                                                                    <Paperclip className="w-3 h-3 mr-1" />
+                                                                    {email.attachments.length} attachment{email.attachments.length > 1 ? 's' : ''}
+                                                                </Badge>
+                                                            )}
+                                                            {hasAnalysis && (
+                                                                <Badge variant="outline" className="text-xs text-purple-600 border-purple-200 bg-purple-50">
+                                                                    <Sparkles className="w-3 h-3 mr-1" />
+                                                                    AI Analyzed
+                                                                </Badge>
+                                                            )}
+                                                            {emailAnalysis[email.id]?.urgency === 'high' && (
+                                                                <Badge variant="destructive" className="text-xs">
+                                                                    <Zap className="w-3 h-3 mr-1" />
+                                                                    Urgent
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Preview */}
+                                                        {!isExpanded && (
+                                                            <p className="text-sm text-gray-500 mt-2 line-clamp-1">
+                                                                {email.snippet}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="ml-4 flex-shrink-0">
-                                                    {expandedEmail === email.id ? (
-                                                        <ChevronUp className="w-5 h-5 text-gray-400" />
-                                                    ) : (
-                                                        <ChevronDown className="w-5 h-5 text-gray-400" />
-                                                    )}
-                                                </div>
-                                            </div>
 
-                                            {/* AI Analysis Tags */}
-                                            {emailAnalysis[email.id] && (
-                                                <div className="mt-2">
-                                                    <EmailAnalysis 
-                                                        analysis={emailAnalysis[email.id]}
-                                                        emailId={email.id}
-                                                        emailData={email}
-                                                        onCorrectionSaved={() => {}}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Email Preview */}
-                                            {expandedEmail !== email.id && (
-                                                <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                                                    {email.snippet}
-                                                </p>
-                                            )}
-
-                                            {/* Expanded Content */}
-                                            {expandedEmail === email.id && (
-                                                <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
-                                                    {/* AI Analysis Button */}
-                                                    {!emailAnalysis[email.id] && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                analyzeEmailMutation.mutate({ ...email, id: email.id });
-                                                            }}
-                                                            disabled={analyzeEmailMutation.isPending}
-                                                            className="w-full"
-                                                        >
-                                                            {analyzeEmailMutation.isPending ? 'Analiz ediliyor...' : 'AI Analizi'}
-                                                        </Button>
-                                                    )}
-
-                                                    {/* Full Body */}
-                                                    <div className="bg-gray-50 p-3 rounded text-sm text-gray-700 max-h-64 overflow-y-auto whitespace-pre-wrap break-words">
-                                                        {email.body || email.snippet}
+                                                {/* AI Analysis Display */}
+                                                {hasAnalysis && !isExpanded && (
+                                                    <div className="mt-3 ml-14 pl-3 border-l-2 border-purple-200">
+                                                        <EmailAnalysis 
+                                                            analysis={emailAnalysis[email.id]}
+                                                            emailId={email.id}
+                                                            emailData={email}
+                                                            onCorrectionSaved={() => {}}
+                                                            compact={true}
+                                                        />
                                                     </div>
+                                                )}
 
-                                                    {/* Attachments */}
-                                                    {email.attachments?.length > 0 && (
-                                                        <div className="bg-blue-50 p-3 rounded">
-                                                            <h4 className="text-sm font-semibold text-blue-900 mb-2">
-                                                                Ekler ({email.attachments.length})
-                                                            </h4>
-                                                            <div className="space-y-1">
-                                                                {email.attachments.map((attachment, idx) => (
-                                                                    <div key={idx} className="flex items-center gap-2 text-sm text-blue-700">
-                                                                        <FileText className="w-4 h-4" />
-                                                                        <span>{attachment.filename}</span>
-                                                                        <span className="text-xs text-blue-600">
-                                                                            ({Math.round(attachment.size / 1024)}KB)
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
+                                                {/* Expanded Content */}
+                                                {isExpanded && (
+                                                    <div className="mt-4 ml-14 space-y-4">
+                                                        {/* Quick Action Buttons */}
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {!hasAnalysis && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        analyzeEmailMutation.mutate({ ...email, id: email.id });
+                                                                    }}
+                                                                    disabled={analyzeEmailMutation.isPending}
+                                                                    className="gap-2"
+                                                                >
+                                                                    <Sparkles className={`w-4 h-4 ${analyzeEmailMutation.isPending ? 'animate-pulse' : ''}`} />
+                                                                    {analyzeEmailMutation.isPending ? 'Analyzing...' : 'AI Analyze'}
+                                                                </Button>
+                                                            )}
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleProcessEmail(email);
+                                                                }}
+                                                                className="gap-2 bg-green-600 hover:bg-green-700"
+                                                            >
+                                                                <UserPlus className="w-4 h-4" />
+                                                                Process as Application
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    window.open(`https://mail.google.com/mail/u/0/#inbox/${email.id}`, '_blank');
+                                                                }}
+                                                                className="gap-2"
+                                                            >
+                                                                <ExternalLink className="w-4 h-4" />
+                                                                Open in Gmail
+                                                            </Button>
+                                                        </div>
+
+                                                        {/* AI Analysis */}
+                                                        {hasAnalysis && (
+                                                            <EmailAnalysis 
+                                                                analysis={emailAnalysis[email.id]}
+                                                                emailId={email.id}
+                                                                emailData={email}
+                                                                onCorrectionSaved={() => {}}
+                                                            />
+                                                        )}
+
+                                                        {/* Email Body */}
+                                                        <div className="bg-gray-50 rounded-lg p-4">
+                                                            <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
+                                                                <MailOpen className="w-4 h-4 text-gray-400" />
+                                                                <span className="text-sm font-medium text-gray-700">Email Content</span>
+                                                            </div>
+                                                            <div className="text-sm text-gray-700 max-h-80 overflow-y-auto whitespace-pre-wrap break-words leading-relaxed">
+                                                                {email.body || email.snippet}
                                                             </div>
                                                         </div>
-                                                    )}
 
-                                                    {/* Action Buttons */}
-                                                    <div className="flex gap-2 pt-2">
-                                                        <Button
-                                                            size="sm"
-                                                            className="flex-1"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleProcessEmail(email);
-                                                            }}
-                                                        >
-                                                            Başvuru Olarak İşle
-                                                        </Button>
+                                                        {/* Attachments */}
+                                                        {email.attachments?.length > 0 && (
+                                                            <div className="bg-blue-50 rounded-lg p-4">
+                                                                <div className="flex items-center gap-2 mb-3">
+                                                                    <Paperclip className="w-4 h-4 text-blue-600" />
+                                                                    <span className="text-sm font-medium text-blue-900">
+                                                                        Attachments ({email.attachments.length})
+                                                                    </span>
+                                                                </div>
+                                                                <div className="grid gap-2">
+                                                                    {email.attachments.map((attachment, idx) => (
+                                                                        <div key={idx} className="flex items-center gap-3 bg-white rounded-lg p-3 border border-blue-100">
+                                                                            <div className="p-2 bg-blue-100 rounded-lg">
+                                                                                <FileText className="w-4 h-4 text-blue-600" />
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="font-medium text-gray-900 truncate text-sm">
+                                                                                    {attachment.filename}
+                                                                                </p>
+                                                                                <p className="text-xs text-gray-500">
+                                                                                    {attachment.mimeType} • {Math.round(attachment.size / 1024)}KB
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </Card>
-                                ))}
+                                                )}
+                                            </div>
+                                        </Card>
+                                    );
+                                })}
 
                                 {/* Load More Button */}
                                 {filteredEmails.length >= maxResults && (
-                                    <div className="text-center mt-6">
+                                    <div className="text-center pt-4">
                                         <Button
                                             variant="outline"
                                             onClick={() => setMaxResults(prev => prev + 20)}
+                                            className="gap-2"
                                         >
-                                            Daha Fazla Yükle
+                                            Load More Emails
                                         </Button>
                                     </div>
                                 )}
