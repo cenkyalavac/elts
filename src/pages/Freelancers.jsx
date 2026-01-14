@@ -235,7 +235,7 @@ export default function FreelancersPage() {
         // Language pairs filter (multi-select)
         if (filters.selectedLanguagePairs?.length > 0) {
             const freelancerPairs = freelancer.language_pairs?.map(p => 
-                `${normalizeLanguage(p.source_language)} → ${normalizeLanguage(p.target_language)}`
+                `${normalizeLanguage(p.source_language)}-${normalizeLanguage(p.target_language)}`
             ) || [];
             const hasMatchingPair = filters.selectedLanguagePairs.some(filterPair => 
                 freelancerPairs.includes(filterPair)

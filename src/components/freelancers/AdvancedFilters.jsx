@@ -89,7 +89,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             f.language_pairs?.forEach(pair => {
                 const normalizedSource = normalizeLanguage(pair.source_language);
                 const normalizedTarget = normalizeLanguage(pair.target_language);
-                const pairStr = `${normalizedSource} → ${normalizedTarget}`;
+                const pairStr = `${normalizedSource}-${normalizedTarget}`;
                 pairs.add(pairStr);
             });
         });
@@ -333,7 +333,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         {expandedSections.languages && (
                             <div className="space-y-2 max-h-48 overflow-y-auto pl-6">
                                 {allLanguagePairs.map(pair => {
-                                    const [source, target] = pair.split(' → ');
+                                    const [source, target] = pair.split('-');
                                     return (
                                         <div key={pair} className="flex items-center gap-2">
                                             <Checkbox
@@ -345,7 +345,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                                                 htmlFor={`pair-${pair}`}
                                                 className="text-sm cursor-pointer"
                                             >
-                                                {getLanguageName(source)} → {getLanguageName(target)}
+                                                {pair}
                                             </label>
                                         </div>
                                     );
