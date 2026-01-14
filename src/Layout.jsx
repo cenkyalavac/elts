@@ -53,7 +53,8 @@ export default function Layout({ children, currentPageName }) {
             return userConvs.length;
         },
         enabled: !!user,
-        refetchInterval: 30000, // Refetch every 30 seconds
+        staleTime: 60000,
+        refetchInterval: 60000, // Refetch every 60 seconds instead of 30
     });
 
     const isAdmin = user?.role === 'admin';

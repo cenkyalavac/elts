@@ -29,6 +29,8 @@ export default function FreelancerCard({ freelancer, onQuickView }) {
     const { data: quizAttempts = [] } = useQuery({
         queryKey: ['quizAttempts', freelancer.id],
         queryFn: () => base44.entities.QuizAttempt.filter({ freelancer_id: freelancer.id }),
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const passedQuizzes = quizAttempts.filter(a => a.passed === true);

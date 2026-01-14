@@ -102,7 +102,8 @@ export default function FreelancersPage() {
     const { data: allQuizAttempts = [] } = useQuery({
         queryKey: ['allQuizAttempts'],
         queryFn: () => base44.entities.QuizAttempt.list(),
-        staleTime: 30000,
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const handleDragEnd = async (result) => {
