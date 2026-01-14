@@ -52,6 +52,9 @@ export default function FreelancerDetailPage() {
         queryKey: ['freelancer', freelancerId],
         queryFn: () => base44.entities.Freelancer.filter({ id: freelancerId }),
         enabled: !!freelancerId,
+        staleTime: 60000,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     });
 
     const freelancer = freelancers?.[0];
@@ -61,13 +64,19 @@ export default function FreelancerDetailPage() {
         queryFn: () => base44.entities.FreelancerActivity.filter({ 
             freelancer_id: freelancerId 
         }, '-created_date', 50),
-        enabled: !!freelancerId,
+        enabled: !!freelancerId && !!freelancer,
+        staleTime: 60000,
+        retry: 2,
+        retryDelay: 2000,
     });
 
     const { data: quizAttempts = [] } = useQuery({
         queryKey: ['quizAttempts', freelancerId],
         queryFn: () => base44.entities.QuizAttempt.filter({ freelancer_id: freelancerId }),
-        enabled: !!freelancerId,
+        enabled: !!freelancerId && !!freelancer,
+        staleTime: 60000,
+        retry: 2,
+        retryDelay: 2000,
     });
 
     const updateMutation = useMutation({
