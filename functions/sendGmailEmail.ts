@@ -57,14 +57,14 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Gmail not connected' }, { status: 401 });
         }
 
-        const { to, subject, body, threadId } = await req.json();
+        const { to, subject, body, threadId, cc, bcc } = await req.json();
 
         if (!to || !subject || !body) {
             return Response.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
         const accessToken = await getAccessToken(user.gmailRefreshToken);
-        const rawEmail = createRawEmail(to, subject, body, threadId);
+        const rawEmail = createRawEmail(to, subject, body, threadId, cc, bcc);
 
         const sendResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
             method: 'POST',
