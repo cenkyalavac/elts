@@ -307,12 +307,35 @@ export default function InboxPage() {
         
         if (activeFilter === 'starred') return starredEmails.has(email.id);
         if (activeFilter === 'attachments') return email.attachments?.length > 0;
+        if (activeFilter === 'unread') return !readEmails.has(email.id);
         if (activeFilter === 'applications') {
             const category = getEmailCategory(email);
             return category === 'Application' || category === 'New Application Inquiry';
         }
         
+        // Date filter
+        if (dateFilter !== 'all') {
+            try {
+                const emailDate = parseISO(email.date);
+                const now = new Date();
+                if (dateFilter === 'today' && !isAfter(emailDate, subDays(now, 1))) return false;
+                if (dateFilter === 'week' && !isAfter(emailDate, subDays(now, 7))) return false;
+                if (dateFilter === 'month' && !isAfter(emailDate, subDays(now, 30))) return false;
+            } catch {}
+        }
+        
         return true;
+    }).sort((a, b) => {
+        // Sort logic
+        try {
+            const dateA = parseISO(a.date);
+            const dateB = parseISO(b.date);
+            if (sortBy === 'date_desc') return dateB - dateA;
+            if (sortBy === 'date_asc') return dateA - dateB;
+        } catch {}
+        if (sortBy === 'sender') return (a.from || '').localeCompare(b.from || '');
+        if (sortBy === 'subject') return (a.subject || '').localeCompare(b.subject || '');
+        return 0;
     });
 
     // Stats for quick view
