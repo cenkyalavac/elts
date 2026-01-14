@@ -491,6 +491,13 @@ export default function InboxPage() {
                     {isConnected && (
                         <div className="flex items-center gap-3">
                             <Button
+                                onClick={() => setComposeOpen(true)}
+                                className="gap-2 bg-purple-600 hover:bg-purple-700"
+                            >
+                                <PenSquare className="w-4 h-4" />
+                                Compose
+                            </Button>
+                            <Button
                                 variant="outline"
                                 onClick={() => refetch()}
                                 disabled={emailsLoading}
