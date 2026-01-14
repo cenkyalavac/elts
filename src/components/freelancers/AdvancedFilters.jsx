@@ -195,21 +195,47 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                         </div>
                     </div>
 
-                    {/* Status Pills */}
-                    <div>
-                        <Label className="text-sm mb-2 block">Status</Label>
-                        <div className="flex flex-wrap gap-2">
-                            {['all', 'New', 'Reviewing', 'Interview Scheduled', 'Accepted', 'Rejected'].map(status => (
-                                <Badge
-                                    key={status}
-                                    variant={filters.status === status ? "default" : "outline"}
-                                    className="cursor-pointer"
-                                    onClick={() => onFilterChange({ ...filters, status })}
-                                >
-                                    {status === 'all' ? 'All' : status}
-                                </Badge>
-                            ))}
-                        </div>
+                    {/* Status Multi-Select */}
+                    <div className="border-t pt-4">
+                        <button
+                            onClick={() => toggleSection('status')}
+                            className="flex items-center justify-between w-full mb-2"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Filter className="w-4 h-4 text-gray-500" />
+                                <Label className="text-sm cursor-pointer">Status</Label>
+                                {filters.selectedStatuses?.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        {filters.selectedStatuses.length}
+                                    </Badge>
+                                )}
+                            </div>
+                            {expandedSections.status ? 
+                                <ChevronUp className="w-4 h-4" /> : 
+                                <ChevronDown className="w-4 h-4" />
+                            }
+                        </button>
+                        {expandedSections.status && (
+                            <div className="space-y-2 pl-6">
+                                {PIPELINE_STAGES.map(stage => (
+                                    <div key={stage.id} className="flex items-center gap-2">
+                                        <Checkbox
+                                            id={`status-${stage.id}`}
+                                            checked={filters.selectedStatuses?.includes(stage.id)}
+                                            onCheckedChange={() => toggleArrayFilter('selectedStatuses', stage.id)}
+                                        />
+                                        <label
+                                            htmlFor={`status-${stage.id}`}
+                                            className="text-sm cursor-pointer flex items-center gap-2"
+                                        >
+                                            <span className={`px-2 py-0.5 rounded text-xs ${stage.color}`}>
+                                                {stage.label}
+                                            </span>
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Language Pairs */}
