@@ -37,6 +37,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         languages: true,
         specializations: true,
         services: true,
+        software: false,
+        skills: false,
         experience: false,
         rating: false,
         quiz: false
@@ -64,6 +66,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             if (filters.selectedLanguagePairs?.length > 0) filtersToSave.selectedLanguagePairs = filters.selectedLanguagePairs;
             if (filters.selectedSpecializations?.length > 0) filtersToSave.selectedSpecializations = filters.selectedSpecializations;
             if (filters.selectedServices?.length > 0) filtersToSave.selectedServices = filters.selectedServices;
+            if (filters.selectedSoftware?.length > 0) filtersToSave.selectedSoftware = filters.selectedSoftware;
+            if (filters.selectedSkills?.length > 0) filtersToSave.selectedSkills = filters.selectedSkills;
             if (filters.minRating) filtersToSave.minRating = filters.minRating;
             if (filters.minExperience) filtersToSave.minExperience = filters.minExperience;
             if (filters.maxExperience) filtersToSave.maxExperience = filters.maxExperience;
@@ -94,6 +98,14 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
 
     const allSpecializations = useMemo(() => [...new Set(
         freelancers.flatMap(f => f.specializations || [])
+    )].sort(), [freelancers]);
+
+    const allSkills = useMemo(() => [...new Set(
+        freelancers.flatMap(f => f.skills || [])
+    )].sort(), [freelancers]);
+
+    const allSoftware = useMemo(() => [...new Set(
+        freelancers.flatMap(f => f.software || [])
     )].sort(), [freelancers]);
 
     const allServices = [
@@ -133,6 +145,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             selectedLanguagePairs: [],
             selectedSpecializations: [],
             selectedServices: [],
+            selectedSoftware: [],
+            selectedSkills: [],
             minExperience: '',
             maxExperience: '',
             availability: 'all',
@@ -152,6 +166,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         (filters.selectedLanguagePairs?.length || 0) +
         (filters.selectedSpecializations?.length || 0) +
         (filters.selectedServices?.length || 0) +
+        (filters.selectedSoftware?.length || 0) +
+        (filters.selectedSkills?.length || 0) +
         (filters.status !== 'all' ? 1 : 0) +
         (filters.availability !== 'all' ? 1 : 0) +
         (filters.minExperience ? 1 : 0) +
@@ -421,6 +437,92 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                             </div>
                         )}
                     </div>
+
+                    {/* CAT Tools / Software */}
+                    {allSoftware.length > 0 && (
+                        <div className="border-t pt-4">
+                            <button
+                                onClick={() => toggleSection('software')}
+                                className="flex items-center justify-between w-full mb-2"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Award className="w-4 h-4 text-gray-500" />
+                                    <Label className="text-sm cursor-pointer">CAT Tools / Software</Label>
+                                    {filters.selectedSoftware?.length > 0 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            {filters.selectedSoftware.length}
+                                        </Badge>
+                                    )}
+                                </div>
+                                {expandedSections.software ? 
+                                    <ChevronUp className="w-4 h-4" /> : 
+                                    <ChevronDown className="w-4 h-4" />
+                                }
+                            </button>
+                            {expandedSections.software && (
+                                <div className="space-y-2 max-h-48 overflow-y-auto pl-6">
+                                    {allSoftware.map(soft => (
+                                        <div key={soft} className="flex items-center gap-2">
+                                            <Checkbox
+                                                id={`software-${soft}`}
+                                                checked={filters.selectedSoftware?.includes(soft)}
+                                                onCheckedChange={() => toggleArrayFilter('selectedSoftware', soft)}
+                                            />
+                                            <label
+                                                htmlFor={`software-${soft}`}
+                                                className="text-sm cursor-pointer"
+                                            >
+                                                {soft}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Skills */}
+                    {allSkills.length > 0 && (
+                        <div className="border-t pt-4">
+                            <button
+                                onClick={() => toggleSection('skills')}
+                                className="flex items-center justify-between w-full mb-2"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Award className="w-4 h-4 text-gray-500" />
+                                    <Label className="text-sm cursor-pointer">Skills</Label>
+                                    {filters.selectedSkills?.length > 0 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            {filters.selectedSkills.length}
+                                        </Badge>
+                                    )}
+                                </div>
+                                {expandedSections.skills ? 
+                                    <ChevronUp className="w-4 h-4" /> : 
+                                    <ChevronDown className="w-4 h-4" />
+                                }
+                            </button>
+                            {expandedSections.skills && (
+                                <div className="space-y-2 max-h-48 overflow-y-auto pl-6">
+                                    {allSkills.map(skill => (
+                                        <div key={skill} className="flex items-center gap-2">
+                                            <Checkbox
+                                                id={`skill-${skill}`}
+                                                checked={filters.selectedSkills?.includes(skill)}
+                                                onCheckedChange={() => toggleArrayFilter('selectedSkills', skill)}
+                                            />
+                                            <label
+                                                htmlFor={`skill-${skill}`}
+                                                className="text-sm cursor-pointer"
+                                            >
+                                                {skill}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Experience Range */}
                     <div className="border-t pt-4">

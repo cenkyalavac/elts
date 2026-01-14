@@ -50,6 +50,8 @@ export default function FreelancersPage() {
         selectedLanguagePairs: [],
         selectedSpecializations: [],
         selectedServices: [],
+        selectedSoftware: [],
+        selectedSkills: [],
         minExperience: '',
         maxExperience: '',
         availability: 'all',
@@ -255,6 +257,22 @@ export default function FreelancersPage() {
                 freelancer.service_types?.includes(service)
             );
             if (!hasMatchingService) return false;
+        }
+
+        // Software / CAT tools filter (multi-select)
+        if (filters.selectedSoftware?.length > 0) {
+            const hasMatchingSoftware = filters.selectedSoftware.some(soft =>
+                freelancer.software?.includes(soft)
+            );
+            if (!hasMatchingSoftware) return false;
+        }
+
+        // Skills filter (multi-select)
+        if (filters.selectedSkills?.length > 0) {
+            const hasMatchingSkill = filters.selectedSkills.some(skill =>
+                freelancer.skills?.includes(skill)
+            );
+            if (!hasMatchingSkill) return false;
         }
 
         // Experience range filter
