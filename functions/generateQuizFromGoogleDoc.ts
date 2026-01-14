@@ -101,20 +101,14 @@ Deno.serve(async (req) => {
                 };
             } else if (currentQuestion) {
                 // Check if this is an option (starts with letter, bullet, or dash)
-                const optionMatch = text.match(/^[A-Z\)\.]\s*(.+)|^[-•]\s*(.+)/i);
+                const optionMatch = text.match(/^([A-D])[:\)\.\s]\s*(.+)|^[-•]\s*(.+)/i);
                 if (optionMatch) {
-                    const optionText = (optionMatch[1] || optionMatch[2]).trim();
+                    const optionText = (optionMatch[2] || optionMatch[3]).trim();
                     currentQuestion.options.push(optionText);
 
-                    // If this option is highlighted (green or yellow background), mark as correct
-                    if (hasHighlight && highlightColor) {
-                        // Green highlight typically indicates correct answer
-                        const isGreen = highlightColor.includes('0.') && highlightColor.includes('1'); // Green-ish
-                        const isYellow = highlightColor.includes('1') && highlightColor.includes('1') && highlightColor.includes('0'); // Yellow-ish
-                        
-                        if (isGreen || isYellow || hasHighlight) {
-                            currentQuestion.correct_answer = optionText;
-                        }
+                    // If this option is highlighted, mark as correct
+                    if (hasHighlight) {
+                        currentQuestion.correct_answer = optionText;
                     }
                 } else {
                     // Check for True/False questions

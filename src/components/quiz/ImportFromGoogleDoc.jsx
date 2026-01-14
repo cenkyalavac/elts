@@ -207,10 +207,11 @@ export default function ImportFromGoogleDoc({ onSuccess }) {
                         </h4>
                         <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
                             <li>Number your questions (1., 2., or Question 1, Q1, etc.)</li>
-                            <li>Use letters for options (A., B., C., D. or A), B), etc.)</li>
-                            <li>Highlight the correct answer with any background color</li>
-                            <li>For True/False questions, highlight "True" or "False"</li>
-                            <li>Make sure your document is shared (view access) or public</li>
+                            <li>Use capital letters for options (A. B. C. D. or A) B) C) D))</li>
+                            <li><strong>Highlight ONLY the correct answer</strong> with any background color (yellow, green, etc.)</li>
+                            <li>For True/False questions, write "True" or "False" and highlight the correct one</li>
+                            <li>Make sure your Google Doc is shared (Anyone with link can view)</li>
+                            <li>Each question must have at least 2 options and exactly 1 highlighted answer</li>
                         </ul>
                     </div>
 
