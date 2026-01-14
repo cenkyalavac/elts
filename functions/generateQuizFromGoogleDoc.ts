@@ -58,27 +58,26 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Use LLM to enhance question parsing, grouping, and point assignment
-        const llmPrompt = `You are analyzing a quiz document. Your task is to:
-1. Identify ONLY actual quiz questions (ignore section headers, instructions, or descriptive text)
-2. For each question, determine:
-   - Question number
-   - Point value (look for indicators like "5 points", "10p", "(5)", etc. - if not specified, default to 1)
-   - Section/topic it belongs to (e.g., Grammar, Vocabulary, Reading Comprehension)
-3. Identify any highlighted text that is NOT an answer option (like section headers, instructions) - these should be ignored
+        // Use LLM to do a comprehensive analysis of the document
+        const llmPrompt = `You are analyzing a quiz document from Google Docs. Carefully analyze the entire document structure.
 
-Document text:
+IMPORTANT INSTRUCTIONS:
+1. Identify ALL quiz questions - they are typically numbered (1., 2., Question 1, Q1, etc.)
+2. For each question, extract:
+   - Question number (sequential)
+   - Question text (the actual question being asked)
+   - All answer options (usually labeled A, B, C, D or with bullets)
+   - Point value: Look for "(5 points)", "(10p)", "5 pts", etc. If no points specified, assume 1 point per question
+   - Section/category if mentioned (e.g., "Grammar Section", "Part 1: Vocabulary")
+   
+3. The correct answer is usually HIGHLIGHTED (with background color) in Google Docs
+4. Some text might be accidentally highlighted (like section headers, instructions, notes) - identify these to ignore them
+5. Be flexible with formatting - questions might not follow a strict pattern
+
+Document content:
 ${rawText}
 
-Return ONLY a JSON object in this format:
-{
-  "questions": [
-    {"number": 1, "points": 5, "section": "Grammar"},
-    {"number": 2, "points": 10, "section": "Grammar"},
-    {"number": 3, "points": 5, "section": "Vocabulary"}
-  ],
-  "ignore_highlighted_phrases": ["Grammar Section", "Instructions:", "Part 1"]
-}`;
+Analyze this carefully and return a detailed structure:`;
 
         let llmAnalysis = { questions: [], ignore_highlighted_phrases: [] };
         try {
@@ -93,27 +92,56 @@ Return ONLY a JSON object in this format:
                                 type: "object",
                                 properties: {
                                     number: { type: "number" },
+                                    question_text: { type: "string" },
                                     points: { type: "number" },
-                                    section: { type: "string" }
-                                }
+                                    section: { type: "string" },
+                                    is_true_false: { type: "boolean" },
+                                    options: { 
+                                        type: "array",
+                                        items: { type: "string" }
+                                    }
+                                },
+                                required: ["number", "question_text", "points"]
                             }
                         },
                         ignore_highlighted_phrases: {
                             type: "array",
                             items: { type: "string" }
                         }
-                    }
+                    },
+                    required: ["questions"]
                 }
             });
             llmAnalysis = llmResponse;
+            console.log('LLM found questions:', llmAnalysis.questions.length);
         } catch (error) {
-            console.warn('LLM analysis failed, using defaults:', error.message);
+            console.error('LLM analysis failed:', error.message);
         }
 
-        // Parse document content
+        // If LLM found questions with full structure, use those primarily
         const questions = [];
-        let currentQuestion = null;
         let questionCounter = 0;
+        
+        // First, try to use LLM-extracted questions as base
+        if (llmAnalysis.questions && llmAnalysis.questions.length > 0) {
+            for (const llmQ of llmAnalysis.questions) {
+                questionCounter++;
+                questions.push({
+                    question_text: llmQ.question_text,
+                    question_type: llmQ.is_true_false ? 'true_false' : 'multiple_choice',
+                    options: llmQ.is_true_false ? ['True', 'False'] : (llmQ.options || []),
+                    correct_answer: null, // Will be filled by highlight detection
+                    points: llmQ.points || 1,
+                    order: questionCounter,
+                    section: llmQ.section || null,
+                    llm_extracted: true
+                });
+            }
+        }
+
+        // Parse document content to extract highlights and validate
+        let currentQuestion = null;
+        let parseQuestionCounter = 0;
 
         for (const element of document.body.content) {
             if (!element.paragraph) continue;
@@ -147,21 +175,24 @@ Return ONLY a JSON object in this format:
             // Check if this is a question (starts with number or "Question")
             const questionMatch = text.match(/^(\d+\.|Question\s+\d+|Q\d+)[:\s]?\s*(.+)/i);
             if (questionMatch) {
-                // Save previous question if exists
-                if (currentQuestion && currentQuestion.options.length > 0) {
+                parseQuestionCounter++;
+                
+                // Find matching LLM question if exists
+                currentQuestion = questions.find(q => q.llm_extracted && q.order === parseQuestionCounter);
+                
+                // If no LLM match, create new question from parsing
+                if (!currentQuestion) {
+                    currentQuestion = {
+                        question_text: questionMatch[2].trim(),
+                        question_type: 'multiple_choice',
+                        options: [],
+                        correct_answer: null,
+                        points: 1,
+                        order: parseQuestionCounter,
+                        llm_extracted: false
+                    };
                     questions.push(currentQuestion);
                 }
-
-                // Start new question
-                questionCounter++;
-                currentQuestion = {
-                    question_text: questionMatch[2].trim(),
-                    question_type: 'multiple_choice',
-                    options: [],
-                    correct_answer: null,
-                    points: 1,
-                    order: questionCounter
-                };
             } else if (currentQuestion) {
                 // Check if this is an option (starts with letter, bullet, or dash)
                 const optionMatch = text.match(/^([A-D])[:\)\.\s]\s*(.+)|^[-•]\s*(.+)/i);
@@ -175,7 +206,10 @@ Return ONLY a JSON object in this format:
                     );
                     
                     if (!shouldIgnore) {
-                        currentQuestion.options.push(optionText);
+                        // Only add option if not already present (from LLM)
+                        if (!currentQuestion.options.includes(optionText)) {
+                            currentQuestion.options.push(optionText);
+                        }
 
                         // If this option is highlighted, mark as correct
                         if (hasHighlight) {
@@ -202,22 +236,12 @@ Return ONLY a JSON object in this format:
             }
         }
 
-        // Add last question
-        if (currentQuestion && currentQuestion.options.length > 0) {
-            questions.push(currentQuestion);
-        }
-
-        // Assign sections and points to questions based on LLM analysis
-        questions.forEach((q, idx) => {
-            const questionNum = idx + 1;
-            const llmQuestion = llmAnalysis.questions.find(lq => lq.number === questionNum);
-            
-            if (llmQuestion) {
-                q.section = llmQuestion.section || null;
-                q.points = llmQuestion.points || 1;
-            } else {
-                q.points = 1; // Default to 1 point if LLM didn't find point value
-            }
+        // Clean up llm_extracted flag
+        questions.forEach(q => {
+            delete q.llm_extracted;
+            // Ensure points are reasonable (between 1 and 100)
+            if (!q.points || q.points < 1) q.points = 1;
+            if (q.points > 100) q.points = 100;
         });
 
         // Validate questions
@@ -237,7 +261,14 @@ Return ONLY a JSON object in this format:
             return Response.json({ 
                 error: 'No valid questions found in document. Please ensure questions are numbered and correct answers are highlighted.',
                 parsedQuestions: questions.length,
-                validQuestions: validQuestions.length
+                validQuestions: validQuestions.length,
+                llmFoundQuestions: llmAnalysis.questions?.length || 0,
+                detailedQuestions: questions.map(q => ({
+                    text: q.question_text,
+                    hasCorrectAnswer: !!q.correct_answer,
+                    optionCount: q.options.length,
+                    points: q.points
+                }))
             }, { status: 400 });
         }
 
