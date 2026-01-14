@@ -40,16 +40,17 @@ import SnoozeDialog from '@/components/inbox/SnoozeDialog';
 export default function InboxPage() {
     const [expandedEmail, setExpandedEmail] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [maxResults, setMaxResults] = useState(30);
+    const [maxResults, setMaxResults] = useState(50);
     const [selectedEmail, setSelectedEmail] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [emailAnalysis, setEmailAnalysis] = useState({});
     const [activeFilter, setActiveFilter] = useState('all');
-    const [starredEmails, setStarredEmails] = useState(new Set());
     const [selectedEmails, setSelectedEmails] = useState(new Set());
     const [sortBy, setSortBy] = useState('date_desc');
     const [dateFilter, setDateFilter] = useState('all');
-    const [readEmails, setReadEmails] = useState(new Set());
+    // Local overrides for read/starred status (until next refresh)
+    const [localReadOverrides, setLocalReadOverrides] = useState({});
+    const [localStarOverrides, setLocalStarOverrides] = useState({});
     const [replyDialogOpen, setReplyDialogOpen] = useState(false);
     const [replyEmail, setReplyEmail] = useState(null);
     const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
@@ -310,21 +311,24 @@ export default function InboxPage() {
     };
 
     const bulkStarEmails = () => {
-        setStarredEmails(prev => {
-            const newSet = new Set(prev);
-            selectedEmails.forEach(id => newSet.add(id));
-            return newSet;
+        const emailIds = Array.from(selectedEmails);
+        emailIds.forEach(id => {
+            setLocalStarOverrides(prev => ({ ...prev, [id]: true }));
+        });
+        // Star in Gmail (one by one for now)
+        emailIds.forEach(id => {
+            gmailActionMutation.mutate({ action: 'star', messageId: id });
         });
         toast.success(`Starred ${selectedEmails.size} emails`);
         setSelectedEmails(new Set());
     };
 
     const bulkMarkAsRead = () => {
-        setReadEmails(prev => {
-            const newSet = new Set(prev);
-            selectedEmails.forEach(id => newSet.add(id));
-            return newSet;
+        const emailIds = Array.from(selectedEmails);
+        emailIds.forEach(id => {
+            setLocalReadOverrides(prev => ({ ...prev, [id]: true }));
         });
+        gmailActionMutation.mutate({ action: 'markRead', messageIds: emailIds });
         toast.success(`Marked ${selectedEmails.size} emails as read`);
         setSelectedEmails(new Set());
     };
@@ -365,17 +369,34 @@ export default function InboxPage() {
         return match ? match[1] : fromString;
     };
 
+    // Helper functions to get actual read/starred status
+    const isEmailUnread = (email) => {
+        if (localReadOverrides[email.id] !== undefined) {
+            return !localReadOverrides[email.id]; // override: true means read, so unread = false
+        }
+        return email.isUnread;
+    };
+
+    const isEmailStarred = (email) => {
+        if (localStarOverrides[email.id] !== undefined) {
+            return localStarOverrides[email.id];
+        }
+        return email.isStarred;
+    };
+
     const toggleStar = (e, emailId) => {
         e.stopPropagation();
-        setStarredEmails(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(emailId)) {
-                newSet.delete(emailId);
-            } else {
-                newSet.add(emailId);
-            }
-            return newSet;
-        });
+        const email = emailData.emails?.find(em => em.id === emailId);
+        const currentlyStarred = isEmailStarred(email);
+        
+        // Update local state immediately for responsiveness
+        setLocalStarOverrides(prev => ({
+            ...prev,
+            [emailId]: !currentlyStarred
+        }));
+        
+        // Also update in Gmail
+        handleGmailStar(emailId, currentlyStarred);
     };
 
     const getEmailCategory = (email) => {
@@ -410,9 +431,9 @@ export default function InboxPage() {
         
         if (!matchesSearch) return false;
         
-        if (activeFilter === 'starred') return starredEmails.has(email.id);
+        if (activeFilter === 'starred') return isEmailStarred(email);
         if (activeFilter === 'attachments') return email.attachments?.length > 0;
-        if (activeFilter === 'unread') return !readEmails.has(email.id);
+        if (activeFilter === 'unread') return isEmailUnread(email);
         if (activeFilter === 'applications') {
             const category = getEmailCategory(email);
             return category === 'Application' || category === 'New Application Inquiry';
@@ -443,12 +464,12 @@ export default function InboxPage() {
         return 0;
     });
 
-    // Stats for quick view
+    // Stats for quick view - using Gmail's actual unread/starred status
     const stats = {
         total: emailData?.emails?.length || 0,
-        starred: starredEmails.size,
+        starred: (emailData?.emails || []).filter(e => isEmailStarred(e)).length,
         withAttachments: (emailData?.emails || []).filter(e => e?.attachments?.length > 0).length,
-        unread: (emailData?.emails || []).filter(e => !readEmails.has(e?.id)).length,
+        unread: (emailData?.emails || []).filter(e => isEmailUnread(e)).length,
         applications: (emailData?.emails || []).filter(e => {
             const cat = getEmailCategory(e);
             return cat === 'Application' || cat === 'New Application Inquiry';
@@ -582,7 +603,12 @@ export default function InboxPage() {
                                     <span className="text-green-600 text-sm">{user.email}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-green-600">Auto-sync every 30s</span>
+                                    <span className="text-xs text-green-600">
+                                        {stats.unread > 0 && (
+                                            <Badge className="bg-red-500 mr-2">{stats.unread} unread</Badge>
+                                        )}
+                                        Auto-sync every 30s
+                                    </span>
                                     <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
                                         {emailsFetching ? 'Syncing...' : 'Active'}
                                     </Badge>
@@ -885,22 +911,27 @@ export default function InboxPage() {
 
                                 {filteredEmails.map((email) => {
                                     const category = getEmailCategory(email);
-                                    const isStarred = starredEmails.has(email.id);
+                                    const isStarred = isEmailStarred(email);
                                     const isExpanded = expandedEmail === email.id;
                                     const hasAnalysis = !!emailAnalysis[email.id];
                                     const isSelected = selectedEmails.has(email.id);
-                                    const isRead = readEmails.has(email.id);
+                                    const isUnread = isEmailUnread(email);
                                     
                                     return (
                                         <Card
                                             key={email.id}
                                             className={`border-0 shadow-sm hover:shadow-md transition-all cursor-pointer ${
                                                 isExpanded ? 'ring-2 ring-purple-200' : ''
-                                            } ${isSelected ? 'bg-purple-50' : ''} ${!isRead ? 'border-l-4 border-l-purple-500' : ''}`}
+                                            } ${isSelected ? 'bg-purple-50' : ''} ${isUnread ? 'border-l-4 border-l-purple-500 bg-purple-50/30' : ''}`}
                                             onClick={() => {
                                                 setExpandedEmail(isExpanded ? null : email.id);
-                                                if (!isRead) {
-                                                    setReadEmails(prev => new Set([...prev, email.id]));
+                                                if (isUnread) {
+                                                    // Mark as read locally and in Gmail
+                                                    setLocalReadOverrides(prev => ({
+                                                        ...prev,
+                                                        [email.id]: true
+                                                    }));
+                                                    gmailActionMutation.mutate({ action: 'markRead', messageId: email.id });
                                                 }
                                             }}
                                         >
@@ -1104,17 +1135,17 @@ export default function InboxPage() {
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        setReadEmails(prev => {
-                                                                            const newSet = new Set(prev);
-                                                                            if (isRead) {
-                                                                                newSet.delete(email.id);
-                                                                            } else {
-                                                                                newSet.add(email.id);
-                                                                            }
-                                                                            return newSet;
+                                                                        const newReadStatus = isUnread; // if unread, mark as read
+                                                                        setLocalReadOverrides(prev => ({
+                                                                            ...prev,
+                                                                            [email.id]: newReadStatus
+                                                                        }));
+                                                                        gmailActionMutation.mutate({ 
+                                                                            action: newReadStatus ? 'markRead' : 'markUnread', 
+                                                                            messageId: email.id 
                                                                         });
                                                                     }}>
-                                                                        {isRead ? (
+                                                                        {!isUnread ? (
                                                                             <>
                                                                                 <EyeOff className="w-4 h-4 mr-2" />
                                                                                 Mark as unread
@@ -1209,11 +1240,14 @@ export default function InboxPage() {
                                 })}
 
                                 {/* Load More Button */}
-                                {filteredEmails.length >= maxResults && (
+                                {emailData.emails.length >= maxResults && (
                                     <div className="text-center pt-4">
+                                        <p className="text-sm text-gray-500 mb-2">
+                                            Showing {emailData.emails.length} most recent emails
+                                        </p>
                                         <Button
                                             variant="outline"
-                                            onClick={() => setMaxResults(prev => prev + 20)}
+                                            onClick={() => setMaxResults(prev => prev + 30)}
                                             className="gap-2"
                                         >
                                             Load More Emails

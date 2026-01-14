@@ -116,11 +116,12 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Failed to refresh Gmail token', code: 'TOKEN_REFRESH_FAILED' }, { status: 401 });
         }
 
-        // Search for emails in INBOX
+        // Search for emails in INBOX - increase limit for better coverage
         const query = 'in:inbox';
+        const actualMaxResults = Math.min(maxResults, 100); // Increased limit
         const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?` +
-            `q=${encodeURIComponent(query)}&maxResults=${Math.min(maxResults, 50)}`;
-        console.log('Gmail search URL:', searchUrl);
+            `q=${encodeURIComponent(query)}&maxResults=${actualMaxResults}`;
+        console.log('Gmail search URL:', searchUrl, 'maxResults:', actualMaxResults);
 
         const searchResponse = await fetch(searchUrl, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -157,6 +158,10 @@ Deno.serve(async (req) => {
             const body = extractBodyFromPayload(email.payload);
             const attachments = extractAttachments(email.payload);
 
+            // Check if email is unread based on Gmail labels
+            const isUnread = (email.labelIds || []).includes('UNREAD');
+            const isStarred = (email.labelIds || []).includes('STARRED');
+
             return {
                 id: email.id,
                 threadId: email.threadId,
@@ -167,7 +172,9 @@ Deno.serve(async (req) => {
                 snippet: email.snippet,
                 body: body.substring(0, 5000), // Limit body length
                 labels: email.labelIds || [],
-                attachments: attachments
+                attachments: attachments,
+                isUnread: isUnread,
+                isStarred: isStarred
             };
         });
 
