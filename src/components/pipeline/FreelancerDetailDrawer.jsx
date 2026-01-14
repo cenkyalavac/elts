@@ -283,20 +283,6 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 </div>
                             )}
 
-                            {/* Services */}
-                            {freelancer.service_types && freelancer.service_types.length > 0 && (
-                                <div className="space-y-3">
-                                    <h3 className="font-semibold">Services</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {freelancer.service_types.map((service, idx) => (
-                                            <Badge key={idx} className="bg-indigo-100 text-indigo-800">
-                                                {service}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Experience */}
                             {freelancer.experience_years && (
                                 <div>
