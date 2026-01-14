@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, FileText, Clock, ChevronDown, ChevronUp, Loader2, RefreshCw, LinkIcon } from 'lucide-react';
+import { Mail, FileText, Clock, ChevronDown, ChevronUp, Loader2, RefreshCw, LinkIcon, CheckCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import ProcessApplicationDialog from '@/components/inbox/ProcessApplicationDialog';
@@ -176,11 +176,6 @@ export default function InboxPage() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-6xl mx-auto">
-                {/* Debug Info */}
-                <div className="mb-4 text-xs text-gray-500 bg-gray-100 p-2 rounded">
-                    Status: isLoading={isLoading ? 'true' : 'false'}, hasError={error ? 'true' : 'false'}, emailCount={emailData?.emails?.length || 0}
-                </div>
-
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div>
@@ -196,6 +191,41 @@ export default function InboxPage() {
                         Refresh
                     </Button>
                 </div>
+
+                {/* Gmail Connection Status */}
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <Mail className="w-5 h-5" />
+                            Gmail Integration
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {user.gmailRefreshToken ? (
+                            <div className="flex items-center gap-3">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <div>
+                                    <div className="font-medium text-green-900">Connected</div>
+                                    <div className="text-sm text-gray-600">{user.email}</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Connect your Gmail account to view and manage emails in your inbox.
+                                </p>
+                                <Button 
+                                    onClick={() => connectMutation.mutate()}
+                                    disabled={connectMutation.isPending}
+                                    className="gap-2"
+                                >
+                                    <LinkIcon className="w-4 h-4" />
+                                    {connectMutation.isPending ? 'Connecting...' : 'Connect Gmail Account'}
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* Search Bar */}
                 <div className="mb-6 flex gap-2">
