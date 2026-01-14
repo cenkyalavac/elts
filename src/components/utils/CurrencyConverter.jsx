@@ -5,12 +5,19 @@ import { base44 } from "@/api/base44Client";
 const CurrencyContext = createContext();
 
 export const RATE_TYPES = {
-    per_word: { label: 'Per Word', symbol: '/word' },
-    per_hour: { label: 'Per Hour', symbol: '/hr' },
-    per_page: { label: 'Per Page', symbol: '/page' },
-    per_minute: { label: 'Per Minute', symbol: '/min' },
-    per_project: { label: 'Per Project', symbol: '/project' },
-    per_1000_words: { label: 'Per 1000 Words', symbol: '/1k words' }
+    per_word: { label: 'Per Word', symbol: '/word', icon: '📝' },
+    per_hour: { label: 'Per Hour', symbol: '/hr', icon: '⏰' },
+    per_page: { label: 'Per Page', symbol: '/page', icon: '📄' },
+    per_minute: { label: 'Per Minute', symbol: '/min', icon: '⏱️' },
+    per_project: { label: 'Per Project', symbol: '/project', icon: '📦' },
+    per_1000_words: { label: 'Per 1000 Words', symbol: '/1k', icon: '📚' },
+    per_source_word: { label: 'Per Source Word', symbol: '/src word', icon: '📝' },
+    per_target_word: { label: 'Per Target Word', symbol: '/tgt word', icon: '📝' },
+    per_character: { label: 'Per Character', symbol: '/char', icon: '🔤' },
+    per_line: { label: 'Per Line', symbol: '/line', icon: '📏' },
+    per_day: { label: 'Per Day', symbol: '/day', icon: '📅' },
+    per_half_day: { label: 'Per Half Day', symbol: '/half day', icon: '🌓' },
+    minimum_fee: { label: 'Minimum Fee', symbol: ' min', icon: '💰' }
 };
 
 export function CurrencyProvider({ children }) {
@@ -169,28 +176,49 @@ export function FreelancerRatesUSD({ freelancer, compact = false }) {
         return { type, min, max, count: values.length };
     });
 
+    // Sort by priority: per_word first, then per_hour, then others
+    const priorityOrder = ['per_word', 'per_hour', 'per_page', 'per_day', 'per_minute', 'per_project'];
+    rateSummary.sort((a, b) => {
+        const aIdx = priorityOrder.indexOf(a.type);
+        const bIdx = priorityOrder.indexOf(b.type);
+        if (aIdx === -1 && bIdx === -1) return 0;
+        if (aIdx === -1) return 1;
+        if (bIdx === -1) return -1;
+        return aIdx - bIdx;
+    });
+
     if (compact) {
-        // Show just the primary rate (per_word if exists, otherwise first available)
-        const primaryRate = rateSummary.find(r => r.type === 'per_word') || rateSummary[0];
-        if (!primaryRate) return <span className="text-gray-400">-</span>;
+        // Show multiple rate types in compact view
+        const displayRates = rateSummary.slice(0, 2);
+        if (displayRates.length === 0) return <span className="text-gray-400">-</span>;
         
-        const typeInfo = RATE_TYPES[primaryRate.type] || { symbol: '' };
         return (
-            <span className="font-semibold text-green-600">
-                {formatCurrency(primaryRate.min, 'USD')}
-                {primaryRate.min !== primaryRate.max && ` - ${formatCurrency(primaryRate.max, 'USD')}`}
-                {typeInfo.symbol}
-            </span>
+            <div className="flex flex-wrap gap-2">
+                {displayRates.map(({ type, min, max }) => {
+                    const typeInfo = RATE_TYPES[type] || { symbol: '', icon: '💵' };
+                    return (
+                        <span key={type} className="font-semibold text-green-600 text-sm">
+                            {formatCurrency(min, 'USD')}
+                            {min !== max && `-${formatCurrency(max, 'USD').replace('$', '')}`}
+                            {typeInfo.symbol}
+                        </span>
+                    );
+                })}
+                {rateSummary.length > 2 && (
+                    <span className="text-gray-500 text-xs">+{rateSummary.length - 2} more</span>
+                )}
+            </div>
         );
     }
 
     return (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
             {rateSummary.map(({ type, min, max }) => {
-                const typeInfo = RATE_TYPES[type] || { label: type, symbol: '' };
+                const typeInfo = RATE_TYPES[type] || { label: type, symbol: '', icon: '💵' };
                 return (
                     <div key={type} className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600 w-24">{typeInfo.label}:</span>
+                        <span className="text-base">{typeInfo.icon}</span>
+                        <span className="text-gray-600 min-w-[100px]">{typeInfo.label}:</span>
                         <span className="font-semibold text-green-600">
                             {formatCurrency(min, 'USD')}
                             {min !== max && ` - ${formatCurrency(max, 'USD')}`}
