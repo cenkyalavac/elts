@@ -1179,6 +1179,27 @@ export default function InboxPage() {
                     onOpenChange={setReplyDialogOpen}
                     draftReply={replyEmail ? emailAnalysis[replyEmail.id]?.draft_reply : null}
                 />
+
+                {/* Compose Email Dialog */}
+                <ComposeEmailDialog
+                    open={composeOpen}
+                    onOpenChange={(open) => {
+                        setComposeOpen(open);
+                        if (!open) setForwardEmail(null);
+                    }}
+                    initialTo={forwardEmail ? '' : ''}
+                    initialSubject={forwardEmail ? `Fwd: ${forwardEmail.subject}` : ''}
+                    initialBody={forwardEmail ? `\n\n---------- Forwarded message ----------\nFrom: ${forwardEmail.from}\nDate: ${forwardEmail.date}\nSubject: ${forwardEmail.subject}\n\n${forwardEmail.body || forwardEmail.snippet}` : ''}
+                    mode={forwardEmail ? 'forward' : 'compose'}
+                />
+
+                {/* Snooze Dialog */}
+                <SnoozeDialog
+                    email={snoozeEmail}
+                    open={snoozeDialogOpen}
+                    onOpenChange={setSnoozeDialogOpen}
+                    onSnooze={handleSnooze}
+                />
             </div>
         </div>
     );
