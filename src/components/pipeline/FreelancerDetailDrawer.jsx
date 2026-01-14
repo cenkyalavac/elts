@@ -11,7 +11,7 @@ import {
     X, Mail, Phone, MapPin, Globe, Calendar, 
     FileText, Save, Bell, MessageSquare, Activity, Send, Award
 } from "lucide-react";
-import GmailIntegration from "../gmail/GmailIntegration";
+import FreelancerEmailHistory from "../gmail/FreelancerEmailHistory";
 import SendEmailDialog from "../freelancers/SendEmailDialog";
 import QuizAttemptsView from "../quiz/QuizAttemptsView";
 import QuizAssignmentDialog from "../quiz/QuizAssignmentDialog";
@@ -429,7 +429,10 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
 
                             {/* Email Conversations */}
                             <div className="border-t pt-6">
-                                <GmailIntegration freelancerEmail={freelancer.email} />
+                                <FreelancerEmailHistory 
+                                    freelancerEmail={freelancer.email} 
+                                    freelancerName={freelancer.full_name}
+                                />
                             </div>
 
                             <div className="border-t pt-4">

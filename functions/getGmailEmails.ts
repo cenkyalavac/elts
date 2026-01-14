@@ -107,8 +107,8 @@ Deno.serve(async (req) => {
         }
 
         const body = await req.json().catch(() => ({}));
-        const { maxResults = 20 } = body;
-        console.log('getGmailEmails called with maxResults:', maxResults);
+        const { maxResults = 20, email: filterEmail } = body;
+        console.log('getGmailEmails called with maxResults:', maxResults, 'filterEmail:', filterEmail);
 
         const accessToken = await getAccessToken(user.gmailRefreshToken);
 
@@ -116,12 +116,16 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Failed to refresh Gmail token', code: 'TOKEN_REFRESH_FAILED' }, { status: 401 });
         }
 
-        // Search for emails in INBOX - increase limit for better coverage
-        const query = 'in:inbox';
-        const actualMaxResults = Math.min(maxResults, 100); // Increased limit
+        // Build search query - if filterEmail provided, search for emails with that contact
+        let query = 'in:inbox';
+        if (filterEmail) {
+            // Search for emails from or to this specific email address
+            query = `{from:${filterEmail} to:${filterEmail}}`;
+        }
+        const actualMaxResults = Math.min(maxResults, 100);
         const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?` +
             `q=${encodeURIComponent(query)}&maxResults=${actualMaxResults}`;
-        console.log('Gmail search URL:', searchUrl, 'maxResults:', actualMaxResults);
+        console.log('Gmail search URL:', searchUrl, 'query:', query);
 
         const searchResponse = await fetch(searchUrl, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
