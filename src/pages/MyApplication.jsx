@@ -140,13 +140,14 @@ export default function MyApplicationPage() {
                 </div>
 
                 <Tabs defaultValue="dashboard" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto">
+                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 h-auto">
                         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="profile">Profile</TabsTrigger>
                         <TabsTrigger value="preferences">Preferences</TabsTrigger>
                         <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
                         <TabsTrigger value="payment">Payment</TabsTrigger>
+                        <TabsTrigger value="availability">Availability</TabsTrigger>
                         <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
                         <TabsTrigger value="jobs">Jobs</TabsTrigger>
                     </TabsList>
@@ -474,26 +475,39 @@ export default function MyApplicationPage() {
                        <PaymentInfoForm freelancer={application} />
                    </TabsContent>
 
-                   <TabsContent value="quizzes" className="space-y-6">
-                       <div className="space-y-6">
-                           <div>
-                               <h2 className="text-2xl font-bold mb-4">Assigned Quizzes</h2>
-                               <AssignedQuizzesSection freelancerId={application.id} />
-                           </div>
-                           <div className="border-t pt-6">
-                               <h2 className="text-2xl font-bold mb-4">Quiz Results</h2>
-                               <QuizResultsView freelancerId={application.id} />
-                           </div>
-                       </div>
-                   </TabsContent>
+                   <TabsContent value="availability" className="space-y-6">
+                        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-white">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <div className="p-3 bg-purple-100 rounded-lg">
+                                        <CalendarIcon className="w-6 h-6 text-purple-600" />
+                                    </div>
+                                    My Availability
+                                </CardTitle>
+                                <p className="text-gray-600 mt-2">
+                                    Set your availability to help us match you with the right projects. Click on any date to update your status.
+                                </p>
+                            </CardHeader>
+                        </Card>
+                        <AvailabilityCalendar freelancerId={application.id} readOnly={false} />
+                    </TabsContent>
 
-                   <TabsContent value="availability">
-                       <AvailabilityCalendar freelancerId={application.id} readOnly={false} />
-                   </TabsContent>
+                   <TabsContent value="quizzes" className="space-y-6">
+                        <div className="space-y-6">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-4">Assigned Quizzes</h2>
+                                <AssignedQuizzesSection freelancerId={application.id} />
+                            </div>
+                            <div className="border-t pt-6">
+                                <h2 className="text-2xl font-bold mb-4">Quiz Results</h2>
+                                <QuizResultsView freelancerId={application.id} />
+                            </div>
+                        </div>
+                    </TabsContent>
 
                    <TabsContent value="jobs">
-                       <FreelancerJobOffers freelancer={application} />
-                   </TabsContent>
+                        <FreelancerJobOffers freelancer={application} />
+                    </TabsContent>
                    </Tabs>
                 </div>
                 </div>
