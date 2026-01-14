@@ -19,11 +19,11 @@ Deno.serve(async (req) => {
         // project_manager and applicant map to 'user' role
         const base44Role = role === 'admin' ? 'admin' : 'user';
 
-        // Invite the user using Base44's built-in invitation system
+        // Invite the user using Base44's built-in invitation system with service role
         console.log('Inviting user:', email, 'with base44 role:', base44Role, '(requested:', role, ')');
         
         try {
-            const result = await base44.users.inviteUser(email, base44Role);
+            const result = await base44.asServiceRole.users.inviteUser(email, base44Role);
             console.log('Invite result:', result);
             return Response.json({ success: true, message: 'Invitation sent successfully', requestedRole: role });
         } catch (inviteError) {
