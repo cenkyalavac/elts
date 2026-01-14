@@ -44,7 +44,62 @@ export default function InboxPage() {
     const [emailAnalysis, setEmailAnalysis] = useState({});
     const [activeFilter, setActiveFilter] = useState('all');
     const [starredEmails, setStarredEmails] = useState(new Set());
+    const [selectedEmails, setSelectedEmails] = useState(new Set());
+    const [sortBy, setSortBy] = useState('date_desc');
+    const [dateFilter, setDateFilter] = useState('all');
+    const [readEmails, setReadEmails] = useState(new Set());
+    const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+    const [replyEmail, setReplyEmail] = useState(null);
+    const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
     const queryClient = useQueryClient();
+
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.key) {
+                case 'j':
+                    // Next email
+                    if (filteredEmails.length > 0) {
+                        const currentIdx = filteredEmails.findIndex(em => em.id === expandedEmail);
+                        const nextIdx = currentIdx < filteredEmails.length - 1 ? currentIdx + 1 : 0;
+                        setExpandedEmail(filteredEmails[nextIdx]?.id);
+                    }
+                    break;
+                case 'k':
+                    // Previous email
+                    if (filteredEmails.length > 0) {
+                        const currentIdx = filteredEmails.findIndex(em => em.id === expandedEmail);
+                        const prevIdx = currentIdx > 0 ? currentIdx - 1 : filteredEmails.length - 1;
+                        setExpandedEmail(filteredEmails[prevIdx]?.id);
+                    }
+                    break;
+                case 's':
+                    // Star current email
+                    if (expandedEmail) {
+                        toggleStar({ stopPropagation: () => {} }, expandedEmail);
+                    }
+                    break;
+                case 'r':
+                    // Reply to current email
+                    if (expandedEmail) {
+                        const email = filteredEmails.find(em => em.id === expandedEmail);
+                        if (email) handleReply(email);
+                    }
+                    break;
+                case 'Escape':
+                    setExpandedEmail(null);
+                    break;
+                case '?':
+                    setShowKeyboardShortcuts(prev => !prev);
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [expandedEmail]);
 
     // Fetch current user
     const { data: user, isLoading: userLoading } = useQuery({
