@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink, CheckCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink, CheckCircle, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +25,7 @@ const availabilityColors = {
     'Not available': 'bg-gray-100 text-gray-800'
 };
 
-export default function FreelancerCard({ freelancer }) {
+export default function FreelancerCard({ freelancer, onQuickView }) {
     const { data: quizAttempts = [] } = useQuery({
         queryKey: ['quizAttempts', freelancer.id],
         queryFn: () => base44.entities.QuizAttempt.filter({ freelancer_id: freelancer.id }),
@@ -130,12 +130,19 @@ export default function FreelancerCard({ freelancer }) {
                             </Badge>
                         )}
                     </div>
-                    <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>
-                        <Button variant="outline" size="sm">
-                            View Details
-                            <ExternalLink className="w-3 h-3 ml-2" />
-                        </Button>
-                    </Link>
+                    <div className="flex gap-2">
+                        {onQuickView && (
+                            <Button variant="ghost" size="sm" onClick={() => onQuickView(freelancer)}>
+                                <Eye className="w-4 h-4" />
+                            </Button>
+                        )}
+                        <Link to={createPageUrl(`FreelancerDetail?id=${encodeURIComponent(freelancer.id)}`)}>
+                            <Button variant="outline" size="sm">
+                                View Details
+                                <ExternalLink className="w-3 h-3 ml-2" />
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </CardContent>
         </Card>

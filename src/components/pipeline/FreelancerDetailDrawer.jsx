@@ -436,7 +436,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             </div>
 
                             <div className="border-t pt-4">
-                                <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>
+                                <Link to={createPageUrl(`FreelancerDetail?id=${encodeURIComponent(freelancer.id)}`)}>
                                     <Button variant="outline" className="w-full">
                                         View Full Profile
                                     </Button>
