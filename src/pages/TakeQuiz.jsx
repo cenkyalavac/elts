@@ -2,24 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Clock, CheckCircle, AlertCircle, Save } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Clock, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { createPageUrl } from "../utils";
+import { motion, AnimatePresence } from "framer-motion";
+
+// RTL language detection
+const rtlLanguages = ['Arabic', 'Hebrew', 'Persian', 'Urdu', 'Farsi', 'العربية', 'עברית', 'فارسی', 'اردو'];
+
+function isRTL(text) {
+    if (!text) return false;
+    // Check for RTL Unicode characters
+    const rtlRegex = /[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/;
+    return rtlRegex.test(text);
+}
 
 export default function TakeQuiz() {
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('quiz_id');
+    const isPreview = urlParams.get('preview') === 'true';
 
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState({});
     const [startTime] = useState(new Date());
     const [submitted, setSubmitted] = useState(false);
     const [result, setResult] = useState(null);
     const [timeRemaining, setTimeRemaining] = useState(null);
-    const [autoSaving, setAutoSaving] = useState(false);
-    const [lastSaved, setLastSaved] = useState(null);
+    const [showIntro, setShowIntro] = useState(true);
+    const [direction, setDirection] = useState(1);
 
     const queryClient = useQueryClient();
 
@@ -37,9 +49,34 @@ export default function TakeQuiz() {
         enabled: !!quizId,
     });
 
+    const { data: questions = [] } = useQuery({
+        queryKey: ['questions', quizId],
+        queryFn: () => base44.entities.Question.filter({ quiz_id: quizId }, 'order'),
+        enabled: !!quizId,
+    });
+
+    const { data: freelancer } = useQuery({
+        queryKey: ['myFreelancer', user?.email],
+        queryFn: async () => {
+            const freelancers = await base44.entities.Freelancer.filter({ email: user.email });
+            return freelancers[0];
+        },
+        enabled: !!user?.email && !isPreview,
+    });
+
+    // Determine if quiz content is RTL
+    const quizIsRTL = quiz && (
+        rtlLanguages.some(lang => 
+            quiz.target_language?.toLowerCase().includes(lang.toLowerCase()) ||
+            quiz.source_language?.toLowerCase().includes(lang.toLowerCase())
+        ) ||
+        isRTL(quiz.title) ||
+        questions.some(q => isRTL(q.question_text))
+    );
+
     // Timer effect
     useEffect(() => {
-        if (!quiz?.time_limit_minutes || submitted) return;
+        if (!quiz?.time_limit_minutes || submitted || showIntro || isPreview) return;
 
         const endTime = new Date(startTime.getTime() + quiz.time_limit_minutes * 60000);
         const interval = setInterval(() => {
@@ -54,50 +91,25 @@ export default function TakeQuiz() {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [quiz?.time_limit_minutes, submitted, startTime]);
+    }, [quiz?.time_limit_minutes, submitted, startTime, showIntro, isPreview]);
 
     // Auto-save effect
     useEffect(() => {
+        if (isPreview) return;
         const timer = setTimeout(async () => {
             if (Object.keys(answers).length > 0 && !submitted) {
-                setAutoSaving(true);
-                try {
-                    // Save to localStorage as backup
-                    localStorage.setItem(`quiz_draft_${quizId}`, JSON.stringify({
-                        answers,
-                        savedAt: new Date().toISOString()
-                    }));
-                    setLastSaved(new Date());
-                    setAutoSaving(false);
-                } catch (error) {
-                    console.error('Auto-save failed:', error);
-                    setAutoSaving(false);
-                }
+                localStorage.setItem(`quiz_draft_${quizId}`, JSON.stringify({
+                    answers,
+                    savedAt: new Date().toISOString()
+                }));
             }
         }, 2000);
-
         return () => clearTimeout(timer);
-    }, [answers, submitted, quizId]);
-
-    const { data: questions = [] } = useQuery({
-        queryKey: ['questions', quizId],
-        queryFn: () => base44.entities.Question.filter({ quiz_id: quizId }, 'order'),
-        enabled: !!quizId,
-    });
-
-    const { data: freelancer } = useQuery({
-        queryKey: ['myFreelancer', user?.email],
-        queryFn: async () => {
-            const freelancers = await base44.entities.Freelancer.filter({ email: user.email });
-            return freelancers[0];
-        },
-        enabled: !!user?.email,
-    });
+    }, [answers, submitted, quizId, isPreview]);
 
     const submitQuizMutation = useMutation({
         mutationFn: async (data) => {
             const attempt = await base44.entities.QuizAttempt.create(data);
-            // Update assignment status to completed
             const assignments = await base44.entities.QuizAssignment.filter({ freelancer_id: freelancer.id, quiz_id: quizId });
             if (assignments.length > 0) {
                 await base44.entities.QuizAssignment.update(assignments[0].id, { status: 'completed' });
@@ -109,6 +121,7 @@ export default function TakeQuiz() {
             queryClient.invalidateQueries({ queryKey: ['quizAssignments'] });
             setResult(attempt);
             setSubmitted(true);
+            localStorage.removeItem(`quiz_draft_${quizId}`);
             toast.success('Quiz submitted successfully!');
         },
     });
@@ -123,8 +136,26 @@ export default function TakeQuiz() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const goNext = () => {
+        if (currentIndex < questions.length - 1) {
+            setDirection(1);
+            setCurrentIndex(currentIndex + 1);
+        }
+    };
+
+    const goPrev = () => {
+        if (currentIndex > 0) {
+            setDirection(-1);
+            setCurrentIndex(currentIndex - 1);
+        }
+    };
+
     const handleSubmit = () => {
-        // Clear draft from localStorage
+        if (isPreview) {
+            toast.info('This is preview mode - submissions are disabled');
+            return;
+        }
+
         localStorage.removeItem(`quiz_draft_${quizId}`);
 
         if (Object.keys(answers).length < questions.length) {
@@ -133,7 +164,7 @@ export default function TakeQuiz() {
             }
         }
 
-        const timeTaken = Math.round((new Date() - startTime) / 60000); // minutes
+        const timeTaken = Math.round((new Date() - startTime) / 60000);
 
         const gradedAnswers = questions.map(q => {
             const userAnswer = answers[q.id] || '';
@@ -164,215 +195,351 @@ export default function TakeQuiz() {
         });
     };
 
+    // Keyboard navigation
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (showIntro || submitted) return;
+            
+            if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                if (currentIndex < questions.length - 1) goNext();
+            } else if (e.key === 'ArrowLeft') {
+                goPrev();
+            } else if (e.key >= '1' && e.key <= '9') {
+                const question = questions[currentIndex];
+                const options = question.question_type === 'true_false' 
+                    ? ['True', 'False'] 
+                    : question.options;
+                const idx = parseInt(e.key) - 1;
+                if (idx < options.length) {
+                    handleAnswerChange(question.id, options[idx]);
+                }
+            }
+        };
+        
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [showIntro, submitted, currentIndex, questions]);
+
     if (!quizId) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-                <div className="max-w-4xl mx-auto text-center mt-20">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">No Quiz Selected</h2>
-                    <p className="text-gray-600">Please select a quiz to take.</p>
+            <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-6">
+                <div className="text-center text-white">
+                    <h2 className="text-3xl font-bold mb-4">No Quiz Selected</h2>
+                    <p className="text-white/70">Please select a quiz to take.</p>
                 </div>
             </div>
         );
     }
 
-    if (!quiz || !freelancer) {
+    if (!quiz || (!freelancer && !isPreview)) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-white/30 border-t-white"></div>
             </div>
         );
     }
 
+    // Result Screen
     if (submitted && result) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-                <div className="max-w-3xl mx-auto">
-                    <Card className="text-center">
-                        <CardHeader>
-                            <div className="mx-auto mb-4">
-                                {result.passed ? (
-                                    <CheckCircle className="w-20 h-20 text-green-500" />
-                                ) : result.passed === false ? (
-                                    <AlertCircle className="w-20 h-20 text-red-500" />
-                                ) : (
-                                    <CheckCircle className="w-20 h-20 text-blue-500" />
-                                )}
+            <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-6">
+                <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 max-w-lg w-full text-center border border-white/20"
+                >
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: "spring" }}
+                        className="mb-8"
+                    >
+                        {result.passed ? (
+                            <div className="w-32 h-32 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
+                                <CheckCircle className="w-20 h-20 text-green-400" />
                             </div>
-                            <CardTitle className="text-3xl">Quiz Submitted!</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div>
-                                <div className="text-5xl font-bold text-blue-600 mb-2">
-                                    {result.percentage}%
-                                </div>
-                                <div className="text-gray-600">
-                                    {result.score} out of {result.total_possible} points
-                                </div>
+                        ) : result.passed === false ? (
+                            <div className="w-32 h-32 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
+                                <X className="w-20 h-20 text-red-400" />
                             </div>
-
-                            {result.passed !== null && (
-                                <Badge className={result.passed ? 'bg-green-500' : 'bg-red-500'}>
-                                    {result.passed ? 'PASSED' : 'FAILED'}
-                                </Badge>
-                            )}
-
-                            <div className="text-sm text-gray-600">
-                                <div>Time taken: {result.time_taken_minutes} minutes</div>
+                        ) : (
+                            <div className="w-32 h-32 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <Check className="w-20 h-20 text-blue-400" />
                             </div>
+                        )}
+                    </motion.div>
 
-                            <Button
-                                onClick={() => window.location.href = createPageUrl('MyApplication')}
-                                className="mt-6"
-                            >
-                                Return to My Application
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        );
-    }
+                    <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        <h1 className="text-4xl font-bold text-white mb-2">Quiz Complete!</h1>
+                        <p className="text-white/60 mb-8">{quiz.title}</p>
 
-    const progress = (Object.keys(answers).length / questions.length) * 100;
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-            <div className="max-w-4xl mx-auto">
-                {/* Header */}
-                <Card className="mb-6">
-                    <CardHeader>
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex-1">
-                                <CardTitle className="text-2xl">{quiz.title}</CardTitle>
-                                {quiz.description && (
-                                    <p className="text-gray-600 mt-2">{quiz.description}</p>
-                                )}
-                            </div>
-                            {timeRemaining !== null && (
-                                <div className={`text-center px-4 py-2 rounded-lg ${
-                                    timeRemaining < 300 ? 'bg-red-100 border border-red-300' :
-                                    timeRemaining < 600 ? 'bg-yellow-100 border border-yellow-300' :
-                                    'bg-green-100 border border-green-300'
-                                }`}>
-                                    <Clock className={`w-5 h-5 mx-auto mb-1 ${
-                                        timeRemaining < 300 ? 'text-red-600' :
-                                        timeRemaining < 600 ? 'text-yellow-600' :
-                                        'text-green-600'
-                                    }`} />
-                                    <div className={`font-bold text-lg ${
-                                        timeRemaining < 300 ? 'text-red-600' :
-                                        timeRemaining < 600 ? 'text-yellow-600' :
-                                        'text-green-600'
-                                    }`}>
-                                        {formatTime(timeRemaining)}
-                                    </div>
-                                    {timeRemaining < 300 && (
-                                        <div className="text-xs text-red-600 mt-1">⚠️ Hurry up!</div>
-                                    )}
-                                </div>
-                            )}
+                        <div className="text-7xl font-bold text-white mb-4">
+                            {result.percentage}%
                         </div>
+                        <p className="text-white/70 text-lg mb-6">
+                            {result.score} out of {result.total_possible} points
+                        </p>
 
-                        {quiz.instructions && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{quiz.instructions}</p>
+                        {result.passed !== null && (
+                            <div className={`inline-block px-6 py-3 rounded-full text-lg font-semibold mb-8 ${
+                                result.passed 
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            }`}>
+                                {result.passed ? '✓ PASSED' : '✗ FAILED'}
                             </div>
                         )}
 
-                        <div className="flex gap-4 mt-4 flex-wrap items-center justify-between">
-                            <div className="flex gap-4">
-                                <Badge variant="outline">
-                                    {questions.length} Questions
-                                </Badge>
-                                <Badge variant="outline">
-                                    {quiz.total_points} Total Points
-                                </Badge>
+                        <div className="text-white/50 text-sm mb-8">
+                            Time taken: {result.time_taken_minutes} minutes
+                        </div>
+
+                        <Button
+                            onClick={() => window.location.href = createPageUrl('MyApplication')}
+                            className="bg-white text-purple-900 hover:bg-white/90 px-8 py-6 text-lg rounded-xl"
+                        >
+                            Return to My Application
+                        </Button>
+                    </motion.div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    // Intro Screen
+    if (showIntro) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex items-center justify-center p-6" dir={quizIsRTL ? 'rtl' : 'ltr'}>
+                <motion.div 
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 max-w-2xl w-full text-center border border-white/20"
+                >
+                    {isPreview && (
+                        <div className="mb-6 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full inline-block">
+                            <span className="text-yellow-300 text-sm font-medium">👁 Preview Mode</span>
+                        </div>
+                    )}
+                    
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{quiz.title}</h1>
+                    
+                    {quiz.description && (
+                        <p className="text-white/70 text-lg mb-8">{quiz.description}</p>
+                    )}
+
+                    <div className="flex flex-wrap justify-center gap-4 mb-8">
+                        <div className="bg-white/10 rounded-xl px-6 py-4">
+                            <div className="text-3xl font-bold text-white">{questions.length}</div>
+                            <div className="text-white/60 text-sm">Questions</div>
+                        </div>
+                        <div className="bg-white/10 rounded-xl px-6 py-4">
+                            <div className="text-3xl font-bold text-white">{quiz.total_points || 0}</div>
+                            <div className="text-white/60 text-sm">Points</div>
+                        </div>
+                        {quiz.time_limit_minutes && (
+                            <div className="bg-white/10 rounded-xl px-6 py-4">
+                                <div className="text-3xl font-bold text-white">{quiz.time_limit_minutes}</div>
+                                <div className="text-white/60 text-sm">Minutes</div>
                             </div>
-                            {lastSaved && (
-                                <div className="text-xs text-gray-500 flex items-center gap-1">
-                                    <Save className="w-3 h-3" />
-                                    Last saved: {lastSaved.toLocaleTimeString()}
-                                </div>
-                            )}
-                        </div>
-                    </CardHeader>
-                </Card>
+                        )}
+                        {quiz.passing_score && (
+                            <div className="bg-white/10 rounded-xl px-6 py-4">
+                                <div className="text-3xl font-bold text-white">{quiz.passing_score}%</div>
+                                <div className="text-white/60 text-sm">To Pass</div>
+                            </div>
+                        )}
+                    </div>
 
-                {/* Progress */}
-                <Card className="mb-6">
-                    <CardContent className="pt-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium">Progress</span>
-                            <span className="text-sm text-gray-600">
-                                {Object.keys(answers).length} / {questions.length} answered
-                            </span>
+                    {quiz.instructions && (
+                        <div className="bg-white/5 rounded-xl p-6 mb-8 text-left" dir={isRTL(quiz.instructions) ? 'rtl' : 'ltr'}>
+                            <p className="text-white/80 whitespace-pre-wrap">{quiz.instructions}</p>
                         </div>
-                        <Progress value={progress} className="h-2" />
-                    </CardContent>
-                </Card>
+                    )}
 
-                {/* Questions */}
-                <div className="space-y-6">
-                    {questions.map((question, idx) => (
-                        <Card key={question.id}>
-                            <CardHeader>
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="font-bold text-lg">Question {idx + 1}</span>
-                                            <Badge variant="outline">{question.points} pts</Badge>
-                                            {question.section && (
-                                                <Badge variant="secondary">{question.section}</Badge>
-                                            )}
-                                        </div>
-                                        <p className="text-gray-800">{question.question_text}</p>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    {(question.question_type === 'true_false' 
-                                        ? ['True', 'False'] 
-                                        : question.options
-                                    ).map((option, optIdx) => (
-                                        <label
-                                            key={optIdx}
-                                            className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
-                                                answers[question.id] === option
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name={`question_${question.id}`}
-                                                value={option}
-                                                checked={answers[question.id] === option}
-                                                onChange={() => handleAnswerChange(question.id, option)}
-                                                className="mr-3"
-                                            />
-                                            <span>{option}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    <div className="text-white/50 text-sm mb-8">
+                        Use arrow keys to navigate • Press 1-9 to select answers
+                    </div>
+
+                    <Button
+                        onClick={() => setShowIntro(false)}
+                        className="bg-white text-purple-900 hover:bg-white/90 px-12 py-6 text-xl rounded-xl font-semibold"
+                    >
+                        {isPreview ? 'Start Preview' : 'Start Quiz'} →
+                    </Button>
+                </motion.div>
+            </div>
+        );
+    }
+
+    const currentQuestion = questions[currentIndex];
+    const progress = ((currentIndex + 1) / questions.length) * 100;
+    const options = currentQuestion?.question_type === 'true_false' 
+        ? ['True', 'False'] 
+        : currentQuestion?.options || [];
+
+    const questionIsRTL = isRTL(currentQuestion?.question_text);
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex flex-col" dir={quizIsRTL ? 'rtl' : 'ltr'}>
+            {/* Header */}
+            <div className="p-4 md:p-6">
+                <div className="max-w-4xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        {isPreview && (
+                            <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+                                Preview
+                            </Badge>
+                        )}
+                        <span className="text-white/60 text-sm hidden md:block">{quiz.title}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                        {timeRemaining !== null && !isPreview && (
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+                                timeRemaining < 300 ? 'bg-red-500/20 text-red-300' :
+                                timeRemaining < 600 ? 'bg-yellow-500/20 text-yellow-300' :
+                                'bg-white/10 text-white'
+                            }`}>
+                                <Clock className="w-4 h-4" />
+                                <span className="font-mono font-bold">{formatTime(timeRemaining)}</span>
+                            </div>
+                        )}
+                        
+                        <div className="text-white/60">
+                            {currentIndex + 1} / {questions.length}
+                        </div>
+                    </div>
                 </div>
+                
+                <div className="max-w-4xl mx-auto mt-4">
+                    <Progress value={progress} className="h-1 bg-white/10" />
+                </div>
+            </div>
 
-                {/* Submit Button */}
-                <Card className="mt-6">
-                    <CardContent className="pt-6">
+            {/* Question */}
+            <div className="flex-1 flex items-center justify-center p-6">
+                <div className="max-w-3xl w-full">
+                    <AnimatePresence mode="wait" custom={direction}>
+                        <motion.div
+                            key={currentIndex}
+                            custom={direction}
+                            initial={{ x: direction * 100, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: direction * -100, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                            <div className="mb-8">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="text-white/40 text-sm">Question {currentIndex + 1}</span>
+                                    <Badge className="bg-white/10 text-white/70 border-0">
+                                        {currentQuestion?.points} pts
+                                    </Badge>
+                                    {currentQuestion?.section && (
+                                        <Badge className="bg-purple-500/20 text-purple-300 border-0">
+                                            {currentQuestion.section}
+                                        </Badge>
+                                    )}
+                                </div>
+                                <h2 
+                                    className="text-2xl md:text-4xl font-bold text-white leading-relaxed"
+                                    dir={questionIsRTL ? 'rtl' : 'ltr'}
+                                >
+                                    {currentQuestion?.question_text}
+                                </h2>
+                            </div>
+
+                            <div className="space-y-3">
+                                {options.map((option, idx) => {
+                                    const isSelected = answers[currentQuestion?.id] === option;
+                                    const optionIsRTL = isRTL(option);
+                                    
+                                    return (
+                                        <motion.button
+                                            key={idx}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.1 }}
+                                            onClick={() => handleAnswerChange(currentQuestion?.id, option)}
+                                            className={`w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 flex items-center gap-4 group ${
+                                                isSelected
+                                                    ? 'bg-white/20 border-white text-white'
+                                                    : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10 hover:border-white/30'
+                                            }`}
+                                            dir={optionIsRTL ? 'rtl' : 'ltr'}
+                                        >
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all ${
+                                                isSelected
+                                                    ? 'bg-white text-purple-900'
+                                                    : 'bg-white/10 text-white/60 group-hover:bg-white/20'
+                                            }`}>
+                                                {isSelected ? <Check className="w-5 h-5" /> : String.fromCharCode(65 + idx)}
+                                            </div>
+                                            <span className="text-lg flex-1">{option}</span>
+                                            <span className="text-white/30 text-sm hidden md:block">Press {idx + 1}</span>
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="p-6">
+                <div className="max-w-3xl mx-auto flex items-center justify-between">
+                    <Button
+                        onClick={goPrev}
+                        disabled={currentIndex === 0}
+                        variant="ghost"
+                        className="text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                    >
+                        <ChevronLeft className="w-5 h-5 mr-2" />
+                        Previous
+                    </Button>
+
+                    {/* Question dots */}
+                    <div className="hidden md:flex gap-1.5 flex-wrap justify-center max-w-md">
+                        {questions.map((q, idx) => (
+                            <button
+                                key={q.id}
+                                onClick={() => {
+                                    setDirection(idx > currentIndex ? 1 : -1);
+                                    setCurrentIndex(idx);
+                                }}
+                                className={`w-3 h-3 rounded-full transition-all ${
+                                    idx === currentIndex
+                                        ? 'bg-white scale-125'
+                                        : answers[q.id]
+                                            ? 'bg-green-400'
+                                            : 'bg-white/30 hover:bg-white/50'
+                                }`}
+                            />
+                        ))}
+                    </div>
+
+                    {currentIndex === questions.length - 1 ? (
                         <Button
                             onClick={handleSubmit}
                             disabled={submitQuizMutation.isPending}
-                            className="w-full bg-blue-600 hover:bg-blue-700"
-                            size="lg"
+                            className="bg-white text-purple-900 hover:bg-white/90 px-8"
                         >
-                            {submitQuizMutation.isPending ? 'Submitting...' : 'Submit Quiz'}
+                            {submitQuizMutation.isPending ? 'Submitting...' : isPreview ? 'End Preview' : 'Submit Quiz'}
                         </Button>
-                    </CardContent>
-                </Card>
+                    ) : (
+                        <Button
+                            onClick={goNext}
+                            className="bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                        >
+                            Next
+                            <ChevronRight className="w-5 h-5 ml-2" />
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, FileQuestion, BarChart, X } from "lucide-react";
+import { Plus, Edit, Trash2, FileQuestion, BarChart, X, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import QuizForm from "../components/quiz/QuizForm";
 import QuizAnalytics from "../components/quiz/QuizAnalytics";
@@ -152,6 +153,16 @@ export default function QuizManagement() {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
+                                                    <Link to={createPageUrl(`TakeQuiz?quiz_id=${quiz.id}&preview=true`)}>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="gap-2 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                            Preview
+                                                        </Button>
+                                                    </Link>
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
