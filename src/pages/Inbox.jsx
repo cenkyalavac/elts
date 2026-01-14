@@ -24,10 +24,15 @@ export default function InboxPage() {
     const queryClient = useQueryClient();
 
     // Fetch current user
-    const { data: user, isLoading: userLoading } = useQuery({
+    const { data: user, isLoading: userLoading, error: userError } = useQuery({
         queryKey: ['currentUser'],
         queryFn: async () => {
-            return await base44.auth.me();
+            try {
+                return await base44.auth.me();
+            } catch (e) {
+                console.error('Auth error:', e);
+                return null;
+            }
         },
     });
 
@@ -127,8 +132,23 @@ export default function InboxPage() {
         );
     }
 
+    // Not logged in
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 p-6">
+                <div className="max-w-6xl mx-auto">
+                    <Card className="p-8 text-center">
+                        <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
+                        <h2 className="text-xl font-semibold text-gray-900">Giriş Gerekli</h2>
+                        <p className="text-gray-600 mt-2">Bu sayfayı görüntülemek için giriş yapmalısınız.</p>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
     // Access denied for non-admins
-    if (user?.role !== 'admin') {
+    if (user.role !== 'admin') {
         return (
             <div className="min-h-screen bg-gray-50 p-6">
                 <div className="max-w-6xl mx-auto">
