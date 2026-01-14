@@ -161,10 +161,11 @@ export default function InboxPage() {
         }
     });
 
-    // Fetch emails - only when connected
+    // Fetch emails - only when connected, auto-refresh every 30 seconds
     const { 
         data: emailData = { emails: [] }, 
         isLoading: emailsLoading, 
+        isFetching: emailsFetching,
         error: emailsError, 
         refetch 
     } = useQuery({
@@ -177,6 +178,9 @@ export default function InboxPage() {
         },
         enabled: !!user && user.role === 'admin' && !!user.gmailRefreshToken,
         retry: 1,
+        refetchInterval: 30000, // Auto-refresh every 30 seconds
+        refetchIntervalInBackground: false, // Only when tab is active
+        staleTime: 15000, // Consider data stale after 15 seconds
     });
 
     // Analyze email mutation
