@@ -58,46 +58,56 @@ Deno.serve(async (req) => {
             }
         }
 
-        // Use LLM to enhance question parsing and grouping
+        // Use LLM to enhance question parsing, grouping, and point assignment
         const llmPrompt = `You are analyzing a quiz document. Your task is to:
-1. Identify distinct sections/topics in the quiz (e.g., Grammar, Vocabulary, Reading Comprehension)
-2. For each question, determine which section it belongs to
-3. Return a JSON with section names and question numbers that belong to each section
+1. Identify ONLY actual quiz questions (ignore section headers, instructions, or descriptive text)
+2. For each question, determine:
+   - Question number
+   - Point value (look for indicators like "5 points", "10p", "(5)", etc. - if not specified, default to 1)
+   - Section/topic it belongs to (e.g., Grammar, Vocabulary, Reading Comprehension)
+3. Identify any highlighted text that is NOT an answer option (like section headers, instructions) - these should be ignored
 
 Document text:
 ${rawText}
 
 Return ONLY a JSON object in this format:
 {
-  "sections": [
-    {"name": "Section Name", "questions": [1, 2, 3]},
-    {"name": "Another Section", "questions": [4, 5, 6]}
-  ]
+  "questions": [
+    {"number": 1, "points": 5, "section": "Grammar"},
+    {"number": 2, "points": 10, "section": "Grammar"},
+    {"number": 3, "points": 5, "section": "Vocabulary"}
+  ],
+  "ignore_highlighted_phrases": ["Grammar Section", "Instructions:", "Part 1"]
 }`;
 
-        let sectionMapping = { sections: [] };
+        let llmAnalysis = { questions: [], ignore_highlighted_phrases: [] };
         try {
             const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
                 prompt: llmPrompt,
                 response_json_schema: {
                     type: "object",
                     properties: {
-                        sections: {
+                        questions: {
                             type: "array",
                             items: {
                                 type: "object",
                                 properties: {
-                                    name: { type: "string" },
-                                    questions: { type: "array", items: { type: "number" } }
+                                    number: { type: "number" },
+                                    points: { type: "number" },
+                                    section: { type: "string" }
                                 }
                             }
+                        },
+                        ignore_highlighted_phrases: {
+                            type: "array",
+                            items: { type: "string" }
                         }
                     }
                 }
             });
-            sectionMapping = llmResponse;
+            llmAnalysis = llmResponse;
         } catch (error) {
-            console.warn('LLM section detection failed, continuing without sections:', error.message);
+            console.warn('LLM analysis failed, using defaults:', error.message);
         }
 
         // Parse document content
@@ -157,11 +167,20 @@ Return ONLY a JSON object in this format:
                 const optionMatch = text.match(/^([A-D])[:\)\.\s]\s*(.+)|^[-•]\s*(.+)/i);
                 if (optionMatch) {
                     const optionText = (optionMatch[2] || optionMatch[3]).trim();
-                    currentQuestion.options.push(optionText);
+                    
+                    // Skip if this is a section header or instruction that was accidentally highlighted
+                    const shouldIgnore = llmAnalysis.ignore_highlighted_phrases.some(phrase => 
+                        optionText.toLowerCase().includes(phrase.toLowerCase()) ||
+                        phrase.toLowerCase().includes(optionText.toLowerCase())
+                    );
+                    
+                    if (!shouldIgnore) {
+                        currentQuestion.options.push(optionText);
 
-                    // If this option is highlighted, mark as correct
-                    if (hasHighlight) {
-                        currentQuestion.correct_answer = optionText;
+                        // If this option is highlighted, mark as correct
+                        if (hasHighlight) {
+                            currentQuestion.correct_answer = optionText;
+                        }
                     }
                 } else {
                     // Check for True/False questions
@@ -188,14 +207,16 @@ Return ONLY a JSON object in this format:
             questions.push(currentQuestion);
         }
 
-        // Assign sections to questions based on LLM analysis
+        // Assign sections and points to questions based on LLM analysis
         questions.forEach((q, idx) => {
             const questionNum = idx + 1;
-            for (const section of sectionMapping.sections || []) {
-                if (section.questions?.includes(questionNum)) {
-                    q.section = section.name;
-                    break;
-                }
+            const llmQuestion = llmAnalysis.questions.find(lq => lq.number === questionNum);
+            
+            if (llmQuestion) {
+                q.section = llmQuestion.section || null;
+                q.points = llmQuestion.points || 1;
+            } else {
+                q.points = 1; // Default to 1 point if LLM didn't find point value
             }
         });
 
