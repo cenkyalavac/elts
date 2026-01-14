@@ -81,7 +81,8 @@ export default function FreelancersPage() {
     const { data: freelancers = [], isLoading } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-created_date'),
-        staleTime: 30000, // Data stays fresh for 30 seconds
+        staleTime: 0,
+        refetchOnMount: 'always',
     });
 
     const updateFreelancerMutation = useMutation({

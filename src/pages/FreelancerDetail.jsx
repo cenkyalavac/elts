@@ -34,7 +34,8 @@ const statusConfig = {
 
 export default function FreelancerDetailPage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const freelancerId = urlParams.get('id');
+    const rawId = urlParams.get('id');
+    const freelancerId = rawId ? decodeURIComponent(rawId) : null;
 
     const [isEditing, setIsEditing] = useState(false);
     const [showEmailDialog, setShowEmailDialog] = useState(false);

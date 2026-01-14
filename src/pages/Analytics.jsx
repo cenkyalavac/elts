@@ -36,6 +36,8 @@ export default function AnalyticsPage() {
     const { data: freelancers = [], isLoading: isLoadingFreelancers } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list(),
+        staleTime: 0,
+        refetchOnMount: 'always',
     });
 
     const { data: activities = [], isLoading: isLoadingActivities } = useQuery({
