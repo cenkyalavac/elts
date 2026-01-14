@@ -12,8 +12,9 @@ Deno.serve(async (req) => {
         const { freelancer_id, action } = await req.json();
 
         if (action === 'fetch') {
-            // Get Google Calendar access token
-            const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
+            // Get user's Google Calendar access token from their own OAuth
+            // This requires the user to have connected their own Google Calendar
+            const accessToken = await base44.connectors.getAccessToken("googlecalendar");
 
             const freelancer = await base44.asServiceRole.entities.Freelancer.filter({ id: freelancer_id });
             if (!freelancer || freelancer.length === 0) {

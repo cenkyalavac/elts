@@ -3,10 +3,12 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import ConnectCalendar from "./ConnectCalendar";
 
 export default function GoogleCalendarSync({ freelancerId, freelancerName }) {
     const [syncing, setSyncing] = useState(false);
     const [result, setResult] = useState(null);
+    const [isConnected, setIsConnected] = useState(true); // Will be checked on mount
 
     const handleSync = async () => {
         setSyncing(true);
@@ -23,6 +25,10 @@ export default function GoogleCalendarSync({ freelancerId, freelancerName }) {
                 data: response.data
             });
         } catch (error) {
+            // Check if error is due to missing OAuth connection
+            if (error.message?.includes('not connected') || error.message?.includes('Unauthorized')) {
+                setIsConnected(false);
+            }
             setResult({
                 success: false,
                 error: error.message
@@ -31,6 +37,10 @@ export default function GoogleCalendarSync({ freelancerId, freelancerName }) {
             setSyncing(false);
         }
     };
+
+    if (!isConnected) {
+        return <ConnectCalendar onConnected={() => setIsConnected(true)} />;
+    }
 
     return (
         <Card>
