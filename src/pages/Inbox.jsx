@@ -179,6 +179,59 @@ export default function InboxPage() {
         setDialogOpen(true);
     };
 
+    const handleReply = (email) => {
+        setReplyEmail(email);
+        setReplyDialogOpen(true);
+    };
+
+    const toggleEmailSelection = (emailId) => {
+        setSelectedEmails(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(emailId)) {
+                newSet.delete(emailId);
+            } else {
+                newSet.add(emailId);
+            }
+            return newSet;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedEmails.size === filteredEmails.length) {
+            setSelectedEmails(new Set());
+        } else {
+            setSelectedEmails(new Set(filteredEmails.map(e => e.id)));
+        }
+    };
+
+    const bulkStarEmails = () => {
+        setStarredEmails(prev => {
+            const newSet = new Set(prev);
+            selectedEmails.forEach(id => newSet.add(id));
+            return newSet;
+        });
+        toast.success(`Starred ${selectedEmails.size} emails`);
+        setSelectedEmails(new Set());
+    };
+
+    const bulkMarkAsRead = () => {
+        setReadEmails(prev => {
+            const newSet = new Set(prev);
+            selectedEmails.forEach(id => newSet.add(id));
+            return newSet;
+        });
+        toast.success(`Marked ${selectedEmails.size} emails as read`);
+        setSelectedEmails(new Set());
+    };
+
+    const bulkAnalyze = () => {
+        const emailsToAnalyze = filteredEmails.filter(e => selectedEmails.has(e.id));
+        emailsToAnalyze.forEach(email => {
+            analyzeEmailMutation.mutate({ ...email, id: email.id });
+        });
+        setSelectedEmails(new Set());
+    };
+
     const formatEmailDate = (dateStr) => {
         try {
             const date = parseISO(dateStr);
