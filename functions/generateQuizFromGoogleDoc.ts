@@ -47,37 +47,76 @@ Deno.serve(async (req) => {
 
         const document = await docResponse.json();
 
-        // Extract raw text content for LLM processing
+        // Extract structured content with formatting info for better LLM analysis
         let rawText = '';
+        let structuredContent = [];
+        
         for (const element of document.body.content) {
             if (!element.paragraph) continue;
+            
+            let paragraphText = '';
+            let hasHighlight = false;
+            
             for (const textElement of element.paragraph.elements || []) {
                 if (textElement.textRun) {
-                    rawText += textElement.textRun.content;
+                    const content = textElement.textRun.content;
+                    paragraphText += content;
+                    rawText += content;
+                    
+                    // Check for highlighting
+                    const style = textElement.textRun.textStyle;
+                    if (style?.backgroundColor?.color?.rgbColor) {
+                        hasHighlight = true;
+                    }
                 }
             }
+            
+            if (paragraphText.trim()) {
+                structuredContent.push({
+                    text: paragraphText.trim(),
+                    highlighted: hasHighlight
+                });
+            }
         }
+        
+        console.log('Document parsed:', {
+            totalParagraphs: structuredContent.length,
+            highlightedParagraphs: structuredContent.filter(p => p.highlighted).length,
+            rawTextLength: rawText.length
+        });
 
         // Use LLM to do a comprehensive analysis of the document
+        const contentPreview = structuredContent.map((p, idx) => 
+            `[${p.highlighted ? 'HIGHLIGHTED' : 'normal'}] ${p.text.substring(0, 200)}`
+        ).join('\n');
+        
         const llmPrompt = `You are analyzing a quiz document from Google Docs. Carefully analyze the entire document structure.
 
-IMPORTANT INSTRUCTIONS:
-1. Identify ALL quiz questions - they are typically numbered (1., 2., Question 1, Q1, etc.)
-2. For each question, extract:
-   - Question number (sequential)
-   - Question text (the actual question being asked)
-   - All answer options (usually labeled A, B, C, D or with bullets)
-   - Point value: Look for "(5 points)", "(10p)", "5 pts", etc. If no points specified, assume 1 point per question
-   - Section/category if mentioned (e.g., "Grammar Section", "Part 1: Vocabulary")
-   
-3. The correct answer is usually HIGHLIGHTED (with background color) in Google Docs
-4. Some text might be accidentally highlighted (like section headers, instructions, notes) - identify these to ignore them
-5. Be flexible with formatting - questions might not follow a strict pattern
+DOCUMENT STRUCTURE:
+${contentPreview}
 
-Document content:
+FULL TEXT:
 ${rawText}
 
-Analyze this carefully and return a detailed structure:`;
+CRITICAL INSTRUCTIONS:
+1. Identify ALL quiz questions - look for patterns like:
+   - "1. Question text here"
+   - "Question 1: Text here"
+   - "Q1) Text here"
+   - Or any numbered pattern
+
+2. For EACH question found, extract:
+   - question_text: The actual question (without the number prefix)
+   - options: All answer choices (A/B/C/D, or bullets, or any format)
+   - points: Look for "(5 points)", "10p", "(5)", "5 pts" near the question. DEFAULT to 1 if not found.
+   - section: Any category/section mentioned (e.g., "Grammar", "Part 1", "Vocabulary")
+   - is_true_false: true only if it's a True/False question
+
+3. HIGHLIGHTED text (marked as [HIGHLIGHTED]) usually indicates the CORRECT ANSWER
+4. Ignore highlighted section headers/instructions - only answer options should be highlighted
+5. Be VERY flexible with formatting - don't require strict patterns
+
+Return ALL questions you can find, even if formatting is inconsistent:`;
 
         let llmAnalysis = { questions: [], ignore_highlighted_phrases: [] };
         try {
@@ -113,9 +152,14 @@ Analyze this carefully and return a detailed structure:`;
                 }
             });
             llmAnalysis = llmResponse;
-            console.log('LLM found questions:', llmAnalysis.questions.length);
+            console.log('LLM Analysis Result:', {
+                questionsFound: llmAnalysis.questions?.length || 0,
+                ignorePhrases: llmAnalysis.ignore_highlighted_phrases?.length || 0,
+                sampleQuestion: llmAnalysis.questions?.[0]
+            });
         } catch (error) {
-            console.error('LLM analysis failed:', error.message);
+            console.error('LLM analysis failed:', error);
+            // Continue with parsing even if LLM fails
         }
 
         // If LLM found questions with full structure, use those primarily
