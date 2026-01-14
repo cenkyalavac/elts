@@ -524,15 +524,23 @@ export default function InboxPage() {
                                 <PenSquare className="w-4 h-4" />
                                 Compose
                             </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => refetch()}
-                                disabled={emailsLoading}
-                                className="gap-2"
-                            >
-                                <RefreshCw className={`w-4 h-4 ${emailsLoading ? 'animate-spin' : ''}`} />
-                                Refresh
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                {emailsFetching && !emailsLoading && (
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                        Syncing...
+                                    </span>
+                                )}
+                                <Button
+                                    variant="outline"
+                                    onClick={() => refetch()}
+                                    disabled={emailsLoading || emailsFetching}
+                                    className="gap-2"
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${emailsLoading || emailsFetching ? 'animate-spin' : ''}`} />
+                                    Refresh
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>
