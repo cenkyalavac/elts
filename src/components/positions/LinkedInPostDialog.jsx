@@ -108,7 +108,10 @@ Return only the post text, no additional commentary.`,
 
     const postToLinkedIn = useMutation({
         mutationFn: async () => {
-            const applyUrl = `${window.location.origin}/Apply?position=${position.id}`;
+            const baseUrl = window.location.origin.includes('localhost') 
+                ? window.location.origin 
+                : window.location.origin;
+            const applyUrl = `${baseUrl}/Apply?position=${position.id}`;
             const response = await base44.functions.invoke('postToLinkedIn', {
                 positionId: position.id,
                 companyUrn: selectedCompany,
