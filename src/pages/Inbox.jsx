@@ -371,10 +371,16 @@ export default function InboxPage() {
 
     // Helper functions to get actual read/starred status
     const isEmailUnread = (email) => {
+        if (!email) return false;
         if (localReadOverrides[email.id] !== undefined) {
             return !localReadOverrides[email.id]; // override: true means read, so unread = false
         }
-        return email.isUnread;
+        // Check both isUnread property and labels array for UNREAD
+        if (email.isUnread !== undefined) return email.isUnread;
+        if (email.labels && Array.isArray(email.labels)) {
+            return email.labels.includes('UNREAD');
+        }
+        return false;
     };
 
     const isEmailStarred = (email) => {
