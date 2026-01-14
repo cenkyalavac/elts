@@ -53,6 +53,11 @@ export default function InboxPage() {
     const [replyDialogOpen, setReplyDialogOpen] = useState(false);
     const [replyEmail, setReplyEmail] = useState(null);
     const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+    const [composeOpen, setComposeOpen] = useState(false);
+    const [forwardEmail, setForwardEmail] = useState(null);
+    const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
+    const [snoozeEmail, setSnoozeEmail] = useState(null);
+    const [snoozedEmails, setSnoozedEmails] = useState({});
     const queryClient = useQueryClient();
 
     // Keyboard shortcuts
