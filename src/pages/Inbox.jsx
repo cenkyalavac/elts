@@ -384,10 +384,16 @@ export default function InboxPage() {
     };
 
     const isEmailStarred = (email) => {
+        if (!email) return false;
         if (localStarOverrides[email.id] !== undefined) {
             return localStarOverrides[email.id];
         }
-        return email.isStarred;
+        // Check both isStarred property and labels array for STARRED
+        if (email.isStarred !== undefined) return email.isStarred;
+        if (email.labels && Array.isArray(email.labels)) {
+            return email.labels.includes('STARRED');
+        }
+        return false;
     };
 
     const toggleStar = (e, emailId) => {
