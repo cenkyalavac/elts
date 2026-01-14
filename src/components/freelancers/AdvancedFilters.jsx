@@ -32,12 +32,50 @@ const FILTER_STORAGE_KEY = 'freelancer_filters';
 
 export default function AdvancedFilters({ filters, onFilterChange, freelancers }) {
     const [expandedSections, setExpandedSections] = useState({
+        status: true,
         languages: true,
         specializations: true,
         services: true,
-        experience: true,
+        experience: false,
+        rating: false,
         quiz: false
     });
+
+    // Load filters from localStorage on mount
+    useEffect(() => {
+        try {
+            const savedFilters = localStorage.getItem(FILTER_STORAGE_KEY);
+            if (savedFilters) {
+                const parsed = JSON.parse(savedFilters);
+                onFilterChange({ ...filters, ...parsed });
+            }
+        } catch (e) {
+            console.error('Error loading saved filters:', e);
+        }
+    }, []);
+
+    // Save filters to localStorage when they change
+    useEffect(() => {
+        try {
+            // Only save non-default filters
+            const filtersToSave = {};
+            if (filters.selectedStatuses?.length > 0) filtersToSave.selectedStatuses = filters.selectedStatuses;
+            if (filters.selectedLanguagePairs?.length > 0) filtersToSave.selectedLanguagePairs = filters.selectedLanguagePairs;
+            if (filters.selectedSpecializations?.length > 0) filtersToSave.selectedSpecializations = filters.selectedSpecializations;
+            if (filters.selectedServices?.length > 0) filtersToSave.selectedServices = filters.selectedServices;
+            if (filters.minRating) filtersToSave.minRating = filters.minRating;
+            if (filters.minExperience) filtersToSave.minExperience = filters.minExperience;
+            if (filters.maxExperience) filtersToSave.maxExperience = filters.maxExperience;
+            
+            if (Object.keys(filtersToSave).length > 0) {
+                localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filtersToSave));
+            } else {
+                localStorage.removeItem(FILTER_STORAGE_KEY);
+            }
+        } catch (e) {
+            console.error('Error saving filters:', e);
+        }
+    }, [filters]);
 
     // Extract unique language pairs - memoized to prevent recalculation
     const allLanguagePairs = useMemo(() => {
