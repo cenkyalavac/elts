@@ -4,13 +4,16 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Linkedin, ExternalLink } from "lucide-react";
 import OpenPositionForm from "../components/positions/OpenPositionForm";
+import LinkedInPostDialog from "../components/positions/LinkedInPostDialog";
 import { toast } from "sonner";
+import { createPageUrl } from "../utils";
 
 export default function OpenPositionsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingPosition, setEditingPosition] = useState(null);
+    const [linkedInPosition, setLinkedInPosition] = useState(null);
     const queryClient = useQueryClient();
 
     const { data: user } = useQuery({
@@ -125,9 +128,32 @@ export default function OpenPositionsPage() {
                                             {position.priority === 'high' && (
                                                 <Badge variant="destructive">High Priority</Badge>
                                             )}
+                                            {position.linkedin_post_id && (
+                                                <Badge className="bg-[#0A66C2] gap-1">
+                                                    <Linkedin className="w-3 h-3" />
+                                                    Posted
+                                                </Badge>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="gap-1 text-[#0A66C2] border-[#0A66C2] hover:bg-[#0A66C2] hover:text-white"
+                                            onClick={() => setLinkedInPosition(position)}
+                                        >
+                                            <Linkedin className="w-4 h-4" />
+                                            {position.linkedin_post_id ? 'Repost' : 'Post'}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => window.open(`${window.location.origin}/Apply?position=${position.id}`, '_blank')}
+                                            title="View public page"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                        </Button>
                                         <Button
                                             size="sm"
                                             variant="ghost"
@@ -197,6 +223,12 @@ export default function OpenPositionsPage() {
                     )}
                 </div>
             </div>
+
+            <LinkedInPostDialog
+                position={linkedInPosition}
+                open={!!linkedInPosition}
+                onOpenChange={(open) => !open && setLinkedInPosition(null)}
+            />
         </div>
     );
 }
