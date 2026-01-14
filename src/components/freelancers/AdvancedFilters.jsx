@@ -544,17 +544,53 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
 
                     {/* Min Rating */}
                     <div className="border-t pt-4">
-                        <Label htmlFor="minRating" className="text-sm">Min Rating</Label>
-                        <Input
-                            id="minRating"
-                            type="number"
-                            min="0"
-                            max="100"
-                            placeholder="e.g. 80"
-                            value={filters.minRating || ''}
-                            onChange={(e) => onFilterChange({ ...filters, minRating: e.target.value })}
-                            className="mt-2"
-                        />
+                        <button
+                            onClick={() => toggleSection('rating')}
+                            className="flex items-center justify-between w-full mb-2"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Star className="w-4 h-4 text-gray-500" />
+                                <Label className="text-sm cursor-pointer">Minimum Rating</Label>
+                                {filters.minRating && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        ≥{filters.minRating}
+                                    </Badge>
+                                )}
+                            </div>
+                            {expandedSections.rating ? 
+                                <ChevronUp className="w-4 h-4" /> : 
+                                <ChevronDown className="w-4 h-4" />
+                            }
+                        </button>
+                        {expandedSections.rating && (
+                            <div className="pl-6 space-y-3">
+                                <div className="flex flex-wrap gap-2">
+                                    {[50, 60, 70, 80, 90].map(rating => (
+                                        <Badge
+                                            key={rating}
+                                            variant={parseInt(filters.minRating) === rating ? "default" : "outline"}
+                                            className="cursor-pointer text-xs"
+                                            onClick={() => onFilterChange({ 
+                                                ...filters, 
+                                                minRating: filters.minRating === String(rating) ? '' : String(rating) 
+                                            })}
+                                        >
+                                            ≥{rating}%
+                                        </Badge>
+                                    ))}
+                                </div>
+                                <Input
+                                    id="minRating"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    placeholder="Custom rating (0-100)"
+                                    value={filters.minRating || ''}
+                                    onChange={(e) => onFilterChange({ ...filters, minRating: e.target.value })}
+                                    className="h-8"
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </CardContent>
