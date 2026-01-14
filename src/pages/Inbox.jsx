@@ -556,28 +556,129 @@ export default function InboxPage() {
                             </Card>
                         </div>
 
-                        {/* Search Bar */}
+                        {/* Search Bar & Filters */}
                         <Card className="mb-6 border-0 shadow-sm">
                             <CardContent className="p-4">
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <Input
-                                            placeholder="Search by subject, sender, or content..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-10 h-11 border-gray-200"
-                                        />
-                                    </div>
-                                    {activeFilter !== 'all' && (
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                            <Input
+                                                placeholder="Search by subject, sender, or content..."
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="pl-10 h-11 border-gray-200"
+                                            />
+                                        </div>
+                                        <Select value={dateFilter} onValueChange={setDateFilter}>
+                                            <SelectTrigger className="w-[150px]">
+                                                <Calendar className="w-4 h-4 mr-2" />
+                                                <SelectValue placeholder="Date range" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Time</SelectItem>
+                                                <SelectItem value="today">Today</SelectItem>
+                                                <SelectItem value="week">Past Week</SelectItem>
+                                                <SelectItem value="month">Past Month</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={sortBy} onValueChange={setSortBy}>
+                                            <SelectTrigger className="w-[150px]">
+                                                <ArrowDown className="w-4 h-4 mr-2" />
+                                                <SelectValue placeholder="Sort by" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="date_desc">Newest First</SelectItem>
+                                                <SelectItem value="date_asc">Oldest First</SelectItem>
+                                                <SelectItem value="sender">Sender</SelectItem>
+                                                <SelectItem value="subject">Subject</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <Button 
-                                            variant="outline" 
-                                            onClick={() => setActiveFilter('all')}
-                                            className="gap-2"
+                                            variant="ghost" 
+                                            size="icon"
+                                            onClick={() => setShowKeyboardShortcuts(prev => !prev)}
+                                            className="hidden md:flex"
+                                            title="Keyboard shortcuts (?)"
                                         >
-                                            <Filter className="w-4 h-4" />
-                                            Clear Filter
+                                            <Keyboard className="w-4 h-4" />
                                         </Button>
+                                        {(activeFilter !== 'all' || dateFilter !== 'all') && (
+                                            <Button 
+                                                variant="outline" 
+                                                onClick={() => { setActiveFilter('all'); setDateFilter('all'); }}
+                                                className="gap-2"
+                                            >
+                                                <Filter className="w-4 h-4" />
+                                                Clear Filters
+                                            </Button>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Bulk Actions Bar */}
+                                    {selectedEmails.size > 0 && (
+                                        <div className="flex items-center gap-3 bg-purple-50 rounded-lg p-3">
+                                            <Checkbox 
+                                                checked={selectedEmails.size === filteredEmails.length}
+                                                onCheckedChange={toggleSelectAll}
+                                            />
+                                            <span className="text-sm font-medium text-purple-900">
+                                                {selectedEmails.size} selected
+                                            </span>
+                                            <div className="flex gap-2 ml-auto">
+                                                <Button size="sm" variant="outline" onClick={bulkStarEmails} className="gap-2">
+                                                    <Star className="w-4 h-4" />
+                                                    Star
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={bulkMarkAsRead} className="gap-2">
+                                                    <Eye className="w-4 h-4" />
+                                                    Mark Read
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={bulkAnalyze} className="gap-2">
+                                                    <Sparkles className="w-4 h-4" />
+                                                    AI Analyze
+                                                </Button>
+                                                <Button size="sm" variant="ghost" onClick={() => setSelectedEmails(new Set())}>
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Keyboard Shortcuts */}
+                                    {showKeyboardShortcuts && (
+                                        <div className="bg-gray-50 rounded-lg p-4">
+                                            <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                                <Keyboard className="w-4 h-4" />
+                                                Keyboard Shortcuts
+                                            </h4>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">j</kbd>
+                                                    <span className="text-gray-600">Next email</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">k</kbd>
+                                                    <span className="text-gray-600">Previous email</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">s</kbd>
+                                                    <span className="text-gray-600">Star email</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">r</kbd>
+                                                    <span className="text-gray-600">Reply</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">Esc</kbd>
+                                                    <span className="text-gray-600">Close email</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">?</kbd>
+                                                    <span className="text-gray-600">Toggle shortcuts</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </CardContent>
