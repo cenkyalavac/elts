@@ -16,8 +16,6 @@ Deno.serve(async (req) => {
         }
 
         // For Base44's inviteUser, we can only use 'admin' or 'user'
-        // For admin role, use 'admin'; for project_manager, use 'admin' as well 
-        // (since project managers need elevated access), then we'll set custom role after
         const base44Role = role === 'admin' ? 'admin' : 'user';
 
         console.log('Inviting user:', email, 'with base44 role:', base44Role, '(requested app role:', role, ')');
@@ -27,14 +25,36 @@ Deno.serve(async (req) => {
             const result = await base44.asServiceRole.users.inviteUser(email, base44Role);
             console.log('Invite result:', result);
             
-            // Step 2: If the requested role is project_manager, we need to update them after they register
-            // Store the pending role assignment - we'll check this when they log in
-            // For now, return success with info about the role
+            // Step 2: Store the pending role assignment for non-standard roles
+            if (role === 'project_manager') {
+                // Check if there's already a pending assignment for this email
+                const existingAssignments = await base44.asServiceRole.entities.PendingRoleAssignment.filter({ 
+                    email: email.toLowerCase(),
+                    applied: false 
+                });
+                
+                if (existingAssignments.length === 0) {
+                    await base44.asServiceRole.entities.PendingRoleAssignment.create({
+                        email: email.toLowerCase(),
+                        requested_role: role,
+                        invited_by: user.email,
+                        applied: false
+                    });
+                    console.log('Created pending role assignment for:', email, 'role:', role);
+                } else {
+                    // Update existing assignment
+                    await base44.asServiceRole.entities.PendingRoleAssignment.update(
+                        existingAssignments[0].id,
+                        { requested_role: role, invited_by: user.email }
+                    );
+                    console.log('Updated pending role assignment for:', email);
+                }
+            }
+            
             return Response.json({ 
                 success: true, 
                 message: 'Invitation sent successfully', 
-                requestedRole: role,
-                note: role === 'project_manager' ? 'User will need role updated to project_manager after registration' : null
+                requestedRole: role
             });
         } catch (inviteError) {
             console.error('Error from inviteUser:', inviteError);
