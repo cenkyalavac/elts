@@ -42,7 +42,19 @@ export default function FreelancerCard({ freelancer, onQuickView }) {
             <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 className="text-lg font-semibold">{freelancer.full_name}</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold">{freelancer.full_name}</h3>
+                            {freelancer.resource_type === 'Agency' && (
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                    Agency
+                                </Badge>
+                            )}
+                        </div>
+                        {freelancer.resource_type === 'Agency' && freelancer.company_name && (
+                            <div className="text-sm font-medium text-purple-600 mt-0.5">
+                                {freelancer.company_name}
+                            </div>
+                        )}
                         {freelancer.location && (
                             <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
                                 <MapPin className="w-3 h-3" />
