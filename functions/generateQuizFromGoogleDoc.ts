@@ -301,18 +301,41 @@ Return ALL questions you can find, even if formatting is inconsistent:`;
             return true;
         });
 
+        console.log('Validation results:', {
+            totalParsed: questions.length,
+            validQuestions: validQuestions.length,
+            invalidQuestions: questions.filter(q => !validQuestions.includes(q)).map(q => ({
+                text: q.question_text?.substring(0, 50),
+                hasCorrectAnswer: !!q.correct_answer,
+                optionCount: q.options.length,
+                options: q.options
+            }))
+        });
+
         if (validQuestions.length === 0) {
             return Response.json({ 
-                error: 'No valid questions found in document. Please ensure questions are numbered and correct answers are highlighted.',
-                parsedQuestions: questions.length,
-                validQuestions: validQuestions.length,
-                llmFoundQuestions: llmAnalysis.questions?.length || 0,
-                detailedQuestions: questions.map(q => ({
-                    text: q.question_text,
-                    hasCorrectAnswer: !!q.correct_answer,
-                    optionCount: q.options.length,
-                    points: q.points
-                }))
+                error: 'No valid questions found in document. Please check the debug info below.',
+                debug: {
+                    totalParagraphs: structuredContent.length,
+                    highlightedParagraphs: structuredContent.filter(p => p.highlighted).length,
+                    llmFoundQuestions: llmAnalysis.questions?.length || 0,
+                    parsedQuestions: questions.length,
+                    validQuestions: validQuestions.length,
+                    sampleParagraphs: structuredContent.slice(0, 10).map(p => ({
+                        text: p.text.substring(0, 100),
+                        highlighted: p.highlighted
+                    })),
+                    questionsDetail: questions.map(q => ({
+                        text: q.question_text?.substring(0, 80),
+                        hasCorrectAnswer: !!q.correct_answer,
+                        correctAnswer: q.correct_answer?.substring(0, 50),
+                        optionCount: q.options.length,
+                        options: q.options.map(o => o.substring(0, 50)),
+                        points: q.points
+                    })),
+                    llmQuestions: llmAnalysis.questions?.slice(0, 3)
+                },
+                suggestion: 'Please ensure: 1) Questions are numbered (1., 2., etc.), 2) Correct answers are highlighted with background color, 3) Each question has at least 2 options'
             }, { status: 400 });
         }
 
