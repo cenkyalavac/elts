@@ -27,13 +27,15 @@ import {
     Paperclip, Sparkles, UserPlus, ExternalLink, Filter,
     MailOpen, Tag, Zap, MoreHorizontal, CheckSquare, Square,
     Calendar, ArrowUp, ArrowDown, Eye, EyeOff, Send, Copy,
-    MailCheck, Keyboard
+    MailCheck, Keyboard, PenSquare, Download, Bell
 } from 'lucide-react';
 import { format, parseISO, formatDistanceToNow, isAfter, isBefore, subDays } from 'date-fns';
 import { toast } from 'sonner';
 import ProcessApplicationDialog from '@/components/inbox/ProcessApplicationDialog';
 import EmailAnalysis from '@/components/inbox/EmailAnalysis';
 import QuickReplyDialog from '@/components/inbox/QuickReplyDialog';
+import ComposeEmailDialog from '@/components/inbox/ComposeEmailDialog';
+import SnoozeDialog from '@/components/inbox/SnoozeDialog';
 
 export default function InboxPage() {
     const [expandedEmail, setExpandedEmail] = useState(null);
