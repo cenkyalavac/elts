@@ -19,6 +19,112 @@ function isRTL(text) {
     return rtlRegex.test(text);
 }
 
+// Localization strings based on target language
+const localizations = {
+    tr: {
+        trueFalse: ['Doğru', 'Yanlış'],
+        start: 'Teste Başla',
+        startPreview: 'Önizlemeyi Başlat',
+        submit: 'Testi Gönder',
+        submitting: 'Gönderiliyor...',
+        endPreview: 'Önizlemeyi Bitir',
+        previous: 'Önceki',
+        next: 'Sonraki',
+        question: 'Soru',
+        questions: 'Soru',
+        points: 'Puan',
+        minutes: 'Dakika',
+        toPass: 'Geçme Notu',
+        quizComplete: 'Test Tamamlandı!',
+        passed: '✓ GEÇTİ',
+        failed: '✗ KALDI',
+        timeTaken: 'Geçen süre',
+        returnToApp: 'Başvuruma Dön',
+        outOf: '/',
+        press: 'Basın',
+        navHint: 'Gezinmek için ok tuşlarını kullanın • Seçmek için 1-9 tuşlarına basın',
+        navNote: 'Not: Formu göndermeden önce istediğiniz soruya dönüp değişiklik yapmak için sayfanın sağ altındaki yukarı/aşağı okları kullanabilirsiniz.',
+        previewMode: 'Önizleme Modu',
+        welcomeTitle: 'Merhaba!',
+        welcomeText: 'El Turco tarafından hazırlanan serbest çevirmen/redaktör başvuru formuna hoş geldiniz. Sizi daha iyi tanıyabilmek adına aşağıdaki soruları yanıtlamanızı istiyoruz. Bu soruların ilk bölümünde genel bilgiler edinmeyi, ikinci bölümünde dil becerilerini ölçmeyi amaçlıyoruz. Başvurunuz ve içtenlikle vereceğiniz yanıtlar için şimdiden teşekkür ederiz.',
+        unansweredWarning: 'Yanıtlanmamış sorular var. Yine de göndermek istiyor musunuz?',
+        pts: 'puan'
+    },
+    ar: {
+        trueFalse: ['صحيح', 'خطأ'],
+        start: 'ابدأ الاختبار',
+        startPreview: 'ابدأ المعاينة',
+        submit: 'إرسال الاختبار',
+        submitting: 'جاري الإرسال...',
+        endPreview: 'إنهاء المعاينة',
+        previous: 'السابق',
+        next: 'التالي',
+        question: 'سؤال',
+        questions: 'أسئلة',
+        points: 'نقاط',
+        minutes: 'دقائق',
+        toPass: 'للنجاح',
+        quizComplete: 'اكتمل الاختبار!',
+        passed: '✓ ناجح',
+        failed: '✗ راسب',
+        timeTaken: 'الوقت المستغرق',
+        returnToApp: 'العودة إلى طلبي',
+        outOf: '/',
+        press: 'اضغط',
+        navHint: 'استخدم مفاتيح الأسهم للتنقل • اضغط 1-9 للاختيار',
+        navNote: 'ملاحظة: يمكنك الرجوع إلى أي سؤال وتعديل إجابتك باستخدام الأسهم أسفل يمين الصفحة قبل الإرسال.',
+        previewMode: 'وضع المعاينة',
+        welcomeTitle: 'مرحباً!',
+        welcomeText: 'مرحباً بك في نموذج طلب المترجم/المحرر المستقل من El Turco. نود أن نعرفك بشكل أفضل من خلال الإجابة على الأسئلة التالية. شكراً لتقديمك وإجاباتك الصادقة.',
+        unansweredWarning: 'هناك أسئلة غير مجابة. هل تريد الإرسال على أي حال؟',
+        pts: 'نقطة'
+    },
+    en: {
+        trueFalse: ['True', 'False'],
+        start: 'Start Quiz',
+        startPreview: 'Start Preview',
+        submit: 'Submit Quiz',
+        submitting: 'Submitting...',
+        endPreview: 'End Preview',
+        previous: 'Previous',
+        next: 'Next',
+        question: 'Question',
+        questions: 'Questions',
+        points: 'Points',
+        minutes: 'Minutes',
+        toPass: 'To Pass',
+        quizComplete: 'Quiz Complete!',
+        passed: '✓ PASSED',
+        failed: '✗ FAILED',
+        timeTaken: 'Time taken',
+        returnToApp: 'Return to My Application',
+        outOf: 'out of',
+        press: 'Press',
+        navHint: 'Use arrow keys to navigate • Press 1-9 to select answers',
+        navNote: 'Note: You can return to any question and change your answer using the up/down arrows at the bottom right of the page before submitting.',
+        previewMode: 'Preview Mode',
+        welcomeTitle: 'Welcome!',
+        welcomeText: 'Welcome to El Turco\'s freelance translator/editor application form. We would like to get to know you better by asking you to answer the following questions. Thank you in advance for your application and your sincere answers.',
+        unansweredWarning: 'You have unanswered questions. Submit anyway?',
+        pts: 'pts'
+    }
+};
+
+function getLocale(quiz) {
+    if (!quiz?.target_language) return localizations.en;
+    
+    const target = quiz.target_language.toLowerCase();
+    
+    if (target.includes('turkish') || target.includes('türkçe') || target === 'tr') {
+        return localizations.tr;
+    }
+    if (target.includes('arabic') || target.includes('العربية') || target === 'ar') {
+        return localizations.ar;
+    }
+    // Add more languages as needed
+    return localizations.en;
+}
+
 export default function TakeQuiz() {
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('quiz_id');
@@ -128,6 +234,14 @@ export default function TakeQuiz() {
 
     const handleAnswerChange = (questionId, answer) => {
         setAnswers({ ...answers, [questionId]: answer });
+        
+        // Auto-advance to next question after selection (but not on last question)
+        if (currentIndex < questions.length - 1) {
+            setTimeout(() => {
+                setDirection(1);
+                setCurrentIndex(currentIndex + 1);
+            }, 400);
+        }
     };
 
     const formatTime = (seconds) => {
@@ -150,6 +264,9 @@ export default function TakeQuiz() {
         }
     };
 
+    // Get localized strings
+    const t = getLocale(quiz);
+
     const handleSubmit = () => {
         if (isPreview) {
             toast.info('This is preview mode - submissions are disabled');
@@ -159,7 +276,7 @@ export default function TakeQuiz() {
         localStorage.removeItem(`quiz_draft_${quizId}`);
 
         if (Object.keys(answers).length < questions.length) {
-            if (!confirm('You have unanswered questions. Submit anyway?')) {
+            if (!confirm(t.unansweredWarning)) {
                 return;
             }
         }
@@ -274,14 +391,14 @@ export default function TakeQuiz() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4 }}
                     >
-                        <h1 className="text-4xl font-bold text-white mb-2">Quiz Complete!</h1>
+                        <h1 className="text-4xl font-bold text-white mb-2">{t.quizComplete}</h1>
                         <p className="text-white/60 mb-8">{quiz.title}</p>
 
                         <div className="text-7xl font-bold text-white mb-4">
                             {result.percentage}%
                         </div>
                         <p className="text-white/70 text-lg mb-6">
-                            {result.score} out of {result.total_possible} points
+                            {result.score} {t.outOf} {result.total_possible} {t.points.toLowerCase()}
                         </p>
 
                         {result.passed !== null && (
@@ -290,19 +407,19 @@ export default function TakeQuiz() {
                                     ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
                                     : 'bg-red-500/20 text-red-400 border border-red-500/30'
                             }`}>
-                                {result.passed ? '✓ PASSED' : '✗ FAILED'}
+                                {result.passed ? t.passed : t.failed}
                             </div>
                         )}
 
                         <div className="text-white/50 text-sm mb-8">
-                            Time taken: {result.time_taken_minutes} minutes
+                            {t.timeTaken}: {result.time_taken_minutes} {t.minutes.toLowerCase()}
                         </div>
 
                         <Button
                             onClick={() => window.location.href = createPageUrl('MyApplication')}
                             className="bg-white text-purple-900 hover:bg-white/90 px-8 py-6 text-lg rounded-xl"
                         >
-                            Return to My Application
+                            {t.returnToApp}
                         </Button>
                     </motion.div>
                 </motion.div>
@@ -317,58 +434,66 @@ export default function TakeQuiz() {
                 <motion.div 
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 max-w-2xl w-full text-center border border-white/20"
+                    className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 md:p-12 max-w-2xl w-full text-center border border-white/20"
                 >
                     {isPreview && (
                         <div className="mb-6 px-4 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full inline-block">
-                            <span className="text-yellow-300 text-sm font-medium">👁 Preview Mode</span>
+                            <span className="text-yellow-300 text-sm font-medium">👁 {t.previewMode}</span>
                         </div>
                     )}
                     
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{quiz.title}</h1>
+                    {/* Welcome message */}
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">{t.welcomeTitle}</h1>
+                    
+                    <p className="text-white/80 text-lg leading-relaxed mb-8 text-left">
+                        {t.welcomeText}
+                    </p>
+
+                    <h2 className="text-2xl font-semibold text-white/90 mb-4">{quiz.title}</h2>
                     
                     {quiz.description && (
-                        <p className="text-white/70 text-lg mb-8">{quiz.description}</p>
+                        <p className="text-white/60 mb-8">{quiz.description}</p>
                     )}
 
                     <div className="flex flex-wrap justify-center gap-4 mb-8">
                         <div className="bg-white/10 rounded-xl px-6 py-4">
                             <div className="text-3xl font-bold text-white">{questions.length}</div>
-                            <div className="text-white/60 text-sm">Questions</div>
+                            <div className="text-white/60 text-sm">{t.questions}</div>
                         </div>
                         <div className="bg-white/10 rounded-xl px-6 py-4">
                             <div className="text-3xl font-bold text-white">{quiz.total_points || 0}</div>
-                            <div className="text-white/60 text-sm">Points</div>
+                            <div className="text-white/60 text-sm">{t.points}</div>
                         </div>
                         {quiz.time_limit_minutes && (
                             <div className="bg-white/10 rounded-xl px-6 py-4">
                                 <div className="text-3xl font-bold text-white">{quiz.time_limit_minutes}</div>
-                                <div className="text-white/60 text-sm">Minutes</div>
+                                <div className="text-white/60 text-sm">{t.minutes}</div>
                             </div>
                         )}
                         {quiz.passing_score && (
                             <div className="bg-white/10 rounded-xl px-6 py-4">
                                 <div className="text-3xl font-bold text-white">{quiz.passing_score}%</div>
-                                <div className="text-white/60 text-sm">To Pass</div>
+                                <div className="text-white/60 text-sm">{t.toPass}</div>
                             </div>
                         )}
                     </div>
 
                     {quiz.instructions && (
-                        <div className="bg-white/5 rounded-xl p-6 mb-8 text-left" dir={isRTL(quiz.instructions) ? 'rtl' : 'ltr'}>
+                        <div className="bg-white/5 rounded-xl p-6 mb-6 text-left" dir={isRTL(quiz.instructions) ? 'rtl' : 'ltr'}>
                             <p className="text-white/80 whitespace-pre-wrap">{quiz.instructions}</p>
                         </div>
                     )}
 
-                    <div className="text-white/50 text-sm mb-8">
-                        Use arrow keys to navigate • Press 1-9 to select answers
+                    {/* Navigation note */}
+                    <div className="text-white/40 text-sm mb-8 text-left bg-white/5 rounded-lg p-4">
+                        {t.navNote}
                     </div>
 
                     <Button
                         onClick={() => setShowIntro(false)}
                         className="bg-white text-purple-900 hover:bg-white/90 px-12 py-6 text-xl rounded-xl font-semibold"
                     >
-                        {isPreview ? 'Start Preview' : 'Start Quiz'} →
+                        {isPreview ? t.startPreview : t.start} →
                     </Button>
                 </motion.div>
             </div>
@@ -378,7 +503,7 @@ export default function TakeQuiz() {
     const currentQuestion = questions[currentIndex];
     const progress = ((currentIndex + 1) / questions.length) * 100;
     const options = currentQuestion?.question_type === 'true_false' 
-        ? ['True', 'False'] 
+        ? t.trueFalse 
         : currentQuestion?.options || [];
 
     const questionIsRTL = isRTL(currentQuestion?.question_text);
@@ -391,7 +516,7 @@ export default function TakeQuiz() {
                     <div className="flex items-center gap-4">
                         {isPreview && (
                             <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
-                                Preview
+                                {t.previewMode}
                             </Badge>
                         )}
                         <span className="text-white/60 text-sm hidden md:block">{quiz.title}</span>
@@ -434,9 +559,9 @@ export default function TakeQuiz() {
                         >
                             <div className="mb-8">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <span className="text-white/40 text-sm">Question {currentIndex + 1}</span>
+                                    <span className="text-white/40 text-sm">{t.question} {currentIndex + 1}</span>
                                     <Badge className="bg-white/10 text-white/70 border-0">
-                                        {currentQuestion?.points} pts
+                                        {currentQuestion?.points} {t.pts}
                                     </Badge>
                                     {currentQuestion?.section && (
                                         <Badge className="bg-purple-500/20 text-purple-300 border-0">
@@ -479,7 +604,7 @@ export default function TakeQuiz() {
                                                 {isSelected ? <Check className="w-5 h-5" /> : String.fromCharCode(65 + idx)}
                                             </div>
                                             <span className="text-lg flex-1">{option}</span>
-                                            <span className="text-white/30 text-sm hidden md:block">Press {idx + 1}</span>
+                                            <span className="text-white/30 text-sm hidden md:block">{t.press} {idx + 1}</span>
                                         </motion.button>
                                     );
                                 })}
@@ -499,7 +624,7 @@ export default function TakeQuiz() {
                         className="text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30"
                     >
                         <ChevronLeft className="w-5 h-5 mr-2" />
-                        Previous
+                        {t.previous}
                     </Button>
 
                     {/* Question dots */}
@@ -528,14 +653,14 @@ export default function TakeQuiz() {
                             disabled={submitQuizMutation.isPending}
                             className="bg-white text-purple-900 hover:bg-white/90 px-8"
                         >
-                            {submitQuizMutation.isPending ? 'Submitting...' : isPreview ? 'End Preview' : 'Submit Quiz'}
+                            {submitQuizMutation.isPending ? t.submitting : isPreview ? t.endPreview : t.submit}
                         </Button>
                     ) : (
                         <Button
                             onClick={goNext}
                             className="bg-white/10 text-white hover:bg-white/20 border border-white/20"
                         >
-                            Next
+                            {t.next}
                             <ChevronRight className="w-5 h-5 ml-2" />
                         </Button>
                     )}

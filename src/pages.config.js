@@ -2,7 +2,9 @@ import Analytics from './pages/Analytics';
 import Apply from './pages/Apply';
 import Dashboard from './pages/Dashboard';
 import DocumentCompliance from './pages/DocumentCompliance';
+import FreelancerDetail from './pages/FreelancerDetail';
 import FreelancerOnboarding from './pages/FreelancerOnboarding';
+import Freelancers from './pages/Freelancers';
 import GmailCallback from './pages/GmailCallback';
 import Home from './pages/Home';
 import ImportFreelancers from './pages/ImportFreelancers';
@@ -20,8 +22,6 @@ import Settings from './pages/Settings';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import FreelancerDetail from './pages/FreelancerDetail';
-import Freelancers from './pages/Freelancers';
 import __Layout from './Layout.jsx';
 
 
@@ -30,7 +30,9 @@ export const PAGES = {
     "Apply": Apply,
     "Dashboard": Dashboard,
     "DocumentCompliance": DocumentCompliance,
+    "FreelancerDetail": FreelancerDetail,
     "FreelancerOnboarding": FreelancerOnboarding,
+    "Freelancers": Freelancers,
     "GmailCallback": GmailCallback,
     "Home": Home,
     "ImportFreelancers": ImportFreelancers,
@@ -48,8 +50,6 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "FreelancerDetail": FreelancerDetail,
-    "Freelancers": Freelancers,
 }
 
 export const pagesConfig = {
