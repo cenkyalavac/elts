@@ -870,6 +870,18 @@ export default function InboxPage() {
                                                     <div className="mt-4 ml-14 space-y-4">
                                                         {/* Quick Action Buttons */}
                                                         <div className="flex flex-wrap gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleReply(email);
+                                                                }}
+                                                                className="gap-2"
+                                                            >
+                                                                <Reply className="w-4 h-4" />
+                                                                Reply
+                                                            </Button>
                                                             {!hasAnalysis && (
                                                                 <Button
                                                                     size="sm"
@@ -896,18 +908,56 @@ export default function InboxPage() {
                                                                 <UserPlus className="w-4 h-4" />
                                                                 Process as Application
                                                             </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    window.open(`https://mail.google.com/mail/u/0/#inbox/${email.id}`, '_blank');
-                                                                }}
-                                                                className="gap-2"
-                                                            >
-                                                                <ExternalLink className="w-4 h-4" />
-                                                                Open in Gmail
-                                                            </Button>
+                                                            
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                                    <Button size="sm" variant="outline">
+                                                                        <MoreHorizontal className="w-4 h-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        window.open(`https://mail.google.com/mail/u/0/#inbox/${email.id}`, '_blank');
+                                                                    }}>
+                                                                        <ExternalLink className="w-4 h-4 mr-2" />
+                                                                        Open in Gmail
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        navigator.clipboard.writeText(extractEmailAddress(email.from));
+                                                                        toast.success('Email address copied');
+                                                                    }}>
+                                                                        <Copy className="w-4 h-4 mr-2" />
+                                                                        Copy sender email
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setReadEmails(prev => {
+                                                                            const newSet = new Set(prev);
+                                                                            if (isRead) {
+                                                                                newSet.delete(email.id);
+                                                                            } else {
+                                                                                newSet.add(email.id);
+                                                                            }
+                                                                            return newSet;
+                                                                        });
+                                                                    }}>
+                                                                        {isRead ? (
+                                                                            <>
+                                                                                <EyeOff className="w-4 h-4 mr-2" />
+                                                                                Mark as unread
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Eye className="w-4 h-4 mr-2" />
+                                                                                Mark as read
+                                                                            </>
+                                                                        )}
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
                                                         </div>
 
                                                         {/* AI Analysis */}
