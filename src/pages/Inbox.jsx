@@ -763,6 +763,18 @@ export default function InboxPage() {
                                                     <span className="text-gray-600">Reply</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">e</kbd>
+                                                    <span className="text-gray-600">Archive</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">#</kbd>
+                                                    <span className="text-gray-600">Delete</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <kbd className="px-2 py-1 bg-white rounded border text-xs">c</kbd>
+                                                    <span className="text-gray-600">Compose</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
                                                     <kbd className="px-2 py-1 bg-white rounded border text-xs">Esc</kbd>
                                                     <span className="text-gray-600">Close email</span>
                                                 </div>
