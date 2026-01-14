@@ -36,13 +36,15 @@ export default function AnalyticsPage() {
     const { data: freelancers = [], isLoading: isLoadingFreelancers } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list(),
-        staleTime: 0,
-        refetchOnMount: 'always',
+        staleTime: 300000, // 5 minutes
+        refetchOnMount: false,
     });
 
     const { data: activities = [], isLoading: isLoadingActivities } = useQuery({
         queryKey: ['allActivities'],
         queryFn: () => base44.entities.FreelancerActivity.list('-created_date'),
+        staleTime: 300000, // 5 minutes
+        refetchOnMount: false,
     });
 
     const canView = user?.role === 'admin' || user?.role === 'project_manager';
