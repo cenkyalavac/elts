@@ -14,6 +14,8 @@ export default function FreelancerEditForm({ freelancer, onSave, onCancel }) {
         email: freelancer.email || '',
         phone: freelancer.phone || '',
         location: freelancer.location || '',
+        resource_type: freelancer.resource_type || 'Freelancer',
+        company_name: freelancer.company_name || '',
         languages: freelancer.languages || [],
         specializations: freelancer.specializations || [],
         service_types: freelancer.service_types || [],
@@ -81,7 +83,8 @@ export default function FreelancerEditForm({ freelancer, onSave, onCancel }) {
         });
     };
 
-    const serviceTypes = ["Translation", "Interpretation", "Proofreading", "Localization", "Transcription", "Subtitling"];
+    const serviceTypes = ["Translation", "Interpretation", "Proofreading", "Localization", "Transcription", "Subtitling", "MTPE", "Review", "LQA", "Transcreation"];
+    const resourceTypeOptions = ["Freelancer", "Agency", "In-house"];
     const proficiencyLevels = ["Native", "Fluent", "Professional", "Intermediate"];
     const availabilityOptions = ["Immediate", "Within 1 week", "Within 2 weeks", "Within 1 month", "Not available"];
     const statusOptions = ["New", "Reviewing", "Interview Scheduled", "Accepted", "Rejected", "On Hold"];
@@ -132,6 +135,36 @@ export default function FreelancerEditForm({ freelancer, onSave, onCancel }) {
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                             />
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="resource_type">Resource Type</Label>
+                            <Select
+                                value={formData.resource_type}
+                                onValueChange={(value) => setFormData({ ...formData, resource_type: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {resourceTypeOptions.map(type => (
+                                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {formData.resource_type === 'Agency' && (
+                            <div>
+                                <Label htmlFor="company_name">Company Name</Label>
+                                <Input
+                                    id="company_name"
+                                    value={formData.company_name}
+                                    onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                                    placeholder="Agency/Company name"
+                                />
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
