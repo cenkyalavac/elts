@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink, CheckCircle, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
-import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
 
 const statusColors = {
     'New': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -25,19 +23,17 @@ const availabilityColors = {
     'Not available': 'bg-gray-100 text-gray-800'
 };
 
-export default function FreelancerCard({ freelancer, onQuickView }) {
-    const { data: quizAttempts = [] } = useQuery({
-        queryKey: ['quizAttempts', freelancer.id],
-        queryFn: () => base44.entities.QuizAttempt.filter({ freelancer_id: freelancer.id }),
-        staleTime: 120000,
-        refetchOnMount: false,
-    });
-
-    const passedQuizzes = quizAttempts.filter(a => a.passed === true);
-    const hasPassedQuiz = passedQuizzes.length > 0;
-    const avgScore = quizAttempts.length > 0
-        ? Math.round(quizAttempts.reduce((sum, a) => sum + a.percentage, 0) / quizAttempts.length)
-        : null;
+export default function FreelancerCard({ freelancer, onQuickView, allQuizAttempts = [] }) {
+    // Use memoized quiz data from props instead of separate queries
+    const { hasPassedQuiz, avgScore } = useMemo(() => {
+        const quizAttempts = allQuizAttempts.filter(a => a.freelancer_id === freelancer.id);
+        const passedQuizzes = quizAttempts.filter(a => a.passed === true);
+        const hasPassedQuiz = passedQuizzes.length > 0;
+        const avgScore = quizAttempts.length > 0
+            ? Math.round(quizAttempts.reduce((sum, a) => sum + a.percentage, 0) / quizAttempts.length)
+            : null;
+        return { hasPassedQuiz, avgScore };
+    }, [freelancer.id, allQuizAttempts]);
 
     return (
         <Card className="hover:shadow-lg transition-shadow">

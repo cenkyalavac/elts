@@ -534,9 +534,10 @@ export default function FreelancersPage() {
                                         </div>
                                         <div className="flex-1">
                                             <FreelancerCard 
-                                                freelancer={freelancer} 
-                                                onQuickView={setSelectedFreelancer}
-                                            />
+                                                        freelancer={freelancer} 
+                                                        onQuickView={setSelectedFreelancer}
+                                                        allQuizAttempts={allQuizAttempts}
+                                                    />
                                         </div>
                                     </div>
                                 ))}
