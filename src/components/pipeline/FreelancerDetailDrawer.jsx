@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
     X, Mail, Phone, MapPin, Globe, Calendar, 
-    FileText, Save, Bell, MessageSquare, Activity, Send, Award
+    FileText, Save, Bell, MessageSquare, Activity, Send, Award, Eye
 } from "lucide-react";
 import FreelancerEmailHistory from "../gmail/FreelancerEmailHistory";
 import SendEmailDialog from "../freelancers/SendEmailDialog";
@@ -171,11 +171,20 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                             <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => window.open(createPageUrl('FreelancerPreview') + '?id=' + freelancer.id, '_blank')}
+                                className="gap-2 bg-purple-50 border-purple-200 hover:bg-purple-100"
+                            >
+                                <Eye className="w-4 h-4" />
+                                View as FL
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
                                 onClick={() => setShowQuizDialog(true)}
                                 className="gap-2"
                             >
                                 <Award className="w-4 h-4" />
-                                Assign Quiz
+                                Quiz
                             </Button>
                             <Button
                                 size="sm"
@@ -184,7 +193,7 @@ export default function FreelancerDetailDrawer({ freelancer, onClose, onUpdate }
                                 className="gap-2"
                             >
                                 <Send className="w-4 h-4" />
-                                Send Email
+                                Email
                             </Button>
                         </div>
                     </div>
