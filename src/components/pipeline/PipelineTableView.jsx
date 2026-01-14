@@ -222,7 +222,7 @@ export default function PipelineTableView({
                                             )}
                                         </td>
                                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                            <Link to={createPageUrl(`FreelancerDetail?id=${freelancer.id}`)}>
+                                            <Link to={createPageUrl(`FreelancerDetail?id=${encodeURIComponent(freelancer.id)}`)}>
                                                 <Button variant="ghost" size="sm">
                                                     <ExternalLink className="w-4 h-4" />
                                                 </Button>
