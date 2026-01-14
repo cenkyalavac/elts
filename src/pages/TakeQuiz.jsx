@@ -220,6 +220,14 @@ export default function TakeQuiz() {
             if (assignments.length > 0) {
                 await base44.entities.QuizAssignment.update(assignments[0].id, { status: 'completed' });
             }
+
+            // Check for badge awards
+            try {
+                await base44.functions.invoke('checkAndAwardBadges', { quizAttemptId: attempt.id });
+            } catch (e) {
+                console.warn('Badge check failed:', e);
+            }
+
             return attempt;
         },
         onSuccess: (attempt) => {
