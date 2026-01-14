@@ -581,9 +581,12 @@ export default function InboxPage() {
                                     <span className="font-medium text-green-800">Gmail Connected</span>
                                     <span className="text-green-600 text-sm">{user.email}</span>
                                 </div>
-                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                    Active
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-green-600">Auto-sync every 30s</span>
+                                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                        {emailsFetching ? 'Syncing...' : 'Active'}
+                                    </Badge>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
