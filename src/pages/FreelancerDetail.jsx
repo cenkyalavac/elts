@@ -34,9 +34,7 @@ const statusConfig = {
 
 export default function FreelancerDetailPage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const rawId = urlParams.get('id');
-    // Decode the ID in case it contains special characters (Turkish, etc.)
-    const freelancerId = rawId ? decodeURIComponent(rawId) : null;
+    const freelancerId = urlParams.get('id');
 
     const [isEditing, setIsEditing] = useState(false);
     const [showEmailDialog, setShowEmailDialog] = useState(false);
