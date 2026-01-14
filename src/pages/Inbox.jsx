@@ -745,18 +745,33 @@ export default function InboxPage() {
                                     const isStarred = starredEmails.has(email.id);
                                     const isExpanded = expandedEmail === email.id;
                                     const hasAnalysis = !!emailAnalysis[email.id];
+                                    const isSelected = selectedEmails.has(email.id);
+                                    const isRead = readEmails.has(email.id);
                                     
                                     return (
                                         <Card
                                             key={email.id}
                                             className={`border-0 shadow-sm hover:shadow-md transition-all cursor-pointer ${
                                                 isExpanded ? 'ring-2 ring-purple-200' : ''
-                                            }`}
-                                            onClick={() => setExpandedEmail(isExpanded ? null : email.id)}
+                                            } ${isSelected ? 'bg-purple-50' : ''} ${!isRead ? 'border-l-4 border-l-purple-500' : ''}`}
+                                            onClick={() => {
+                                                setExpandedEmail(isExpanded ? null : email.id);
+                                                if (!isRead) {
+                                                    setReadEmails(prev => new Set([...prev, email.id]));
+                                                }
+                                            }}
                                         >
                                             <div className="p-4">
                                                 {/* Email Header */}
                                                 <div className="flex items-start gap-3">
+                                                    {/* Checkbox */}
+                                                    <Checkbox
+                                                        checked={isSelected}
+                                                        onCheckedChange={() => toggleEmailSelection(email.id)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="mt-1"
+                                                    />
+                                                    
                                                     {/* Star Button */}
                                                     <button
                                                         onClick={(e) => toggleStar(e, email.id)}
