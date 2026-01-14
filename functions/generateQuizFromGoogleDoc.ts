@@ -47,6 +47,59 @@ Deno.serve(async (req) => {
 
         const document = await docResponse.json();
 
+        // Extract raw text content for LLM processing
+        let rawText = '';
+        for (const element of document.body.content) {
+            if (!element.paragraph) continue;
+            for (const textElement of element.paragraph.elements || []) {
+                if (textElement.textRun) {
+                    rawText += textElement.textRun.content;
+                }
+            }
+        }
+
+        // Use LLM to enhance question parsing and grouping
+        const llmPrompt = `You are analyzing a quiz document. Your task is to:
+1. Identify distinct sections/topics in the quiz (e.g., Grammar, Vocabulary, Reading Comprehension)
+2. For each question, determine which section it belongs to
+3. Return a JSON with section names and question numbers that belong to each section
+
+Document text:
+${rawText}
+
+Return ONLY a JSON object in this format:
+{
+  "sections": [
+    {"name": "Section Name", "questions": [1, 2, 3]},
+    {"name": "Another Section", "questions": [4, 5, 6]}
+  ]
+}`;
+
+        let sectionMapping = { sections: [] };
+        try {
+            const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
+                prompt: llmPrompt,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        sections: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    name: { type: "string" },
+                                    questions: { type: "array", items: { type: "number" } }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            sectionMapping = llmResponse;
+        } catch (error) {
+            console.warn('LLM section detection failed, continuing without sections:', error.message);
+        }
+
         // Parse document content
         const questions = [];
         let currentQuestion = null;
@@ -135,6 +188,17 @@ Deno.serve(async (req) => {
             questions.push(currentQuestion);
         }
 
+        // Assign sections to questions based on LLM analysis
+        questions.forEach((q, idx) => {
+            const questionNum = idx + 1;
+            for (const section of sectionMapping.sections || []) {
+                if (section.questions?.includes(questionNum)) {
+                    q.section = section.name;
+                    break;
+                }
+            }
+        });
+
         // Validate questions
         const validQuestions = questions.filter(q => {
             if (!q.correct_answer) {
@@ -183,7 +247,8 @@ Deno.serve(async (req) => {
                 options: q.options,
                 correct_answer: q.correct_answer,
                 points: q.points,
-                order: q.order
+                order: q.order,
+                section: q.section || null
             }))
         );
 

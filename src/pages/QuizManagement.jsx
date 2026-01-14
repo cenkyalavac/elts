@@ -11,6 +11,7 @@ import { createPageUrl } from "../utils";
 import QuizForm from "../components/quiz/QuizForm";
 import EnhancedQuizAnalytics from "../components/quiz/EnhancedQuizAnalytics";
 import ImportFromGoogleDoc from "../components/quiz/ImportFromGoogleDoc";
+import Leaderboard from "../components/gamification/Leaderboard";
 import { toast } from "sonner";
 
 export default function QuizManagement() {
@@ -232,7 +233,8 @@ export default function QuizManagement() {
                                             </div>
                                             
                                             {isExpanded && (
-                                                <div className="mt-6 pt-6 border-t">
+                                                <div className="mt-6 pt-6 border-t space-y-6">
+                                                    <Leaderboard quizId={quiz.id} />
                                                     <EnhancedQuizAnalytics quizId={quiz.id} quiz={quiz} />
                                                 </div>
                                             )}
