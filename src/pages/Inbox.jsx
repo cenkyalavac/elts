@@ -768,7 +768,7 @@ export default function InboxPage() {
                                                 <Keyboard className="w-4 h-4" />
                                                 Keyboard Shortcuts
                                             </h4>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <kbd className="px-2 py-1 bg-white rounded border text-xs">j</kbd>
                                                     <span className="text-gray-600">Next email</span>
