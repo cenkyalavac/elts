@@ -22,6 +22,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Send, Loader2, Sparkles, FileText, X, Paperclip } from 'lucide-react';
+import TemplateSnippetPicker from './TemplateSnippetPicker';
 
 export default function ComposeEmailDialog({ open, onOpenChange, initialTo = '', initialSubject = '', initialBody = '', mode = 'compose' }) {
     const [to, setTo] = useState('');
@@ -125,24 +126,17 @@ Email body:`,
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {/* Template Selector */}
-                    {templates.length > 0 && mode === 'compose' && (
-                        <div className="flex items-center gap-2">
-                            <Label className="text-sm text-gray-500">Use template:</Label>
-                            <Select value={selectedTemplate} onValueChange={applyTemplate}>
-                                <SelectTrigger className="w-[200px]">
-                                    <SelectValue placeholder="Select template" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {templates.map(template => (
-                                        <SelectItem key={template.id} value={template.id}>
-                                            {template.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
+                    {/* Template & Snippet Picker */}
+                    <div className="flex items-center gap-2">
+                        <TemplateSnippetPicker
+                            onInsertSnippet={(content) => setBody(prev => prev + content)}
+                            onApplyTemplate={(template) => {
+                                setSubject(template.subject);
+                                setBody(template.body);
+                                toast.success('Template applied');
+                            }}
+                        />
+                    </div>
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">

@@ -15,6 +15,7 @@ import { useMutation } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Send, Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import TemplateSnippetPicker from './TemplateSnippetPicker';
 
 export default function QuickReplyDialog({ email, open, onOpenChange, draftReply }) {
     const [to, setTo] = useState('');
@@ -118,20 +119,26 @@ Reply:`,
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label>Message</Label>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => generateReplyMutation.mutate()}
-                                disabled={generateReplyMutation.isPending}
-                                className="gap-2 text-purple-600 hover:text-purple-700"
-                            >
-                                {generateReplyMutation.isPending ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Sparkles className="w-4 h-4" />
-                                )}
-                                {generateReplyMutation.isPending ? 'Generating...' : 'AI Generate Reply'}
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <TemplateSnippetPicker
+                                    mode="snippets"
+                                    onInsertSnippet={(content) => setBody(prev => prev + content)}
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => generateReplyMutation.mutate()}
+                                    disabled={generateReplyMutation.isPending}
+                                    className="gap-2 text-purple-600 hover:text-purple-700"
+                                >
+                                    {generateReplyMutation.isPending ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="w-4 h-4" />
+                                    )}
+                                    {generateReplyMutation.isPending ? 'Generating...' : 'AI Generate Reply'}
+                                </Button>
+                            </div>
                         </div>
                         <Textarea 
                             value={body} 
