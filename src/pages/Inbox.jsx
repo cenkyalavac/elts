@@ -110,11 +110,12 @@ export default function InboxPage() {
         return match ? match[1] : fromString;
     };
 
-    const filteredEmails = emailData.emails.filter(email => {
+    const filteredEmails = (emailData?.emails || []).filter(email => {
+        if (!email) return false;
         const searchTerm = searchQuery.toLowerCase();
         return (
-            email.subject?.toLowerCase().includes(searchTerm) ||
-            email.from?.toLowerCase().includes(searchTerm)
+            (email.subject || '').toLowerCase().includes(searchTerm) ||
+            (email.from || '').toLowerCase().includes(searchTerm)
         );
     });
 
