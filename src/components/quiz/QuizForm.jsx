@@ -7,7 +7,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Save, ArrowLeft, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const LANGUAGES = [
+    "English", "Turkish", "Arabic", "Russian", "German", "French", "Spanish", 
+    "Italian", "Portuguese", "Dutch", "Polish", "Czech", "Hungarian", "Romanian",
+    "Bulgarian", "Greek", "Hebrew", "Persian", "Ukrainian", "Kazakh", "Uzbek",
+    "Azerbaijani", "Georgian", "Armenian", "Chinese", "Japanese", "Korean"
+];
+
+const SERVICE_TYPES = [
+    "Translation", "Interpretation", "Proofreading", "Localization", 
+    "Transcription", "Subtitling", "MTPE", "Review", "LQA", "Transcreation"
+];
+
+const SPECIALIZATIONS = [
+    "General", "Medical", "Legal", "Technical", "IT/Software", "Marketing",
+    "Financial", "Gaming", "E-commerce", "Automotive", "Life Sciences",
+    "Manufacturing", "Travel & Tourism", "Education"
+];
 import { toast } from "sonner";
 import QuestionEditor from "./QuestionEditor";
 
@@ -16,6 +35,10 @@ export default function QuizForm({ quiz, onClose }) {
         title: quiz?.title || '',
         description: quiz?.description || '',
         instructions: quiz?.instructions || '',
+        source_language: quiz?.source_language || '',
+        target_language: quiz?.target_language || '',
+        service_type: quiz?.service_type || '',
+        specialization: quiz?.specialization || '',
         time_limit_minutes: quiz?.time_limit_minutes || '',
         passing_score: quiz?.passing_score || '',
         is_active: quiz?.is_active !== undefined ? quiz.is_active : true,
@@ -125,7 +148,92 @@ export default function QuizForm({ quiz, onClose }) {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Language Pair Section */}
+                    <div className="border-t pt-4 mt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Globe className="w-4 h-4 text-purple-600" />
+                            <Label className="text-base font-semibold">Language & Service Configuration</Label>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Assign this quiz to a specific language pair and service type for automatic matching with freelancers.
+                        </p>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Source Language</Label>
+                                <Select 
+                                    value={formData.source_language} 
+                                    onValueChange={(value) => setFormData({ ...formData, source_language: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select source language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={null}>Any Language</SelectItem>
+                                        {LANGUAGES.map(lang => (
+                                            <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label>Target Language</Label>
+                                <Select 
+                                    value={formData.target_language} 
+                                    onValueChange={(value) => setFormData({ ...formData, target_language: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select target language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={null}>Any Language</SelectItem>
+                                        {LANGUAGES.map(lang => (
+                                            <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <Label>Service Type</Label>
+                                <Select 
+                                    value={formData.service_type} 
+                                    onValueChange={(value) => setFormData({ ...formData, service_type: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select service type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={null}>Any Service</SelectItem>
+                                        {SERVICE_TYPES.map(type => (
+                                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label>Specialization</Label>
+                                <Select 
+                                    value={formData.specialization} 
+                                    onValueChange={(value) => setFormData({ ...formData, specialization: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select specialization" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={null}>Any Specialization</SelectItem>
+                                        {SPECIALIZATIONS.map(spec => (
+                                            <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
                         <div>
                             <Label htmlFor="time_limit">Time Limit (minutes)</Label>
                             <Input
