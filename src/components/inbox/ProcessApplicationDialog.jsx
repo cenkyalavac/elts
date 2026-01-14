@@ -20,6 +20,11 @@ export default function ProcessApplicationDialog({ email, open, onOpenChange, on
     const [isExtracting, setIsExtracting] = useState(false);
     const [showReview, setShowReview] = useState(false);
 
+    // Don't render if no email
+    if (!email) {
+        return null;
+    }
+
     const processMutation = useMutation({
         mutationFn: async () => {
             setIsExtracting(true);
