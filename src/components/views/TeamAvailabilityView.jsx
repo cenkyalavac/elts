@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import AvailabilityCalendar from "../availability/AvailabilityCalendar";
 import AvailabilityFilters from "../freelancers/AvailabilityFilters";
 import { Users, Calendar, Clock } from "lucide-react";
@@ -33,6 +35,11 @@ export default function TeamAvailabilityView() {
             const all = await base44.entities.Availability.list();
             return all.filter(a => a.date >= weekStart && a.date <= weekEnd);
         }
+    });
+
+    const weekDays = eachDayOfInterval({
+        start: startOfWeek(currentWeek),
+        end: endOfWeek(currentWeek)
     });
 
     const filteredFreelancers = useMemo(() => freelancers.filter(f => {
@@ -103,11 +110,6 @@ export default function TeamAvailabilityView() {
 
         return true;
     }), [freelancers, filters, allAvailabilities, weekDays]);
-
-    const weekDays = eachDayOfInterval({
-        start: startOfWeek(currentWeek),
-        end: endOfWeek(currentWeek)
-    });
 
     const getAvailabilityForFreelancerAndDate = (freelancerId, date) => {
         return allAvailabilities.find(a => 
