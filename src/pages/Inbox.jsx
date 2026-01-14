@@ -710,7 +710,7 @@ export default function InboxPage() {
                                             <span className="text-sm font-medium text-purple-900">
                                                 {selectedEmails.size} selected
                                             </span>
-                                            <div className="flex gap-2 ml-auto">
+                                            <div className="flex gap-2 ml-auto flex-wrap">
                                                 <Button size="sm" variant="outline" onClick={bulkStarEmails} className="gap-2">
                                                     <Star className="w-4 h-4" />
                                                     Star
@@ -718,6 +718,14 @@ export default function InboxPage() {
                                                 <Button size="sm" variant="outline" onClick={bulkMarkAsRead} className="gap-2">
                                                     <Eye className="w-4 h-4" />
                                                     Mark Read
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={bulkArchive} className="gap-2">
+                                                    <Archive className="w-4 h-4" />
+                                                    Archive
+                                                </Button>
+                                                <Button size="sm" variant="outline" onClick={bulkTrash} className="gap-2 text-red-600 hover:text-red-700">
+                                                    <Trash2 className="w-4 h-4" />
+                                                    Delete
                                                 </Button>
                                                 <Button size="sm" variant="outline" onClick={bulkAnalyze} className="gap-2">
                                                     <Sparkles className="w-4 h-4" />
