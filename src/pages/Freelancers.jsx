@@ -45,6 +45,7 @@ export default function FreelancersPage() {
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
+        selectedStatuses: [],
         selectedLanguagePairs: [],
         selectedSpecializations: [],
         selectedServices: [],
