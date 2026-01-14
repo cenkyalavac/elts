@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Globe, Briefcase, Clock, Award, Users, TrendingUp } from "lucide-react";
+import { CheckCircle, Globe, Briefcase, Clock, Award, Users, TrendingUp, ArrowRight } from "lucide-react";
 import ApplicationForm from "../components/apply/ApplicationForm";
 import { createPageUrl } from "../utils";
 
@@ -23,10 +23,24 @@ export default function ApplyPage() {
         },
     });
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const positionParam = urlParams.get('position');
+
     const { data: openPositions = [] } = useQuery({
         queryKey: ['openPositions'],
         queryFn: () => base44.entities.OpenPosition.filter({ is_active: true }),
     });
+
+    // If there's a specific position in the URL, redirect to that position's page
+    React.useEffect(() => {
+        if (positionParam) {
+            const position = openPositions.find(p => p.id === positionParam);
+            if (position) {
+                setSelectedPosition(position);
+                setShowForm(true);
+            }
+        }
+    }, [positionParam, openPositions]);
 
     const benefits = [
         { icon: Globe, title: "Global Opportunities", description: "Work with clients from around the world on diverse projects" },
