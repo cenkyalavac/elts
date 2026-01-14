@@ -116,9 +116,11 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
     };
 
     const clearAllFilters = () => {
+        localStorage.removeItem(FILTER_STORAGE_KEY);
         onFilterChange({
             search: '',
             status: 'all',
+            selectedStatuses: [],
             selectedLanguagePairs: [],
             selectedSpecializations: [],
             selectedServices: [],
@@ -136,6 +138,7 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
     };
 
     const activeFilterCount = 
+        (filters.selectedStatuses?.length || 0) +
         (filters.selectedLanguagePairs?.length || 0) +
         (filters.selectedSpecializations?.length || 0) +
         (filters.selectedServices?.length || 0) +
