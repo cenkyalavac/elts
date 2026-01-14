@@ -14,6 +14,7 @@ import {
     Globe, CheckCircle, AlertCircle, XCircle, BarChart3, TrendingUp
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, addMonths, subMonths, startOfMonth, endOfMonth, isToday, isSameDay } from "date-fns";
+import GoogleCalendarSync from "../availability/GoogleCalendarSync";
 
 const PIPELINE_STAGES = [
     { id: 'New Application', label: 'New Application', color: 'bg-blue-100 text-blue-800' },
@@ -676,6 +677,10 @@ export default function TeamAvailabilityView() {
                                     </Badge>
                                 ))}
                             </div>
+                            <GoogleCalendarSync 
+                                freelancerId={selectedFreelancer.id}
+                                freelancerName={selectedFreelancer.full_name}
+                            />
                             <AvailabilityCalendar 
                                 freelancerId={selectedFreelancer.id} 
                                 readOnly={true} 
