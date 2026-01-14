@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink, CheckCircle, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
+import { FreelancerRatesUSD } from "../utils/CurrencyConverter";
 
 const statusColors = {
     'New': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -129,11 +130,7 @@ export default function FreelancerCard({ freelancer, onQuickView, allQuizAttempt
                                 {freelancer.experience_years} years
                             </div>
                         )}
-                        {freelancer.language_pairs?.[0]?.rates?.[0] && (
-                            <div className="text-sm font-medium text-green-600">
-                                ${freelancer.language_pairs[0].rates[0].rate_value}/{freelancer.language_pairs[0].rates[0].rate_type.replace('per_', '')}
-                            </div>
-                        )}
+                        <FreelancerRatesUSD freelancer={freelancer} compact={true} />
                         {freelancer.availability && (
                             <Badge className={availabilityColors[freelancer.availability]}>
                                 {freelancer.availability}
