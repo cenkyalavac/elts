@@ -6,10 +6,10 @@ import { createPageUrl } from "../utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-    Users, Briefcase, FileText, Star, Plus, ArrowRight,
-    Clock, AlertTriangle, CheckCircle2, TrendingUp, Zap
+    Users, FileText, Star, Plus, ArrowRight,
+    Clock, AlertTriangle, CheckCircle2, TrendingUp, DollarSign,
+    UserPlus, FileCheck, Award
 } from "lucide-react";
 import { formatDistanceToNow, isPast } from "date-fns";
 
@@ -54,12 +54,20 @@ export default function Dashboard() {
         queryFn: () => base44.entities.QuizAssignment.list(),
     });
 
-    const { data: quizAttempts = [] } = useQuery({
-        queryKey: ['allQuizAttempts'],
-        queryFn: () => base44.entities.QuizAttempt.list(),
+    const { data: documentSignatures = [] } = useQuery({
+        queryKey: ['documentSignatures'],
+        queryFn: () => base44.entities.DocumentSignature.list(),
     });
 
-    // Calculate quality stats
+    // Pipeline stats
+    const pipelineStats = useMemo(() => ({
+        newApplications: freelancers.filter(f => f.status === 'New Application').length,
+        inReview: freelancers.filter(f => ['Form Sent', 'Price Negotiation', 'Test Sent'].includes(f.status)).length,
+        approved: freelancers.filter(f => f.status === 'Approved').length,
+        total: freelancers.length
+    }), [freelancers]);
+
+    // Quality stats
     const qualityStats = useMemo(() => {
         const finalizedReports = qualityReports.filter(r => 
             r.status === 'finalized' || r.status === 'translator_accepted'
@@ -75,17 +83,12 @@ export default function Dashboard() {
             ? qsScores.reduce((a, b) => a + b, 0) / qsScores.length 
             : null;
 
-        // Calculate combined score
         const lqaWeight = settings?.lqa_weight || 4;
         const qsMultiplier = settings?.qs_multiplier || 20;
         let avgCombinedScore = null;
         
         if (avgLqa !== null && avgQs !== null) {
             avgCombinedScore = ((avgLqa * lqaWeight) + (avgQs * qsMultiplier)) / (lqaWeight + 1);
-        } else if (avgLqa !== null) {
-            avgCombinedScore = avgLqa;
-        } else if (avgQs !== null) {
-            avgCombinedScore = avgQs * qsMultiplier;
         }
 
         const pendingReviews = qualityReports.filter(r => 
@@ -102,11 +105,11 @@ export default function Dashboard() {
             pendingReviews,
             disputedCount,
             approvedFreelancers: freelancers.filter(f => f.status === 'Approved').length,
-            probationCount: 0 // Will be calculated below
+            probationCount: 0
         };
     }, [qualityReports, freelancers, settings]);
 
-    // Calculate freelancer quality scores
+    // Freelancer quality scores
     const freelancerScores = useMemo(() => {
         const lqaWeight = settings?.lqa_weight || 4;
         const qsMultiplier = settings?.qs_multiplier || 20;
@@ -157,34 +160,31 @@ export default function Dashboard() {
         .filter(r => r.status === 'translator_disputed')
         .map(r => ({
             ...r,
-            freelancerName: freelancers.find(f => f.id === r.freelancer_id)?.full_name || 'Bilinmiyor'
+            freelancerName: freelancers.find(f => f.id === r.freelancer_id)?.full_name || 'Unknown'
         }));
 
     const pendingReviews = qualityReports
         .filter(r => r.status === 'pending_translator_review' || r.status === 'pending_final_review')
         .map(r => ({
             ...r,
-            freelancerName: freelancers.find(f => f.id === r.freelancer_id)?.full_name || 'Bilinmiyor'
+            freelancerName: freelancers.find(f => f.id === r.freelancer_id)?.full_name || 'Unknown'
         }));
 
-    // Quiz stats
-    const quizStats = {
-        pending: quizAssignments.filter(a => a.status === 'pending').length,
-        overdue: quizAssignments.filter(a => 
-            a.status !== 'completed' && a.deadline && isPast(new Date(a.deadline))
-        ).length,
-        avgScore: quizAttempts.length > 0 
-            ? Math.round(quizAttempts.reduce((sum, a) => sum + a.percentage, 0) / quizAttempts.length)
-            : 0
-    };
+    // Document stats
+    const pendingDocuments = documentSignatures.filter(s => s.status === 'pending').length;
 
-    // Loading state
+    // Quiz stats
+    const pendingQuizzes = quizAssignments.filter(a => a.status === 'pending').length;
+    const overdueQuizzes = quizAssignments.filter(a => 
+        a.status !== 'completed' && a.deadline && isPast(new Date(a.deadline))
+    ).length;
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Yükleniyor...</p>
+                    <p className="mt-4 text-gray-600">Loading...</p>
                 </div>
             </div>
         );
@@ -194,8 +194,8 @@ export default function Dashboard() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
                 <div className="max-w-4xl mx-auto text-center mt-20">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Erişim Engellendi</h2>
-                    <p className="text-gray-600">Bu sayfa yalnızca yöneticiler ve proje yöneticileri içindir.</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+                    <p className="text-gray-600">This page is only for administrators and project managers.</p>
                 </div>
             </div>
         );
@@ -212,78 +212,136 @@ export default function Dashboard() {
                 {/* Header */}
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Yönetici Paneli</h1>
-                        <p className="text-gray-600 mt-1">Kalite ve performans istatistikleri</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                        <p className="text-gray-600 mt-1">Welcome back, {user.full_name || user.email?.split('@')[0]}</p>
                     </div>
                     <div className="flex gap-2">
                         <Link to={createPageUrl('QualityManagement')}>
                             <Button className="bg-purple-600 hover:bg-purple-700">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Yeni Rapor
+                                New Report
                             </Button>
                         </Link>
                     </div>
                 </div>
 
-                {/* Quality Stats Overview */}
-                <QualityOverviewStats stats={updatedQualityStats} />
+                {/* Key Metrics Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-100 text-sm">New Applications</p>
+                                    <p className="text-3xl font-bold">{pipelineStats.newApplications}</p>
+                                </div>
+                                <UserPlus className="w-10 h-10 text-blue-200" />
+                            </div>
+                            <Link to={createPageUrl('Freelancers')} className="text-xs text-blue-100 hover:text-white mt-2 inline-flex items-center gap-1">
+                                View all <ArrowRight className="w-3 h-3" />
+                            </Link>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-amber-100 text-sm">In Review</p>
+                                    <p className="text-3xl font-bold">{pipelineStats.inReview}</p>
+                                </div>
+                                <Clock className="w-10 h-10 text-amber-200" />
+                            </div>
+                            <Link to={createPageUrl('Freelancers')} className="text-xs text-amber-100 hover:text-white mt-2 inline-flex items-center gap-1">
+                                Manage <ArrowRight className="w-3 h-3" />
+                            </Link>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-gradient-to-br from-green-500 to-emerald-500 text-white">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-green-100 text-sm">Approved</p>
+                                    <p className="text-3xl font-bold">{pipelineStats.approved}</p>
+                                </div>
+                                <CheckCircle2 className="w-10 h-10 text-green-200" />
+                            </div>
+                            <p className="text-xs text-green-100 mt-2">Active freelancers</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-purple-100 text-sm">Avg Quality</p>
+                                    <p className="text-3xl font-bold">
+                                        {qualityStats.avgCombinedScore?.toFixed(0) || '--'}
+                                    </p>
+                                </div>
+                                <Star className="w-10 h-10 text-purple-200" />
+                            </div>
+                            <Link to={createPageUrl('QualityManagement')} className="text-xs text-purple-100 hover:text-white mt-2 inline-flex items-center gap-1">
+                                Details <ArrowRight className="w-3 h-3" />
+                            </Link>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Action Items */}
+                {(pipelineStats.newApplications > 0 || qualityStats.disputedCount > 0 || pendingDocuments > 0 || overdueQuizzes > 0) && (
+                    <Card className="border-l-4 border-l-amber-500 bg-amber-50">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+                                <AlertTriangle className="w-5 h-5" />
+                                Action Required
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-wrap gap-3">
+                                {pipelineStats.newApplications > 0 && (
+                                    <Link to={createPageUrl('Freelancers')}>
+                                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer px-3 py-1.5">
+                                            <UserPlus className="w-3 h-3 mr-1" />
+                                            {pipelineStats.newApplications} new applications to review
+                                        </Badge>
+                                    </Link>
+                                )}
+                                {qualityStats.disputedCount > 0 && (
+                                    <Link to={createPageUrl('QualityManagement')}>
+                                        <Badge className="bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer px-3 py-1.5">
+                                            <AlertTriangle className="w-3 h-3 mr-1" />
+                                            {qualityStats.disputedCount} disputed reports
+                                        </Badge>
+                                    </Link>
+                                )}
+                                {pendingDocuments > 0 && (
+                                    <Link to={createPageUrl('DocumentCompliance')}>
+                                        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 cursor-pointer px-3 py-1.5">
+                                            <FileCheck className="w-3 h-3 mr-1" />
+                                            {pendingDocuments} pending signatures
+                                        </Badge>
+                                    </Link>
+                                )}
+                                {overdueQuizzes > 0 && (
+                                    <Link to={createPageUrl('QuizManagement')}>
+                                        <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 cursor-pointer px-3 py-1.5">
+                                            <Award className="w-3 h-3 mr-1" />
+                                            {overdueQuizzes} overdue quizzes
+                                        </Badge>
+                                    </Link>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Main Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Alerts & Trend Chart */}
+                    {/* Left Column - Charts & Stats */}
                     <div className="lg:col-span-2 space-y-6">
                         <QualityTrendChart reports={qualityReports} settings={settings} />
-                        
-                        {/* Quick Stats Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Yeni Başvuru</p>
-                                            <p className="text-2xl font-bold text-purple-600">
-                                                {freelancers.filter(f => f.status === 'New Application').length}
-                                            </p>
-                                        </div>
-                                        <Users className="w-8 h-8 text-purple-200" />
-                                    </div>
-                                    <Link to={createPageUrl('Freelancers')} className="text-xs text-purple-600 hover:underline mt-2 inline-block">
-                                        Görüntüle →
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Bekleyen Quiz</p>
-                                            <p className={`text-2xl font-bold ${quizStats.overdue > 0 ? 'text-red-600' : 'text-blue-600'}`}>
-                                                {quizStats.pending}
-                                            </p>
-                                        </div>
-                                        <Clock className="w-8 h-8 text-blue-200" />
-                                    </div>
-                                    {quizStats.overdue > 0 && (
-                                        <Badge className="bg-red-100 text-red-700 mt-2">{quizStats.overdue} gecikmiş</Badge>
-                                    )}
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Ort. Quiz Skoru</p>
-                                            <p className="text-2xl font-bold text-green-600">{quizStats.avgScore}%</p>
-                                        </div>
-                                        <TrendingUp className="w-8 h-8 text-green-200" />
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-2">{quizAttempts.length} deneme</p>
-                                </CardContent>
-                            </Card>
-                        </div>
+                        <QualityOverviewStats stats={updatedQualityStats} />
                     </div>
 
-                    {/* Sidebar */}
+                    {/* Right Column - Alerts & Top Performers */}
                     <div className="space-y-6">
                         <QualityAlerts 
                             probationFreelancers={probationFreelancers}
@@ -295,50 +353,47 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Quick Actions */}
+                {/* Quick Navigation */}
                 <Card>
                     <CardHeader className="pb-3">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Zap className="w-5 h-5" />
-                            Hızlı Erişim
-                        </CardTitle>
+                        <CardTitle className="text-lg">Quick Access</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <Link to={createPageUrl('Freelancers')}>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <Users className="w-4 h-4 mr-2" />
-                                    Freelancerlar
+                                <Button variant="outline" className="w-full justify-start h-auto py-4">
+                                    <div className="flex flex-col items-start">
+                                        <Users className="w-5 h-5 mb-1 text-blue-600" />
+                                        <span className="font-medium">Freelancers</span>
+                                        <span className="text-xs text-gray-500">Pipeline & profiles</span>
+                                    </div>
                                 </Button>
                             </Link>
                             <Link to={createPageUrl('QualityManagement')}>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <Star className="w-4 h-4 mr-2" />
-                                    Kalite Yönetimi
+                                <Button variant="outline" className="w-full justify-start h-auto py-4">
+                                    <div className="flex flex-col items-start">
+                                        <Star className="w-5 h-5 mb-1 text-purple-600" />
+                                        <span className="font-medium">Quality</span>
+                                        <span className="text-xs text-gray-500">Reports & scores</span>
+                                    </div>
                                 </Button>
                             </Link>
-                            <Link to={createPageUrl('QuizManagement')}>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    Quiz Yönetimi
+                            <Link to={createPageUrl('SmartcatIntegration')}>
+                                <Button variant="outline" className="w-full justify-start h-auto py-4">
+                                    <div className="flex flex-col items-start">
+                                        <DollarSign className="w-5 h-5 mb-1 text-green-600" />
+                                        <span className="font-medium">Payments</span>
+                                        <span className="text-xs text-gray-500">Smartcat & TBMS</span>
+                                    </div>
                                 </Button>
                             </Link>
                             <Link to={createPageUrl('DocumentCompliance')}>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    Dokümanlar
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('SmartcatPayments')}>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <Briefcase className="w-4 h-4 mr-2" />
-                                    Smartcat
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('Settings')}>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <Zap className="w-4 h-4 mr-2" />
-                                    Ayarlar
+                                <Button variant="outline" className="w-full justify-start h-auto py-4">
+                                    <div className="flex flex-col items-start">
+                                        <FileText className="w-5 h-5 mb-1 text-orange-600" />
+                                        <span className="font-medium">Documents</span>
+                                        <span className="text-xs text-gray-500">NDAs & contracts</span>
+                                    </div>
                                 </Button>
                             </Link>
                         </div>

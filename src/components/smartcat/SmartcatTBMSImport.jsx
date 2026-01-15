@@ -4,37 +4,40 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
     Upload, FileText, CheckCircle2, AlertTriangle, XCircle,
-    Download, Loader2, DollarSign, Users, RefreshCw
+    Download, Loader2, DollarSign, Users, RefreshCw, ClipboardPaste
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 
 export default function SmartcatTBMSImport() {
-    const [file, setFile] = useState(null);
+    const [rawInput, setRawInput] = useState('');
     const [parsedData, setParsedData] = useState(null);
     const [matchResults, setMatchResults] = useState(null);
     const [activeResultTab, setActiveResultTab] = useState("matched");
 
-    const parseCSV = (text) => {
+    const parseTabSeparated = (text) => {
         const lines = text.split('\n').filter(line => line.trim());
         if (lines.length < 2) return [];
         
-        // Detect delimiter
-        const delimiter = lines[0].includes(';') ? ';' : ',';
+        // Parse header - detect delimiter (tab or multiple spaces)
+        const headerLine = lines[0];
+        const isTabSeparated = headerLine.includes('\t');
+        const delimiter = isTabSeparated ? '\t' : /\s{2,}/;
         
-        // Parse header
-        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+        const headers = headerLine.split(delimiter).map(h => h.trim());
         
         // Parse rows
         const rows = [];
         for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(delimiter).map(v => v.trim().replace(/"/g, ''));
+            const values = lines[i].split(delimiter).map(v => v.trim());
             const row = {};
             headers.forEach((header, idx) => {
                 row[header] = values[idx] || '';
@@ -45,17 +48,25 @@ export default function SmartcatTBMSImport() {
         return rows;
     };
 
+    const handlePaste = useCallback(() => {
+        if (!rawInput.trim()) return;
+        
+        setMatchResults(null);
+        const data = parseTabSeparated(rawInput);
+        setParsedData(data);
+    }, [rawInput]);
+
     const handleFileUpload = useCallback((e) => {
         const uploadedFile = e.target.files?.[0];
         if (!uploadedFile) return;
         
-        setFile(uploadedFile);
         setMatchResults(null);
         
         const reader = new FileReader();
         reader.onload = (event) => {
             const text = event.target?.result;
-            const data = parseCSV(text);
+            setRawInput(text);
+            const data = parseTabSeparated(text);
             setParsedData(data);
         };
         reader.readAsText(uploadedFile);
@@ -71,7 +82,6 @@ export default function SmartcatTBMSImport() {
         },
         onSuccess: (data) => {
             setMatchResults(data);
-            // Set initial tab based on results
             if (data.matched?.length > 0) setActiveResultTab("matched");
             else if (data.not_in_smartcat?.length > 0) setActiveResultTab("not_in_smartcat");
             else if (data.not_in_base44?.length > 0) setActiveResultTab("not_in_base44");
@@ -106,45 +116,65 @@ export default function SmartcatTBMSImport() {
 
     return (
         <div className="space-y-6">
-            {/* Upload Section */}
+            {/* Input Section */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Upload className="w-5 h-5" />
-                        TBMS Export Yükle
+                        Import TBMS Data
                     </CardTitle>
                     <CardDescription>
-                        TBMS'ten aldığınız CSV dosyasını yükleyin. Sistem otomatik olarak Base44 ve Smartcat'teki 
-                        kayıtlarla eşleştirecek ve uyumsuzlukları raporlayacak.
+                        Paste your TBMS export data below or upload a CSV/TSV file. The system will match 
+                        records against Base44 and Smartcat and highlight any mismatches.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                        <input
-                            type="file"
-                            accept=".csv,.txt"
-                            onChange={handleFileUpload}
-                            className="hidden"
-                            id="tbms-upload"
+                <CardContent className="space-y-4">
+                    {/* Paste Area */}
+                    <div className="space-y-2">
+                        <Label>Paste TBMS Export (Tab-separated)</Label>
+                        <Textarea
+                            placeholder={`InvoiceCode\tResource\tStatus\tVAT\tTotalCost\tCurrency\tDateSent\tDatePaid
+INV06035\tYoumna Mohammed\tDue Today\t0\t450.14\tUSD\t15/01/2026\t
+INV06034\tSelim Tekin\tDue Today\t0\t178.48\tUSD\t15/01/2026\t`}
+                            value={rawInput}
+                            onChange={(e) => setRawInput(e.target.value)}
+                            rows={8}
+                            className="font-mono text-sm"
                         />
-                        <label htmlFor="tbms-upload" className="cursor-pointer">
-                            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-lg font-medium text-gray-700">
-                                {file ? file.name : 'CSV dosyasını sürükleyin veya tıklayın'}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-2">
-                                Desteklenen formatlar: CSV, TXT (virgül veya noktalı virgül ayraçlı)
-                            </p>
-                        </label>
+                        <div className="flex gap-2">
+                            <Button onClick={handlePaste} disabled={!rawInput.trim()}>
+                                <ClipboardPaste className="w-4 h-4 mr-2" />
+                                Parse Data
+                            </Button>
+                            <span className="text-gray-400 self-center">or</span>
+                            <div>
+                                <input
+                                    type="file"
+                                    accept=".csv,.tsv,.txt"
+                                    onChange={handleFileUpload}
+                                    className="hidden"
+                                    id="tbms-upload"
+                                />
+                                <label htmlFor="tbms-upload">
+                                    <Button variant="outline" asChild>
+                                        <span className="cursor-pointer">
+                                            <FileText className="w-4 h-4 mr-2" />
+                                            Upload File
+                                        </span>
+                                    </Button>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
+                    {/* Preview */}
                     {parsedData && parsedData.length > 0 && (
                         <div className="mt-6">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <p className="font-medium">{parsedData.length} kayıt bulundu</p>
+                                    <p className="font-medium">{parsedData.length} records parsed</p>
                                     <p className="text-sm text-gray-500">
-                                        Alanlar: {Object.keys(parsedData[0]).slice(0, 5).join(', ')}...
+                                        Columns: {Object.keys(parsedData[0]).join(', ')}
                                     </p>
                                 </div>
                                 <Button 
@@ -156,26 +186,25 @@ export default function SmartcatTBMSImport() {
                                     ) : (
                                         <RefreshCw className="w-4 h-4 mr-2" />
                                     )}
-                                    Eşleştir ve Kontrol Et
+                                    Match & Validate
                                 </Button>
                             </div>
 
-                            {/* Preview */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="overflow-x-auto max-h-64">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                {Object.keys(parsedData[0]).slice(0, 6).map(key => (
-                                                    <TableHead key={key} className="text-xs">{key}</TableHead>
+                                                {Object.keys(parsedData[0]).map(key => (
+                                                    <TableHead key={key} className="text-xs whitespace-nowrap">{key}</TableHead>
                                                 ))}
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {parsedData.slice(0, 5).map((row, idx) => (
                                                 <TableRow key={idx}>
-                                                    {Object.keys(row).slice(0, 6).map(key => (
-                                                        <TableCell key={key} className="text-xs">
+                                                    {Object.keys(row).map(key => (
+                                                        <TableCell key={key} className="text-xs whitespace-nowrap">
                                                             {row[key]?.toString().slice(0, 30)}
                                                         </TableCell>
                                                     ))}
@@ -186,7 +215,7 @@ export default function SmartcatTBMSImport() {
                                 </div>
                                 {parsedData.length > 5 && (
                                     <div className="p-2 bg-gray-50 text-center text-sm text-gray-500">
-                                        +{parsedData.length - 5} daha fazla kayıt
+                                        +{parsedData.length - 5} more records
                                     </div>
                                 )}
                             </div>
@@ -205,7 +234,7 @@ export default function SmartcatTBMSImport() {
                                 <div className="flex items-center gap-3">
                                     <CheckCircle2 className="w-8 h-8 text-green-600" />
                                     <div>
-                                        <p className="text-sm text-green-600">Tam Eşleşme</p>
+                                        <p className="text-sm text-green-600">Fully Matched</p>
                                         <p className="text-2xl font-bold text-green-700">
                                             {matchResults.matched?.length || 0}
                                         </p>
@@ -218,7 +247,7 @@ export default function SmartcatTBMSImport() {
                                 <div className="flex items-center gap-3">
                                     <AlertTriangle className="w-8 h-8 text-yellow-600" />
                                     <div>
-                                        <p className="text-sm text-yellow-600">Smartcat'te Yok</p>
+                                        <p className="text-sm text-yellow-600">Not in Smartcat</p>
                                         <p className="text-2xl font-bold text-yellow-700">
                                             {matchResults.not_in_smartcat?.length || 0}
                                         </p>
@@ -231,7 +260,7 @@ export default function SmartcatTBMSImport() {
                                 <div className="flex items-center gap-3">
                                     <Users className="w-8 h-8 text-orange-600" />
                                     <div>
-                                        <p className="text-sm text-orange-600">Base44'te Yok</p>
+                                        <p className="text-sm text-orange-600">Not in Base44</p>
                                         <p className="text-2xl font-bold text-orange-700">
                                             {matchResults.not_in_base44?.length || 0}
                                         </p>
@@ -244,7 +273,7 @@ export default function SmartcatTBMSImport() {
                                 <div className="flex items-center gap-3">
                                     <XCircle className="w-8 h-8 text-red-600" />
                                     <div>
-                                        <p className="text-sm text-red-600">Hiç Eşleşmedi</p>
+                                        <p className="text-sm text-red-600">No Match</p>
                                         <p className="text-2xl font-bold text-red-700">
                                             {matchResults.completely_unmatched?.length || 0}
                                         </p>
@@ -257,24 +286,24 @@ export default function SmartcatTBMSImport() {
                     {/* Amount Summary */}
                     <Card>
                         <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap gap-4">
                                 <div className="flex items-center gap-6">
                                     <div>
-                                        <p className="text-sm text-gray-600">Toplam Tutar</p>
+                                        <p className="text-sm text-gray-600">Total Amount</p>
                                         <p className="text-xl font-bold">
                                             ${matchResults.summary?.total_amount?.toFixed(2) || '0.00'}
                                         </p>
                                     </div>
                                     <div className="h-10 w-px bg-gray-200"></div>
                                     <div>
-                                        <p className="text-sm text-green-600">Eşleşen</p>
+                                        <p className="text-sm text-green-600">Matched</p>
                                         <p className="text-xl font-bold text-green-600">
                                             ${matchResults.summary?.matched_amount?.toFixed(2) || '0.00'}
                                         </p>
                                     </div>
                                     <div className="h-10 w-px bg-gray-200"></div>
                                     <div>
-                                        <p className="text-sm text-red-600">Eşleşmeyen</p>
+                                        <p className="text-sm text-red-600">Unmatched</p>
                                         <p className="text-xl font-bold text-red-600">
                                             ${matchResults.summary?.unmatched_amount?.toFixed(2) || '0.00'}
                                         </p>
@@ -287,26 +316,26 @@ export default function SmartcatTBMSImport() {
                     {/* Detailed Results */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Detaylı Sonuçlar</CardTitle>
+                            <CardTitle>Detailed Results</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Tabs value={activeResultTab} onValueChange={setActiveResultTab}>
                                 <TabsList>
                                     <TabsTrigger value="matched" className="gap-2">
                                         <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                        Eşleşen ({matchResults.matched?.length || 0})
+                                        Matched ({matchResults.matched?.length || 0})
                                     </TabsTrigger>
                                     <TabsTrigger value="not_in_smartcat" className="gap-2">
                                         <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                                        Smartcat'te Yok ({matchResults.not_in_smartcat?.length || 0})
+                                        Not in Smartcat ({matchResults.not_in_smartcat?.length || 0})
                                     </TabsTrigger>
                                     <TabsTrigger value="not_in_base44" className="gap-2">
                                         <Users className="w-4 h-4 text-orange-600" />
-                                        Base44'te Yok ({matchResults.not_in_base44?.length || 0})
+                                        Not in Base44 ({matchResults.not_in_base44?.length || 0})
                                     </TabsTrigger>
                                     <TabsTrigger value="unmatched" className="gap-2">
                                         <XCircle className="w-4 h-4 text-red-600" />
-                                        Hiç Eşleşmedi ({matchResults.completely_unmatched?.length || 0})
+                                        No Match ({matchResults.completely_unmatched?.length || 0})
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -321,8 +350,8 @@ export default function SmartcatTBMSImport() {
                                 <TabsContent value="not_in_smartcat" className="mt-4">
                                     <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
                                         <p className="text-sm text-yellow-800">
-                                            <strong>Uyarı:</strong> Bu kişiler Base44'te kayıtlı ama Smartcat ekibinizde değil. 
-                                            Ödeme yapabilmek için önce Smartcat'e davet etmeniz gerekiyor.
+                                            <strong>Warning:</strong> These people exist in Base44 but are not in your Smartcat team. 
+                                            You need to invite them to Smartcat before making payments.
                                         </p>
                                     </div>
                                     <ResultsTable 
@@ -335,8 +364,8 @@ export default function SmartcatTBMSImport() {
                                 <TabsContent value="not_in_base44" className="mt-4">
                                     <div className="mb-4 p-4 bg-orange-50 rounded-lg">
                                         <p className="text-sm text-orange-800">
-                                            <strong>Uyarı:</strong> Bu kişiler Smartcat ekibinizde var ama Base44'te kayıtlı değil. 
-                                            "Ekip Senkronizasyonu" sekmesinden Base44'e aktarabilirsiniz.
+                                            <strong>Warning:</strong> These people are in your Smartcat team but not registered in Base44. 
+                                            Use "Team Sync" tab to import them into Base44.
                                         </p>
                                     </div>
                                     <ResultsTable 
@@ -349,8 +378,8 @@ export default function SmartcatTBMSImport() {
                                 <TabsContent value="unmatched" className="mt-4">
                                     <div className="mb-4 p-4 bg-red-50 rounded-lg">
                                         <p className="text-sm text-red-800">
-                                            <strong>Dikkat:</strong> Bu kişiler ne Base44'te ne de Smartcat ekibinizde bulunuyor. 
-                                            TBMS'teki kayıtları kontrol edin veya yeni freelancer olarak ekleyin.
+                                            <strong>Attention:</strong> These people are neither in Base44 nor in your Smartcat team. 
+                                            Check your TBMS records or add them as new freelancers.
                                         </p>
                                     </div>
                                     <ResultsTable 
@@ -372,7 +401,7 @@ function ResultsTable({ data, type, onDownload }) {
     if (!data || data.length === 0) {
         return (
             <div className="text-center py-8 text-gray-500">
-                Bu kategoride kayıt yok
+                No records in this category
             </div>
         );
     }
@@ -382,17 +411,18 @@ function ResultsTable({ data, type, onDownload }) {
             <div className="flex justify-end mb-4">
                 <Button variant="outline" size="sm" onClick={onDownload}>
                     <Download className="w-4 h-4 mr-2" />
-                    CSV İndir
+                    Export CSV
                 </Button>
             </div>
             <div className="border rounded-lg overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>İsim</TableHead>
-                            <TableHead>E-posta</TableHead>
-                            <TableHead>Proje</TableHead>
-                            <TableHead className="text-right">Tutar</TableHead>
+                            <TableHead>Invoice</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            <TableHead>Currency</TableHead>
                             <TableHead>Base44</TableHead>
                             <TableHead>Smartcat</TableHead>
                         </TableRow>
@@ -400,15 +430,26 @@ function ResultsTable({ data, type, onDownload }) {
                     <TableBody>
                         {data.map((item, idx) => (
                             <TableRow key={idx}>
-                                <TableCell className="font-medium">
-                                    {item.extracted?.name || '-'}
+                                <TableCell className="font-mono text-sm">
+                                    {item.original?.InvoiceCode || item.extracted?.invoiceCode || '-'}
                                 </TableCell>
-                                <TableCell>{item.extracted?.email || '-'}</TableCell>
-                                <TableCell className="text-sm text-gray-600">
-                                    {item.extracted?.projectName?.slice(0, 30) || '-'}
+                                <TableCell className="font-medium">
+                                    {item.original?.Resource || item.extracted?.name || '-'}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline" className={
+                                        (item.original?.Status || '').includes('Overdue') ? 'text-red-600 border-red-200' :
+                                        (item.original?.Status || '').includes('Due Today') ? 'text-amber-600 border-amber-200' :
+                                        'text-gray-600'
+                                    }>
+                                        {item.original?.Status || '-'}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-semibold">
-                                    ${parseFloat(item.extracted?.amount || 0).toFixed(2)}
+                                    {parseFloat(item.original?.TotalCost || item.extracted?.amount || 0).toFixed(2)}
+                                </TableCell>
+                                <TableCell>
+                                    {item.original?.Currency || item.extracted?.currency || 'USD'}
                                 </TableCell>
                                 <TableCell>
                                     {item.base44_freelancer ? (
@@ -416,19 +457,19 @@ function ResultsTable({ data, type, onDownload }) {
                                             to={createPageUrl(`FreelancerDetail?id=${item.base44_freelancer.id}`)}
                                             className="text-blue-600 hover:underline text-sm"
                                         >
-                                            {item.base44_freelancer.name}
+                                            ✓ {item.base44_freelancer.name?.split(' ')[0]}
                                         </Link>
                                     ) : (
-                                        <Badge variant="outline" className="text-red-600">Yok</Badge>
+                                        <Badge variant="outline" className="text-red-600">Missing</Badge>
                                     )}
                                 </TableCell>
                                 <TableCell>
                                     {item.smartcat_user ? (
                                         <Badge className="bg-green-100 text-green-700">
-                                            {item.smartcat_user.name?.slice(0, 20)}
+                                            ✓ Found
                                         </Badge>
                                     ) : (
-                                        <Badge variant="outline" className="text-red-600">Yok</Badge>
+                                        <Badge variant="outline" className="text-red-600">Missing</Badge>
                                     )}
                                 </TableCell>
                             </TableRow>

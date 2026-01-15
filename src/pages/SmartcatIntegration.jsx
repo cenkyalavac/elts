@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
-    DollarSign, Users, Search, Upload, RefreshCw, Send, 
-    CheckCircle2, AlertTriangle, XCircle, FileText, Filter,
-    Download, UserPlus, Loader2
+    DollarSign, Users, Search, Upload, AlertTriangle
 } from "lucide-react";
 
 import SmartcatPaymentManager from "../components/smartcat/SmartcatPaymentManager";
@@ -17,7 +13,17 @@ import SmartcatTBMSImport from "../components/smartcat/SmartcatTBMSImport";
 import SmartcatTeamSync from "../components/smartcat/SmartcatTeamSync";
 
 export default function SmartcatIntegrationPage() {
-    const [activeTab, setActiveTab] = useState("payments");
+    // Get tab from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const [activeTab, setActiveTab] = useState(tabParam || "payments");
+
+    // Update tab when URL changes
+    useEffect(() => {
+        if (tabParam && ['payments', 'tbms', 'marketplace', 'team'].includes(tabParam)) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam]);
 
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
@@ -25,13 +31,14 @@ export default function SmartcatIntegrationPage() {
     });
 
     const isAdmin = user?.role === 'admin';
+    const isProjectManager = user?.role === 'project_manager';
 
-    if (!isAdmin) {
+    if (!isAdmin && !isProjectManager) {
         return (
             <div className="p-6 max-w-4xl mx-auto text-center">
                 <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                <h2 className="text-xl font-bold">Erişim Kısıtlı</h2>
-                <p className="text-gray-600">Bu sayfaya sadece yöneticiler erişebilir.</p>
+                <h2 className="text-xl font-bold">Access Restricted</h2>
+                <p className="text-gray-600">Only administrators and project managers can access this page.</p>
             </div>
         );
     }
@@ -39,15 +46,15 @@ export default function SmartcatIntegrationPage() {
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Smartcat Entegrasyonu</h1>
-                <p className="text-gray-600">Ödemeler, marketplace araması ve ekip yönetimi</p>
+                <h1 className="text-2xl font-bold text-gray-900">Payments & Smartcat</h1>
+                <p className="text-gray-600">Manage payments, TBMS imports, and Smartcat team</p>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-6">
                     <TabsTrigger value="payments" className="gap-2">
                         <DollarSign className="w-4 h-4" />
-                        Ödemeler
+                        Smartcat Payments
                     </TabsTrigger>
                     <TabsTrigger value="tbms" className="gap-2">
                         <Upload className="w-4 h-4" />
@@ -59,7 +66,7 @@ export default function SmartcatIntegrationPage() {
                     </TabsTrigger>
                     <TabsTrigger value="team" className="gap-2">
                         <Users className="w-4 h-4" />
-                        Ekip Senkronizasyonu
+                        Team Sync
                     </TabsTrigger>
                 </TabsList>
 

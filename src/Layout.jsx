@@ -13,9 +13,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
-    Users, Briefcase, FileText, 
-    UserCircle, LogOut, Settings, Menu, X, MessageSquare, Star,
-    ChevronDown, Mail, Shield, Award, Bell, User
+    Users, FileText, UserCircle, LogOut, Settings, Menu, X, 
+    MessageSquare, Star, ChevronDown, Mail, Shield, Award, 
+    User, DollarSign, LayoutDashboard, CreditCard, Upload
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -80,26 +80,30 @@ export default function Layout({ children, currentPageName }) {
 
     // Applicant navigation
     const applicantNavItems = [
-        { name: 'MyApplication', label: 'Başvurum', icon: FileText },
-        { name: 'Messages', label: 'Mesajlar', icon: MessageSquare, badge: unreadCount },
+        { name: 'MyApplication', label: 'My Application', icon: FileText },
+        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
     ];
 
     // Admin/PM navigation - main items
     const mainNavItems = [
-        { name: 'Freelancers', label: 'Freelancerlar', icon: Users },
-        { name: 'Jobs', label: 'İşler', icon: Briefcase },
+        { name: 'Freelancers', label: 'Freelancers', icon: Users },
         { name: 'QualityManagement', label: 'Quality', icon: Star },
         { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
-        { name: 'Messages', label: 'Mesajlar', icon: MessageSquare, badge: unreadCount },
+        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
+    ];
+
+    // Payment dropdown items
+    const paymentItems = [
+        { name: 'SmartcatIntegration', label: 'Payment Dashboard', icon: DollarSign },
+        { name: 'SmartcatIntegration', label: 'TBMS Import', icon: Upload, tab: 'tbms' },
     ];
 
     // Settings dropdown items (admin only)
     const settingsItems = isAdmin ? [
         { name: 'Inbox', label: 'Gmail Inbox', icon: Mail },
-        { name: 'QuizManagement', label: 'Quiz Yönetimi', icon: Award },
-        { name: 'SmartcatIntegration', label: 'Smartcat', icon: Briefcase },
-        { name: 'UserManagement', label: 'Kullanıcı Yönetimi', icon: Shield },
-        { name: 'Settings', label: 'Ayarlar', icon: Settings },
+        { name: 'QuizManagement', label: 'Quiz Management', icon: Award },
+        { name: 'UserManagement', label: 'User Management', icon: Shield },
+        { name: 'Settings', label: 'Settings', icon: Settings },
     ] : [];
 
     if (isPublicPage) {
@@ -140,6 +144,51 @@ export default function Layout({ children, currentPageName }) {
                                         </Button>
                                     </Link>
                                 ))}
+
+                                {/* Payments Dropdown - Only for admin/PM */}
+                                {!isApplicant && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button 
+                                                variant="ghost" 
+                                                className={`gap-2 text-white hover:bg-white/10 ${
+                                                    currentPageName === 'SmartcatIntegration' ? 'bg-white/20' : ''
+                                                }`}
+                                            >
+                                                <DollarSign className="w-4 h-4" />
+                                                Payments
+                                                <ChevronDown className="w-3 h-3" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start" className="w-48">
+                                            <DropdownMenuItem asChild>
+                                                <Link to={createPageUrl('SmartcatIntegration')} className="flex items-center gap-2 cursor-pointer">
+                                                    <CreditCard className="w-4 h-4" />
+                                                    Smartcat Payments
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to={createPageUrl('SmartcatIntegration') + '?tab=tbms'} className="flex items-center gap-2 cursor-pointer">
+                                                    <Upload className="w-4 h-4" />
+                                                    TBMS Import
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem asChild>
+                                                <Link to={createPageUrl('SmartcatIntegration') + '?tab=marketplace'} className="flex items-center gap-2 cursor-pointer">
+                                                    <Users className="w-4 h-4" />
+                                                    Marketplace Search
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to={createPageUrl('SmartcatIntegration') + '?tab=team'} className="flex items-center gap-2 cursor-pointer">
+                                                    <Users className="w-4 h-4" />
+                                                    Team Sync
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                )}
                             </div>
                         </div>
 
@@ -157,9 +206,9 @@ export default function Layout({ children, currentPageName }) {
                                                     <div className="text-left hidden lg:block">
                                                         <div className="text-sm font-medium">{user.full_name || user.email?.split('@')[0]}</div>
                                                         <div className="text-xs text-purple-200">
-                                                            {user.role === 'admin' ? 'Yönetici' : 
-                                                             user.role === 'project_manager' ? 'Proje Yöneticisi' : 
-                                                             'Başvuran'}
+                                                            {user.role === 'admin' ? 'Admin' : 
+                                                             user.role === 'project_manager' ? 'Project Manager' : 
+                                                             'Applicant'}
                                                         </div>
                                                     </div>
                                                     <ChevronDown className="w-4 h-4 text-purple-200" />
@@ -188,7 +237,7 @@ export default function Layout({ children, currentPageName }) {
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                                                     <LogOut className="w-4 h-4 mr-2" />
-                                                    Çıkış Yap
+                                                    Logout
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -229,12 +278,33 @@ export default function Layout({ children, currentPageName }) {
                                     </Button>
                                 </Link>
                             ))}
+
+                            {/* Mobile Payments section */}
+                            {!isApplicant && (
+                                <>
+                                    <div className="border-t border-white/10 pt-3 mt-3">
+                                        <p className="text-xs text-purple-300 px-3 mb-2">Payments</p>
+                                        <Link to={createPageUrl('SmartcatIntegration')} onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
+                                                <CreditCard className="w-5 h-5" />
+                                                Smartcat Payments
+                                            </Button>
+                                        </Link>
+                                        <Link to={createPageUrl('SmartcatIntegration') + '?tab=tbms'} onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
+                                                <Upload className="w-5 h-5" />
+                                                TBMS Import
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </>
+                            )}
                             
                             {/* Settings items in mobile */}
                             {settingsItems.length > 0 && (
                                 <>
                                     <div className="border-t border-white/10 pt-3 mt-3">
-                                        <p className="text-xs text-purple-300 px-3 mb-2">Yönetim</p>
+                                        <p className="text-xs text-purple-300 px-3 mb-2">Admin</p>
                                         {settingsItems.map(item => (
                                             <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
                                                 <Button
@@ -256,9 +326,9 @@ export default function Layout({ children, currentPageName }) {
                                 <div className="px-3 py-2">
                                     <div className="text-sm font-medium text-white">{user.full_name || user.email}</div>
                                     <div className="text-xs text-purple-200">
-                                        {user.role === 'admin' ? 'Yönetici' : 
-                                         user.role === 'project_manager' ? 'Proje Yöneticisi' : 
-                                         'Başvuran'}
+                                        {user.role === 'admin' ? 'Admin' : 
+                                         user.role === 'project_manager' ? 'Project Manager' : 
+                                         'Applicant'}
                                     </div>
                                 </div>
                                 <Button
@@ -270,7 +340,7 @@ export default function Layout({ children, currentPageName }) {
                                     }}
                                 >
                                     <LogOut className="w-5 h-5" />
-                                    Çıkış Yap
+                                    Logout
                                 </Button>
                             </div>
                         </div>
