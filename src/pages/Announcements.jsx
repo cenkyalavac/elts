@@ -57,20 +57,20 @@ export default function AnnouncementsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <Megaphone className="w-8 h-8 text-blue-600" />
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                             Announcements
                         </h1>
-                        <p className="text-gray-600 mt-1">
-                            Stay updated with the latest news and updates
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                            Stay updated with the latest news
                         </p>
                     </div>
                     {canManage && (
-                        <Button onClick={() => { setEditingAnnouncement(null); setShowForm(true); }}>
+                        <Button onClick={() => { setEditingAnnouncement(null); setShowForm(true); }} className="w-full sm:w-auto">
                             <Plus className="w-4 h-4 mr-2" />
-                            New Announcement
+                            New
                         </Button>
                     )}
                 </div>

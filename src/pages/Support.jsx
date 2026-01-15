@@ -62,17 +62,17 @@ export default function SupportPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-5xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <HelpCircle className="w-8 h-8 text-blue-600" />
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                             Support Center
                         </h1>
-                        <p className="text-gray-600 mt-1">
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">
                             Get help and ask questions
                         </p>
                     </div>
-                    <Button onClick={() => setShowNewTicket(true)}>
+                    <Button onClick={() => setShowNewTicket(true)} className="w-full sm:w-auto">
                         <Plus className="w-4 h-4 mr-2" />
                         New Ticket
                     </Button>
@@ -109,12 +109,12 @@ export default function SupportPage() {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList>
-                        <TabsTrigger value="my_tickets">My Tickets</TabsTrigger>
-                        {isAdmin && <TabsTrigger value="all_tickets">All Tickets</TabsTrigger>}
-                        {isAdmin && <TabsTrigger value="trends">
+                    <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full sm:w-auto">
+                        <TabsTrigger value="my_tickets" className="text-xs sm:text-sm">My Tickets</TabsTrigger>
+                        {isAdmin && <TabsTrigger value="all_tickets" className="text-xs sm:text-sm">All Tickets</TabsTrigger>}
+                        {isAdmin && <TabsTrigger value="trends" className="text-xs sm:text-sm">
                             <TrendingUp className="w-4 h-4 mr-1" />
-                            Trends & Insights
+                            Trends
                         </TabsTrigger>}
                     </TabsList>
 
