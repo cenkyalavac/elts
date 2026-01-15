@@ -228,12 +228,25 @@ export default function PerformanceAnalyticsPage() {
                 </div>
             </div>
 
-            {/* Summary Cards */}
-            <PerformanceSummaryCards 
-                reports={filteredReports} 
-                freelancerStats={freelancerStats}
-                settings={settings}
-            />
+            {/* Empty State */}
+            {filteredReports.length === 0 ? (
+                <Card className="text-center py-12">
+                    <CardContent>
+                        <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
+                        <p className="text-gray-600">
+                            No finalized quality reports found for the selected time range.
+                        </p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <>
+                    {/* Summary Cards */}
+                    <PerformanceSummaryCards 
+                        reports={filteredReports} 
+                        freelancerStats={freelancerStats}
+                        settings={settings}
+                    />
 
             <Tabs defaultValue="trends" className="mt-6">
                 <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-3">
@@ -279,12 +292,14 @@ export default function PerformanceAnalyticsPage() {
                 </TabsContent>
             </Tabs>
 
-            <BulkNotificationDialog
-                open={showNotificationDialog}
-                onOpenChange={setShowNotificationDialog}
-                performers={notificationType === 'top' ? topPerformers : lowPerformers}
-                notificationType={notificationType}
-            />
+                    <BulkNotificationDialog
+                        open={showNotificationDialog}
+                        onOpenChange={setShowNotificationDialog}
+                        performers={notificationType === 'top' ? topPerformers : lowPerformers}
+                        notificationType={notificationType}
+                    />
+                </>
+            )}
         </div>
     );
 }

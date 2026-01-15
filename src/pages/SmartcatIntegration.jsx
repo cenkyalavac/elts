@@ -51,14 +51,16 @@ export default function SmartcatIntegrationPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-6">
+                <TabsList className="mb-6 grid w-full md:w-auto md:inline-grid md:grid-cols-4 gap-1">
                     <TabsTrigger value="payments" className="gap-2">
                         <DollarSign className="w-4 h-4" />
-                        Smartcat Payments
+                        <span className="hidden sm:inline">Smartcat Payments</span>
+                        <span className="sm:hidden">Payments</span>
                     </TabsTrigger>
                     <TabsTrigger value="tbms" className="gap-2">
                         <Upload className="w-4 h-4" />
-                        TBMS Import
+                        <span className="hidden sm:inline">TBMS Import</span>
+                        <span className="sm:hidden">TBMS</span>
                     </TabsTrigger>
                     <TabsTrigger value="marketplace" className="gap-2">
                         <Search className="w-4 h-4" />
@@ -66,7 +68,8 @@ export default function SmartcatIntegrationPage() {
                     </TabsTrigger>
                     <TabsTrigger value="team" className="gap-2">
                         <Users className="w-4 h-4" />
-                        Team Sync
+                        <span className="hidden sm:inline">Team Sync</span>
+                        <span className="sm:hidden">Team</span>
                     </TabsTrigger>
                 </TabsList>
 
