@@ -498,6 +498,9 @@ export default function FreelancerDetailPage() {
                                         </Card>
                                     )}
 
+                                    {/* Smartcat Profile */}
+                                    <SmartcatProfileSection freelancerEmail={freelancer.email} />
+
                                     {/* Internal Notes */}
                                     {freelancer.notes && canManage && (
                                         <Card className="border-yellow-200 bg-yellow-50/50">
