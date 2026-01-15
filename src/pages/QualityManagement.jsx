@@ -21,7 +21,6 @@ import {
     Search, Plus, Star, AlertTriangle, 
     CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText, Share2
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import ShareReportDialog from "@/components/quality/ShareReportDialog";
 import QualityReportForm from "@/components/quality/QualityReportForm";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
