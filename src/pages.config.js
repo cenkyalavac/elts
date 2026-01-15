@@ -26,6 +26,7 @@ import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
 import QualityManagement from './pages/QualityManagement';
 import QualityReportDetail from './pages/QualityReportDetail';
+import SmartcatIntegration from './pages/SmartcatIntegration';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "QualityManagement": QualityManagement,
     "QualityReportDetail": QualityReportDetail,
+    "SmartcatIntegration": SmartcatIntegration,
 }
 
 export const pagesConfig = {
