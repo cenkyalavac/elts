@@ -372,15 +372,72 @@ export default function SmartcatTeamSync() {
                         <div>
                             <p className="font-medium text-blue-800 mb-1">How This Works</p>
                             <ul className="text-sm text-blue-600 space-y-1">
-                                <li>• Click "Load Team from Smartcat" to fetch your team members</li>
-                                <li>• System matches them against your database by name and email</li>
-                                <li>• Use "Add to Database" button to import missing members</li>
-                                <li>• Members are added with "Approved" status and tagged "Smartcat Team"</li>
+                                <li>• <strong>Test Connection</strong> first to verify your API credentials</li>
+                                <li>• <strong>Load Team</strong> scans your projects and extracts all assigned linguists</li>
+                                <li>• Smartcat identifies linguists by <strong>User ID</strong>, not name or email</li>
+                                <li>• Use the <strong>Link</strong> button to connect a Smartcat User ID to your freelancer</li>
+                                <li>• Once linked, the system will recognize them in future syncs</li>
                             </ul>
                         </div>
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Link Freelancer Dialog */}
+            <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Link Smartcat User to Freelancer</DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <label className="text-sm font-medium">Smartcat User ID</label>
+                            <Input 
+                                value={selectedSmartcatId} 
+                                readOnly 
+                                className="mt-1 font-mono text-sm bg-gray-50"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="text-sm font-medium">Select Freelancer</label>
+                            <Select value={selectedFreelancerId} onValueChange={setSelectedFreelancerId}>
+                                <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Choose a freelancer..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {unlinkedFreelancers.map(f => (
+                                        <SelectItem key={f.id} value={f.id}>
+                                            {f.full_name} ({f.email || 'No email'})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Showing {unlinkedFreelancers.length} approved freelancers without Smartcat links
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowLinkDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleConfirmLink}
+                            disabled={!selectedFreelancerId || linkMutation.isPending}
+                        >
+                            {linkMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Link2 className="w-4 h-4 mr-2" />
+                            )}
+                            Link Freelancer
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
