@@ -80,12 +80,12 @@ export default function Layout({ children, currentPageName }) {
     }
 
     // Applicant navigation
-        const applicantNavItems = [
-            { name: 'MyApplication', label: 'My Application', icon: FileText },
-            { name: 'Announcements', label: 'Announcements', icon: Megaphone },
-            { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-            { name: 'SupportTickets', label: 'Help', icon: HelpCircle },
-        ];
+    const applicantNavItems = [
+        { name: 'MyApplication', label: 'My Application', icon: FileText },
+        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
+        { name: 'Announcements', label: 'Announcements', icon: Megaphone },
+        { name: 'Support', label: 'Support', icon: HelpCircle },
+    ];
 
     // Admin/PM navigation - main items
             const mainNavItems = [
@@ -93,9 +93,9 @@ export default function Layout({ children, currentPageName }) {
                 { name: 'Freelancers', label: 'Freelancers', icon: Users, hasDropdown: true },
                 { name: 'QualityManagement', label: 'Quality', icon: Star, hasDropdown: true },
                 { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
-                { name: 'Announcements', label: 'Announcements', icon: Megaphone },
                 { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-                { name: 'SupportTickets', label: 'Support', icon: HelpCircle },
+                { name: 'Announcements', label: 'Announcements', icon: Megaphone },
+                { name: 'Support', label: 'Support', icon: HelpCircle },
             ];
 
     // Payment dropdown items

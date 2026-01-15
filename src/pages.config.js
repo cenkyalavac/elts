@@ -30,6 +30,7 @@ import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
 import Announcements from './pages/Announcements';
 import SupportTickets from './pages/SupportTickets';
+import Support from './pages/Support';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Announcements": Announcements,
     "SupportTickets": SupportTickets,
+    "Support": Support,
 }
 
 export const pagesConfig = {
