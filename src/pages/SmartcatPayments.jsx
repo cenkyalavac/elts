@@ -22,9 +22,6 @@ import {
 import BulkSmartcatPayment from "../components/smartcat/BulkSmartcatPayment";
 
 export default function SmartcatPaymentsPage() {
-    const [selectedLinguist, setSelectedLinguist] = useState(null);
-    const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-
     // Check user permissions
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
