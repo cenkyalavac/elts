@@ -15,6 +15,7 @@ import ApplicationSettings from "../components/settings/ApplicationSettings";
 import AdminTools from "../components/settings/AdminTools";
 import StatusSettings from "../components/settings/StatusSettings";
 import GmailConnect from "../components/gmail/GmailConnect";
+import QualityManagementSettings from "../components/settings/QualityManagementSettings";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -151,6 +152,7 @@ export default function SettingsPage() {
                         <TabsTrigger value="email">Email Templates</TabsTrigger>
                         <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                         <TabsTrigger value="quiz">Quizzes</TabsTrigger>
+                        <TabsTrigger value="quality">Quality</TabsTrigger>
                         <TabsTrigger value="notifications">Notifications</TabsTrigger>
                         <TabsTrigger value="application">Application</TabsTrigger>
                         <TabsTrigger value="admin">Admin Tools</TabsTrigger>
@@ -344,6 +346,10 @@ export default function SettingsPage() {
 
                     <TabsContent value="quiz">
                         <QuizSettings />
+                    </TabsContent>
+
+                    <TabsContent value="quality">
+                        <QualityManagementSettings />
                     </TabsContent>
 
                     <TabsContent value="notifications">
