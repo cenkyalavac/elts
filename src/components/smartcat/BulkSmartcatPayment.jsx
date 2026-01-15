@@ -35,15 +35,10 @@ export default function BulkSmartcatPayment() {
     const [processingResults, setProcessingResults] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Fetch Smartcat linguists for matching
-    const { data: linguists = [] } = useQuery({
-        queryKey: ['smartcatLinguists'],
-        queryFn: async () => {
-            const response = await base44.functions.invoke('smartcat', {
-                action: 'getLinguists'
-            });
-            return response.data?.data || [];
-        },
+    // Fetch freelancers from our system for matching
+    const { data: freelancers = [] } = useQuery({
+        queryKey: ['freelancers'],
+        queryFn: () => base44.entities.Freelancer.filter({ status: 'Approved' }),
         staleTime: 300000,
     });
 
