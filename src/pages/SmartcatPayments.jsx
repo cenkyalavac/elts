@@ -94,12 +94,17 @@ export default function SmartcatPaymentsPage() {
                             Manage payments to Smartcat translators
                         </p>
                     </div>
-                    {accountInfo && (
+                    {accountInfo ? (
                         <Badge variant="outline" className="text-base px-4 py-2">
                             <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
                             Connected: {accountInfo.name}
                         </Badge>
-                    )}
+                    ) : accountError ? (
+                        <Badge variant="outline" className="text-base px-4 py-2 border-red-300 text-red-600">
+                            <AlertCircle className="w-4 h-4 mr-2" />
+                            Connection Error
+                        </Badge>
+                    ) : null}
                 </div>
 
                 <Tabs defaultValue="bulk" className="space-y-6">
