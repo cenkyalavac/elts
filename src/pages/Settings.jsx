@@ -149,20 +149,20 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="email" className="space-y-6">
-                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-6 gap-1">
-                        <TabsTrigger value="email">Email</TabsTrigger>
-                        <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-                        <TabsTrigger value="quality">Quality</TabsTrigger>
-                        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                        <TabsTrigger value="application">Application</TabsTrigger>
-                        <TabsTrigger value="integrations">Integrations</TabsTrigger>
+                    <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full">
+                        <TabsTrigger value="email" className="text-xs sm:text-sm">Email</TabsTrigger>
+                        <TabsTrigger value="pipeline" className="text-xs sm:text-sm">Pipeline</TabsTrigger>
+                        <TabsTrigger value="quality" className="text-xs sm:text-sm">Quality</TabsTrigger>
+                        <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notif.</TabsTrigger>
+                        <TabsTrigger value="application" className="text-xs sm:text-sm">App</TabsTrigger>
+                        <TabsTrigger value="integrations" className="text-xs sm:text-sm">Integr.</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="email">
                         {/* Email Templates Section */}
                         <Card className="mb-6">
                     <CardHeader>
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                             <div>
                                 <CardTitle className="flex items-center gap-2">
                                     <Mail className="w-5 h-5" />
@@ -177,7 +177,7 @@ export default function SettingsPage() {
                                     setEditingTemplate(null);
                                     setShowTemplateForm(true);
                                 }}
-                                className="bg-blue-600 hover:bg-blue-700"
+                                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 New Template
@@ -211,32 +211,33 @@ export default function SettingsPage() {
                                             {groupedTemplates.status_change.map(template => (
                                                 <div
                                                     key={template.id}
-                                                    className="bg-white border rounded-lg p-4 flex items-start justify-between"
+                                                    className="bg-white border rounded-lg p-4"
                                                 >
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <h4 className="font-semibold text-gray-900">
-                                                                {template.name}
-                                                            </h4>
-                                                            {template.trigger_status && (
-                                                                <Badge variant="outline">
-                                                                    On: {template.trigger_status}
+                                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                                <h4 className="font-semibold text-gray-900">
+                                                                    {template.name}
+                                                                </h4>
+                                                                {template.trigger_status && (
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        On: {template.trigger_status}
+                                                                    </Badge>
+                                                                )}
+                                                                <Badge variant={template.is_active ? "default" : "secondary"} className="text-xs">
+                                                                    {template.is_active ? 'Active' : 'Inactive'}
                                                                 </Badge>
+                                                            </div>
+                                                            {template.description && (
+                                                                <p className="text-sm text-gray-600 mb-2">
+                                                                    {template.description}
+                                                                </p>
                                                             )}
-                                                            <Badge variant={template.is_active ? "default" : "secondary"}>
-                                                                {template.is_active ? 'Active' : 'Inactive'}
-                                                            </Badge>
-                                                        </div>
-                                                        {template.description && (
-                                                            <p className="text-sm text-gray-600 mb-2">
-                                                                {template.description}
+                                                            <p className="text-xs text-gray-500 truncate">
+                                                                <strong>Subject:</strong> {template.subject}
                                                             </p>
-                                                        )}
-                                                        <p className="text-xs text-gray-500">
-                                                            <strong>Subject:</strong> {template.subject}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
+                                                        </div>
+                                                        <div className="flex items-center gap-1 shrink-0">
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
@@ -279,27 +280,28 @@ export default function SettingsPage() {
                                             {groupedTemplates.manual.map(template => (
                                                 <div
                                                     key={template.id}
-                                                    className="bg-white border rounded-lg p-4 flex items-start justify-between"
+                                                    className="bg-white border rounded-lg p-4"
                                                 >
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <h4 className="font-semibold text-gray-900">
-                                                                {template.name}
-                                                            </h4>
-                                                            <Badge variant={template.is_active ? "default" : "secondary"}>
-                                                                {template.is_active ? 'Active' : 'Inactive'}
-                                                            </Badge>
-                                                        </div>
-                                                        {template.description && (
-                                                            <p className="text-sm text-gray-600 mb-2">
-                                                                {template.description}
+                                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                                <h4 className="font-semibold text-gray-900">
+                                                                    {template.name}
+                                                                </h4>
+                                                                <Badge variant={template.is_active ? "default" : "secondary"} className="text-xs">
+                                                                    {template.is_active ? 'Active' : 'Inactive'}
+                                                                </Badge>
+                                                            </div>
+                                                            {template.description && (
+                                                                <p className="text-sm text-gray-600 mb-2">
+                                                                    {template.description}
+                                                                </p>
+                                                            )}
+                                                            <p className="text-xs text-gray-500 truncate">
+                                                                <strong>Subject:</strong> {template.subject}
                                                             </p>
-                                                        )}
-                                                        <p className="text-xs text-gray-500">
-                                                            <strong>Subject:</strong> {template.subject}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
+                                                        </div>
+                                                        <div className="flex items-center gap-1 shrink-0">
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
