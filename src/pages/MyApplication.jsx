@@ -135,6 +135,11 @@ export default function MyApplicationPage() {
     return (
         <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
             <div className="max-w-5xl mx-auto">
+                {/* Quick Availability Toggle - Hero Position */}
+                <div className="mb-8">
+                    <QuickAvailabilityToggle freelancerId={application.id} />
+                </div>
+
                 <div className="mb-8">
                     <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">My Application</h1>
                     <p className="text-gray-600">Manage your freelancer profile and availability</p>
