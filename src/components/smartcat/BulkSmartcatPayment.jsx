@@ -269,10 +269,10 @@ export default function BulkSmartcatPayment() {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {row.smartcat_matched ? (
+                                                    {row.freelancer_matched ? (
                                                         <Badge className="bg-green-100 text-green-700">
                                                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                            Matched
+                                                            {row.matched_name || 'Matched'}
                                                         </Badge>
                                                     ) : (
                                                         <Badge className="bg-yellow-100 text-yellow-700">
