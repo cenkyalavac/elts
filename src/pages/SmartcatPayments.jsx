@@ -115,7 +115,7 @@ export default function SmartcatPaymentsPage() {
                         </TabsTrigger>
                         <TabsTrigger value="linguists" className="gap-2">
                             <Users className="w-4 h-4" />
-                            Smartcat Linguists
+                            Smartcat Projects
                         </TabsTrigger>
                     </TabsList>
 
