@@ -11,11 +11,11 @@ import {
 } from "@/components/ui/table";
 import { 
     DollarSign, RefreshCw, Download, CheckCircle2, AlertTriangle,
-    Calendar, Loader2, ChevronDown, ChevronUp, FileText, Users,
-    ExternalLink
+    Loader2, ChevronDown, ChevronUp, FileText, Users, ExternalLink, Calendar
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
+import { toast } from "sonner";
 
 export default function SmartcatPaymentManager() {
     const [dateFrom, setDateFrom] = useState('');
@@ -27,18 +27,19 @@ export default function SmartcatPaymentManager() {
         queryFn: async () => {
             const response = await base44.functions.invoke('smartcatApi', {
                 action: 'get_jobs_for_payment',
-                params: {
-                    dateFrom: dateFrom || undefined,
-                    dateTo: dateTo || undefined
-                }
+                params: { dateFrom, dateTo }
             });
             return response.data;
         },
         enabled: false,
-        retry: false
+        retry: 1
     });
 
     const handleFetch = () => {
+        if (!dateFrom || !dateTo) {
+            toast.error('Please select both from and to dates');
+            return;
+        }
         refetch();
     };
 
@@ -49,10 +50,17 @@ export default function SmartcatPaymentManager() {
     const exportToCSV = () => {
         if (!assignees.length) return;
         
-        const rows = [['Name', 'Email', 'Jobs', 'Total Words', 'Projects']];
+        const rows = [['Name', 'Email', 'Matched in DB', 'Total Jobs', 'Total Words', 'Project Names']];
         assignees.forEach(a => {
             const projects = [...new Set(a.jobs.map(j => j.projectName))].join('; ');
-            rows.push([a.name, a.freelancer_email || '', a.jobs.length, a.totalWords, projects]);
+            rows.push([
+                a.name, 
+                a.freelancer_email || '', 
+                a.matched ? 'Yes' : 'No',
+                a.jobs.length, 
+                a.totalWords, 
+                projects
+            ]);
         });
         
         const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -60,27 +68,58 @@ export default function SmartcatPaymentManager() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `smartcat_payments_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `smartcat_payment_data_${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+        toast.success('CSV exported');
+    };
+
+    const exportDetailedCSV = () => {
+        if (!assignees.length) return;
+        
+        const rows = [['Assignee Name', 'Email', 'Project', 'Document', 'Stage Type', 'Source Lang', 'Target Lang', 'Words', 'Deadline']];
+        assignees.forEach(a => {
+            a.jobs.forEach(job => {
+                rows.push([
+                    a.name,
+                    a.freelancer_email || '',
+                    job.projectName,
+                    job.documentName,
+                    job.stageType,
+                    job.sourceLanguage || '',
+                    job.targetLanguage || '',
+                    job.wordsCount,
+                    job.deadline || ''
+                ]);
+            });
+        });
+        
+        const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `smartcat_detailed_jobs_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success('Detailed CSV exported');
     };
 
     return (
         <div className="space-y-6">
-            {/* Fetch Controls */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <DollarSign className="w-5 h-5" />
-                        Payment Data from Smartcat
+                        Smartcat Completed Work
                     </CardTitle>
                     <CardDescription>
-                        Fetch completed jobs from your Smartcat projects to prepare payments
+                        View completed work by your team members from Smartcat projects for the selected date range
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-wrap gap-4 items-end">
-                        <div className="space-y-2">
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                        <div className="flex-1 space-y-2">
                             <Label>From Date</Label>
                             <Input
                                 type="date"
@@ -88,7 +127,7 @@ export default function SmartcatPaymentManager() {
                                 onChange={(e) => setDateFrom(e.target.value)}
                             />
                         </div>
-                        <div className="space-y-2">
+                        <div className="flex-1 space-y-2">
                             <Label>To Date</Label>
                             <Input
                                 type="date"
@@ -96,13 +135,13 @@ export default function SmartcatPaymentManager() {
                                 onChange={(e) => setDateTo(e.target.value)}
                             />
                         </div>
-                        <Button onClick={handleFetch} disabled={isLoading || isRefetching}>
+                        <Button onClick={handleFetch} disabled={isLoading || isRefetching} className="bg-purple-600 hover:bg-purple-700">
                             {(isLoading || isRefetching) ? (
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             ) : (
                                 <RefreshCw className="w-4 h-4 mr-2" />
                             )}
-                            Fetch from Smartcat
+                            Fetch Data
                         </Button>
                     </div>
                     
@@ -113,7 +152,7 @@ export default function SmartcatPaymentManager() {
                                 <div>
                                     <p className="font-medium text-red-800">Error fetching data</p>
                                     <p className="text-sm text-red-600">{error.message}</p>
-                                    <p className="text-xs text-red-500 mt-1">Check your Smartcat API credentials in Settings</p>
+                                    <p className="text-xs text-red-500 mt-1">Check Smartcat API credentials in Settings</p>
                                 </div>
                             </div>
                         </div>
@@ -121,182 +160,206 @@ export default function SmartcatPaymentManager() {
                 </CardContent>
             </Card>
 
-            {/* Summary Stats */}
             {jobsData && !error && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card className="bg-blue-50 border-blue-200">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <Users className="w-8 h-8 text-blue-600" />
-                                <div>
-                                    <p className="text-sm text-blue-600">Assignees</p>
-                                    <p className="text-2xl font-bold text-blue-700">{assignees.length}</p>
+                <>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card className="bg-blue-50 border-blue-200">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-3">
+                                    <Users className="w-8 h-8 text-blue-600" />
+                                    <div>
+                                        <p className="text-sm text-blue-600">Assignees</p>
+                                        <p className="text-2xl font-bold text-blue-700">{assignees.length}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-green-50 border-green-200">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <CheckCircle2 className="w-8 h-8 text-green-600" />
-                                <div>
-                                    <p className="text-sm text-green-600">Matched in DB</p>
-                                    <p className="text-2xl font-bold text-green-700">{matchedCount}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-green-50 border-green-200">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-3">
+                                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                                    <div>
+                                        <p className="text-sm text-green-600">Matched</p>
+                                        <p className="text-2xl font-bold text-green-700">{matchedCount}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-purple-50 border-purple-200">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <FileText className="w-8 h-8 text-purple-600" />
-                                <div>
-                                    <p className="text-sm text-purple-600">Total Words</p>
-                                    <p className="text-2xl font-bold text-purple-700">{totalWords.toLocaleString()}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-purple-50 border-purple-200">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-3">
+                                    <FileText className="w-8 h-8 text-purple-600" />
+                                    <div>
+                                        <p className="text-sm text-purple-600">Total Words</p>
+                                        <p className="text-2xl font-bold text-purple-700">{totalWords.toLocaleString()}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <Calendar className="w-8 h-8 text-gray-600" />
-                                <div>
-                                    <p className="text-sm text-gray-600">Projects Scanned</p>
-                                    <p className="text-2xl font-bold">{jobsData.projectsProcessed || 0}</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-3">
+                                    <Calendar className="w-8 h-8 text-gray-600" />
+                                    <div>
+                                        <p className="text-sm text-gray-600">Projects</p>
+                                        <p className="text-2xl font-bold">{jobsData.projectsProcessed || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+                            </CardContent>
+                        </Card>
+                    </div>
 
-            {/* Assignees Table */}
-            {assignees.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Completed Work by Assignee</CardTitle>
-                            <Button variant="outline" size="sm" onClick={exportToCSV}>
-                                <Download className="w-4 h-4 mr-2" />
-                                Export CSV
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-center">Jobs</TableHead>
-                                    <TableHead className="text-right">Words</TableHead>
-                                    <TableHead></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {assignees.map((assignee, idx) => (
-                                    <React.Fragment key={assignee.smartcat_id || idx}>
-                                        <TableRow 
-                                            className="cursor-pointer hover:bg-gray-50"
-                                            onClick={() => setExpandedAssignee(
-                                                expandedAssignee === idx ? null : idx
-                                            )}
-                                        >
-                                            <TableCell className="font-medium">
-                                                {assignee.matched && assignee.freelancer_id ? (
-                                                    <Link 
-                                                        to={createPageUrl(`FreelancerDetail?id=${assignee.freelancer_id}`)}
-                                                        className="hover:text-blue-600"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        {assignee.name}
-                                                    </Link>
-                                                ) : (
-                                                    assignee.name
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {assignee.matched ? (
-                                                    <Badge className="bg-green-100 text-green-700">
-                                                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                        In Database
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="text-yellow-600">
-                                                        <AlertTriangle className="w-3 h-3 mr-1" />
-                                                        Unknown
-                                                    </Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <Badge variant="secondary">{assignee.jobs.length}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right font-semibold">
-                                                {assignee.totalWords.toLocaleString()}
-                                            </TableCell>
-                                            <TableCell>
-                                                {expandedAssignee === idx ? (
-                                                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                                                ) : (
-                                                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                                                )}
-                                            </TableCell>
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Work by Assignee</CardTitle>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" onClick={exportToCSV}>
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Summary CSV
+                                    </Button>
+                                    <Button variant="outline" size="sm" onClick={exportDetailedCSV}>
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Detailed CSV
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {assignees.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead className="text-center">Jobs</TableHead>
+                                            <TableHead className="text-right">Words</TableHead>
+                                            <TableHead></TableHead>
                                         </TableRow>
-                                        {expandedAssignee === idx && (
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="bg-gray-50 p-4">
-                                                    <div className="space-y-2">
-                                                        <p className="text-sm font-medium text-gray-700 mb-3">Job Details:</p>
-                                                        {assignee.jobs.map((job, jobIdx) => (
-                                                            <div key={jobIdx} className="flex items-center justify-between p-3 bg-white rounded border">
-                                                                <div>
-                                                                    <p className="font-medium text-sm">{job.projectName}</p>
-                                                                    <p className="text-xs text-gray-500">
-                                                                        {job.documentName} • {job.stageType}
-                                                                        {job.sourceLanguage && job.targetLanguage && 
-                                                                            ` • ${job.sourceLanguage} → ${job.targetLanguage}`
-                                                                        }
+                                    </TableHeader>
+                                    <TableBody>
+                                        {assignees.map((assignee, idx) => (
+                                            <React.Fragment key={assignee.smartcat_id || idx}>
+                                                <TableRow 
+                                                    className="cursor-pointer hover:bg-gray-50"
+                                                    onClick={() => setExpandedAssignee(expandedAssignee === idx ? null : idx)}
+                                                >
+                                                    <TableCell className="font-medium">
+                                                        {assignee.matched && assignee.freelancer_id ? (
+                                                            <Link 
+                                                                to={createPageUrl(`FreelancerDetail?id=${assignee.freelancer_id}`)}
+                                                                className="hover:text-blue-600 flex items-center gap-2"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                {assignee.name}
+                                                            </Link>
+                                                        ) : (
+                                                            assignee.name
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {assignee.matched ? (
+                                                            <Badge className="bg-green-100 text-green-700">
+                                                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                                In Database
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline" className="text-yellow-600">
+                                                                <AlertTriangle className="w-3 h-3 mr-1" />
+                                                                Not Found
+                                                            </Badge>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        <Badge variant="secondary">{assignee.jobs.length}</Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-semibold">
+                                                        {assignee.totalWords.toLocaleString()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {expandedAssignee === idx ? (
+                                                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                        ) : (
+                                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                                {expandedAssignee === idx && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={5} className="bg-gray-50 p-4">
+                                                            <div className="space-y-2">
+                                                                <div className="flex items-center justify-between mb-3">
+                                                                    <p className="text-sm font-medium text-gray-700">
+                                                                        {assignee.jobs.length} completed jobs
                                                                     </p>
                                                                 </div>
-                                                                <Badge variant="outline">{job.wordsCount.toLocaleString()} words</Badge>
+                                                                {assignee.jobs.map((job, jobIdx) => (
+                                                                    <div key={jobIdx} className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-white rounded border gap-2">
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="font-medium text-sm truncate">{job.projectName}</p>
+                                                                            <p className="text-xs text-gray-500">
+                                                                                {job.documentName} • {job.stageType}
+                                                                            </p>
+                                                                            {job.sourceLanguage && job.targetLanguage && (
+                                                                                <p className="text-xs text-gray-500">
+                                                                                    {job.sourceLanguage} → {job.targetLanguage}
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3 flex-shrink-0">
+                                                                            <Badge variant="outline">{job.wordsCount.toLocaleString()} words</Badge>
+                                                                            {job.completedDate && (
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    {new Date(job.completedDate).toLocaleDateString()}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </React.Fragment>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <div className="text-center py-12 text-gray-500">
+                                    <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                    <p>No data - click "Fetch Data" to load from Smartcat</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </>
             )}
 
-            {/* Empty State */}
             {!isLoading && !error && jobsData && assignees.length === 0 && (
                 <Card>
                     <CardContent className="py-12 text-center">
                         <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600">No completed jobs found</p>
-                        <p className="text-sm text-gray-500">Try adjusting the date range or check your Smartcat projects</p>
+                        <p className="text-gray-600 font-medium">No completed jobs found</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                            No completed work found in the selected date range. Try adjusting the dates.
+                        </p>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Tip */}
             <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="pt-6">
                     <div className="flex items-start gap-3">
                         <ExternalLink className="w-5 h-5 text-blue-600 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-blue-800">Using Smartcat Payments</p>
-                            <p className="text-sm text-blue-600">
-                                This tool shows completed work from your Smartcat projects. 
-                                For actual payment processing, use the Smartcat dashboard directly.
-                                The data here helps you verify and reconcile payments.
-                            </p>
+                        <div className="flex-1">
+                            <p className="font-medium text-blue-800 mb-1">Using This Tool</p>
+                            <ul className="text-sm text-blue-600 space-y-1">
+                                <li>• Select a date range and click "Fetch Data" to load completed work from Smartcat</li>
+                                <li>• Green badges show freelancers matched in your database</li>
+                                <li>• Yellow badges show assignees not found in your database (use Team Sync to add them)</li>
+                                <li>• Export to CSV for payment processing or reconciliation</li>
+                                <li>• For actual Smartcat payments, use the Smartcat dashboard</li>
+                            </ul>
                         </div>
                     </div>
                 </CardContent>
