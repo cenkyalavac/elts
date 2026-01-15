@@ -133,37 +133,38 @@ export default function Layout({ children, currentPageName }) {
                             </Link>
                             
                             {/* Main navigation */}
-                            <div className="hidden lg:flex items-center gap-1">
-                                {navItems.map(item => (
-                                    <Link key={item.name} to={createPageUrl(item.name)}>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className={`gap-1.5 text-white hover:bg-white/10 px-2 xl:px-3 ${
-                                                currentPageName === item.name ? 'bg-white/20' : ''
-                                            }`}
-                                        >
-                                            <item.icon className="w-4 h-4" />
-                                            <span className="hidden xl:inline">{item.label}</span>
-                                            {item.badge > 0 && (
-                                                <Badge className="bg-red-500 ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">{item.badge}</Badge>
-                                            )}
-                                        </Button>
-                                    </Link>
-                                ))}
+                            <div className="hidden md:flex items-center gap-1">
+                                {navItems.map(item => {
+                                    // Regular nav item
+                                    return (
+                                        <Link key={item.name} to={createPageUrl(item.name)}>
+                                            <Button
+                                                variant="ghost"
+                                                className={`gap-2 text-white hover:bg-white/10 ${
+                                                    currentPageName === item.name ? 'bg-white/20' : ''
+                                                }`}
+                                            >
+                                                <item.icon className="w-4 h-4" />
+                                                {item.label}
+                                                {item.badge > 0 && (
+                                                    <Badge className="bg-red-500 ml-1">{item.badge}</Badge>
+                                                )}
+                                            </Button>
+                                        </Link>
+                                    );
+                                })}
 
                                 {/* Payments - Only for admin/PM */}
                                 {!isApplicant && (
                                     <Link to={createPageUrl('SmartcatIntegration')}>
                                         <Button
                                             variant="ghost"
-                                            size="sm"
-                                            className={`gap-1.5 text-white hover:bg-white/10 px-2 xl:px-3 ${
+                                            className={`gap-2 text-white hover:bg-white/10 ${
                                                 currentPageName === 'SmartcatIntegration' ? 'bg-white/20' : ''
                                             }`}
                                         >
                                             <DollarSign className="w-4 h-4" />
-                                            <span className="hidden xl:inline">Payments</span>
+                                            Payments
                                         </Button>
                                     </Link>
                                 )}
@@ -173,7 +174,7 @@ export default function Layout({ children, currentPageName }) {
                         <div className="flex items-center gap-2">
                             {user && (
                                 <>
-                                    <div className="hidden lg:flex items-center gap-3">
+                                    <div className="hidden md:flex items-center gap-3">
                                         {/* User dropdown with settings */}
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -225,7 +226,7 @@ export default function Layout({ children, currentPageName }) {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="lg:hidden text-white"
+                                        className="md:hidden text-white"
                                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                     >
                                         {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -238,7 +239,7 @@ export default function Layout({ children, currentPageName }) {
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                    <div className="lg:hidden border-t border-white/10 bg-purple-900">
+                    <div className="md:hidden border-t border-white/10 bg-purple-900">
                         <div className="px-4 py-3 space-y-1">
                             {navItems.map(item => (
                                 <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
