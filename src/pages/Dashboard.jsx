@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
-    Users, FileText, Star, Plus, ArrowRight,
+    Users, FileText, Star, ArrowRight,
     Clock, AlertTriangle, CheckCircle2, TrendingUp, DollarSign,
     UserPlus, FileCheck, Award
 } from "lucide-react";
@@ -238,19 +238,9 @@ export default function Dashboard() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="text-gray-600 mt-1 text-sm sm:text-base">Welcome back, {user.full_name || user.email?.split('@')[0]}</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Link to={createPageUrl('QualityManagement')}>
-                            <Button className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
-                                <Plus className="w-4 h-4 mr-2" />
-                                New Report
-                            </Button>
-                        </Link>
-                    </div>
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+                    <p className="text-gray-600 mt-1 text-sm sm:text-base">Welcome back, {user.full_name || user.email?.split('@')[0]}</p>
                 </div>
 
                 {/* Announcements Banner */}
@@ -261,62 +251,72 @@ export default function Dashboard() {
 
                 {/* Key Metrics Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-blue-100 text-sm">New Applications</p>
-                                    <p className="text-3xl font-bold">{pipelineStats.newApplications}</p>
+                    <Link to={`${createPageUrl('Freelancers')}?status=New Application`}>
+                        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-blue-100 text-sm">New Applications</p>
+                                        <p className="text-3xl font-bold">{pipelineStats.newApplications}</p>
+                                    </div>
+                                    <UserPlus className="w-10 h-10 text-blue-200" />
                                 </div>
-                                <UserPlus className="w-10 h-10 text-blue-200" />
-                            </div>
-                            <Link to={createPageUrl('Freelancers')} className="text-xs text-blue-100 hover:text-white mt-2 inline-flex items-center gap-1">
-                                View all <ArrowRight className="w-3 h-3" />
-                            </Link>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-amber-100 text-sm">In Review</p>
-                                    <p className="text-3xl font-bold">{pipelineStats.inReview}</p>
+                                <span className="text-xs text-blue-100 mt-2 inline-flex items-center gap-1">
+                                    View all <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link to={`${createPageUrl('Freelancers')}?status=in_review`}>
+                        <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-amber-100 text-sm">In Review</p>
+                                        <p className="text-3xl font-bold">{pipelineStats.inReview}</p>
+                                    </div>
+                                    <Clock className="w-10 h-10 text-amber-200" />
                                 </div>
-                                <Clock className="w-10 h-10 text-amber-200" />
-                            </div>
-                            <Link to={createPageUrl('Freelancers')} className="text-xs text-amber-100 hover:text-white mt-2 inline-flex items-center gap-1">
-                                Manage <ArrowRight className="w-3 h-3" />
-                            </Link>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-gradient-to-br from-green-500 to-emerald-500 text-white">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-green-100 text-sm">Approved</p>
-                                    <p className="text-3xl font-bold">{pipelineStats.approved}</p>
+                                <span className="text-xs text-amber-100 mt-2 inline-flex items-center gap-1">
+                                    Manage <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link to={`${createPageUrl('Freelancers')}?status=Approved`}>
+                        <Card className="bg-gradient-to-br from-green-500 to-emerald-500 text-white hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-green-100 text-sm">Approved</p>
+                                        <p className="text-3xl font-bold">{pipelineStats.approved}</p>
+                                    </div>
+                                    <CheckCircle2 className="w-10 h-10 text-green-200" />
                                 </div>
-                                <CheckCircle2 className="w-10 h-10 text-green-200" />
-                            </div>
-                            <p className="text-xs text-green-100 mt-2">Active freelancers</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-purple-100 text-sm">Avg Quality</p>
-                                    <p className="text-3xl font-bold">
-                                        {qualityStats.avgCombinedScore?.toFixed(0) || '--'}
-                                    </p>
+                                <span className="text-xs text-green-100 mt-2 inline-flex items-center gap-1">
+                                    Active freelancers <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link to={createPageUrl('QualityManagement')}>
+                        <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-purple-100 text-sm">Avg Quality</p>
+                                        <p className="text-3xl font-bold">
+                                            {qualityStats.avgCombinedScore?.toFixed(0) || '--'}
+                                        </p>
+                                    </div>
+                                    <Star className="w-10 h-10 text-purple-200" />
                                 </div>
-                                <Star className="w-10 h-10 text-purple-200" />
-                            </div>
-                            <Link to={createPageUrl('QualityManagement')} className="text-xs text-purple-100 hover:text-white mt-2 inline-flex items-center gap-1">
-                                Details <ArrowRight className="w-3 h-3" />
-                            </Link>
-                        </CardContent>
-                    </Card>
+                                <span className="text-xs text-purple-100 mt-2 inline-flex items-center gap-1">
+                                    Details <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
 
                 {/* Action Items */}
