@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
     ArrowLeft, Star, AlertTriangle, CheckCircle2, Clock, 
-    Send, MessageSquare, FileCheck, User, Calendar
+    Send, MessageSquare, FileCheck, User, Calendar, Share2
 } from "lucide-react";
+import ShareReportDialog from "@/components/quality/ShareReportDialog";
 import { format, addDays } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -32,6 +33,7 @@ export default function QualityReportDetailPage() {
 
     const [translatorComment, setTranslatorComment] = useState("");
     const [finalComment, setFinalComment] = useState("");
+    const [showShareDialog, setShowShareDialog] = useState(false);
 
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
@@ -210,21 +212,35 @@ export default function QualityReportDetailPage() {
                     </p>
                 </div>
 
-                {/* Combined Score */}
-                {combinedScore != null && (
-                    <div className={`px-6 py-4 rounded-xl text-center ${
-                        combinedScore >= 80 ? 'bg-green-100' :
-                        combinedScore >= 60 ? 'bg-yellow-100' : 'bg-red-100'
-                    }`}>
-                        <p className="text-xs text-gray-500">Combined Score</p>
-                        <p className={`text-3xl font-bold ${
-                            combinedScore >= 80 ? 'text-green-600' :
-                            combinedScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                <div className="flex items-center gap-4">
+                    {/* Share Button */}
+                    {isAdmin && (report.status === 'finalized' || report.status === 'translator_accepted') && (
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setShowShareDialog(true)}
+                            className="gap-2"
+                        >
+                            <Share2 className="w-4 h-4" />
+                            Share Report
+                        </Button>
+                    )}
+
+                    {/* Combined Score */}
+                    {combinedScore != null && (
+                        <div className={`px-6 py-4 rounded-xl text-center ${
+                            combinedScore >= 80 ? 'bg-green-100' :
+                            combinedScore >= 60 ? 'bg-yellow-100' : 'bg-red-100'
                         }`}>
-                            {combinedScore.toFixed(1)}
-                        </p>
-                    </div>
-                )}
+                            <p className="text-xs text-gray-500">Combined Score</p>
+                            <p className={`text-3xl font-bold ${
+                                combinedScore >= 80 ? 'text-green-600' :
+                                combinedScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                                {combinedScore.toFixed(1)}
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -521,6 +537,14 @@ export default function QualityReportDetailPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* Share Report Dialog */}
+            <ShareReportDialog
+                open={showShareDialog}
+                onOpenChange={setShowShareDialog}
+                report={report}
+                freelancer={freelancer}
+            />
         </div>
     );
 }

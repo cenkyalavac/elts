@@ -16,6 +16,7 @@ import MyApplication from './pages/MyApplication';
 import MyAvailability from './pages/MyAvailability';
 import NormalizeLanguages from './pages/NormalizeLanguages';
 import OpenPositions from './pages/OpenPositions';
+import PerformanceAnalytics from './pages/PerformanceAnalytics';
 import Pipeline from './pages/Pipeline';
 import Position from './pages/Position';
 import QualityManagement from './pages/QualityManagement';
@@ -27,7 +28,6 @@ import SmartcatPayments from './pages/SmartcatPayments';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import PerformanceAnalytics from './pages/PerformanceAnalytics';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +50,7 @@ export const PAGES = {
     "MyAvailability": MyAvailability,
     "NormalizeLanguages": NormalizeLanguages,
     "OpenPositions": OpenPositions,
+    "PerformanceAnalytics": PerformanceAnalytics,
     "Pipeline": Pipeline,
     "Position": Position,
     "QualityManagement": QualityManagement,
@@ -61,7 +62,6 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "PerformanceAnalytics": PerformanceAnalytics,
 }
 
 export const pagesConfig = {
