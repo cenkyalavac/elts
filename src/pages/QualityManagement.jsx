@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { 
     Search, Plus, Filter, Star, FileCheck, AlertTriangle, 
-    CheckCircle2, Clock, Eye, TrendingUp, BarChart3, Users
+    CheckCircle2, Clock, Eye, TrendingUp, BarChart3, Users, Award
 } from "lucide-react";
 import QualityReportForm from "@/components/quality/QualityReportForm";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
@@ -271,6 +271,7 @@ export default function QualityManagementPage() {
                     <TabsTrigger value="reports">Kalite Raporları</TabsTrigger>
                     <TabsTrigger value="scores">Freelancer Skorları</TabsTrigger>
                     <TabsTrigger value="lqa-reviewers">LQA Reviewerlar</TabsTrigger>
+                    <TabsTrigger value="quizzes">Quizler</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="reports">
@@ -475,6 +476,45 @@ export default function QualityManagementPage() {
                                     )}
                                 </TableBody>
                             </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="quizzes">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Award className="w-5 h-5" />
+                                    Quiz Yönetimi
+                                </CardTitle>
+                                <Link to={createPageUrl('QuizManagement')}>
+                                    <Button variant="outline">
+                                        Quiz Yönetimine Git
+                                    </Button>
+                                </Link>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-gray-600">
+                                Quizler, freelancer kalitesini ölçmek için kullanılan önemli bir araçtır. 
+                                Çevirmenlerin dil bilgisi, terminoloji ve konu uzmanlığını değerlendirmek için 
+                                quiz oluşturabilir ve atayabilirsiniz.
+                            </p>
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="p-4 bg-purple-50 rounded-lg">
+                                    <p className="text-sm text-purple-600 font-medium">Dil Testleri</p>
+                                    <p className="text-xs text-gray-600 mt-1">Kaynak ve hedef dil yetkinliği</p>
+                                </div>
+                                <div className="p-4 bg-blue-50 rounded-lg">
+                                    <p className="text-sm text-blue-600 font-medium">Uzmanlık Testleri</p>
+                                    <p className="text-xs text-gray-600 mt-1">Tıbbi, hukuki, teknik terminoloji</p>
+                                </div>
+                                <div className="p-4 bg-green-50 rounded-lg">
+                                    <p className="text-sm text-green-600 font-medium">Onay Süreci</p>
+                                    <p className="text-xs text-gray-600 mt-1">Freelancer onayı için zorunlu quizler</p>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
