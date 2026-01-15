@@ -80,17 +80,18 @@ export default function BulkSmartcatPayment() {
             });
 
             if (result.status === 'success' && result.output) {
-                // Match with Smartcat users
+                // Match with freelancers in our system
                 const dataWithMatches = result.output.map(row => {
-                    const matchedLinguist = linguists.find(l => 
-                        l.email?.toLowerCase() === row.freelancer_email?.toLowerCase() ||
-                        l.name?.toLowerCase().includes(row.freelancer_name?.toLowerCase())
+                    const matchedFreelancer = freelancers.find(f => 
+                        f.email?.toLowerCase() === row.freelancer_email?.toLowerCase() ||
+                        f.full_name?.toLowerCase().includes(row.freelancer_name?.toLowerCase())
                     );
                     
                     return {
                         ...row,
-                        smartcat_user_id: matchedLinguist?.id || null,
-                        smartcat_matched: !!matchedLinguist,
+                        freelancer_id: matchedFreelancer?.id || null,
+                        freelancer_matched: !!matchedFreelancer,
+                        matched_name: matchedFreelancer?.full_name,
                         service_type: row.service_type || 'Translation',
                         units_type: row.units_type || 'Words',
                         currency: row.currency || 'USD',
