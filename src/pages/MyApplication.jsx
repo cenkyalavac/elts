@@ -18,6 +18,7 @@ import AssignedQuizzesSection from "../components/quiz/AssignedQuizzesSection";
 import ProfessionalOverview from "../components/freelancers/ProfessionalOverview";
 import WorkPreferencesForm from "../components/freelancers/WorkPreferencesForm";
 import PortfolioSection from "../components/freelancers/PortfolioSection";
+import QuickAvailabilityToggle from "../components/availability/QuickAvailabilityToggle";
 
 export default function MyApplicationPage() {
     const queryClient = useQueryClient();
