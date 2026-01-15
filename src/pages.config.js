@@ -20,10 +20,12 @@ import Pipeline from './pages/Pipeline';
 import Position from './pages/Position';
 import QuizManagement from './pages/QuizManagement';
 import Settings from './pages/Settings';
+import SmartcatPayments from './pages/SmartcatPayments';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import SmartcatPayments from './pages/SmartcatPayments';
+import QualityManagement from './pages/QualityManagement';
+import QualityReportDetail from './pages/QualityReportDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -50,10 +52,12 @@ export const PAGES = {
     "Position": Position,
     "QuizManagement": QuizManagement,
     "Settings": Settings,
+    "SmartcatPayments": SmartcatPayments,
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "SmartcatPayments": SmartcatPayments,
+    "QualityManagement": QualityManagement,
+    "QualityReportDetail": QualityReportDetail,
 }
 
 export const pagesConfig = {
