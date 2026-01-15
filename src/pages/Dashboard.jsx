@@ -238,14 +238,14 @@ export default function Dashboard() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="text-gray-600 mt-1">Welcome back, {user.full_name || user.email?.split('@')[0]}</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">Welcome back, {user.full_name || user.email?.split('@')[0]}</p>
                     </div>
                     <div className="flex gap-2">
                         <Link to={createPageUrl('QualityManagement')}>
-                            <Button className="bg-purple-600 hover:bg-purple-700">
+                            <Button className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
                                 <Plus className="w-4 h-4 mr-2" />
                                 New Report
                             </Button>

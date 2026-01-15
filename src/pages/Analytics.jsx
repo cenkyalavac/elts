@@ -228,9 +228,9 @@ export default function AnalyticsPage() {
     return (
         <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
             <div className="max-w-[1600px] mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-                    <p className="text-gray-600">Track recruitment performance and key metrics</p>
+                <div className="mb-6">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+                    <p className="text-gray-600 text-sm sm:text-base">Track recruitment performance and key metrics</p>
                 </div>
 
                 {/* Performance Metrics */}
