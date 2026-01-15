@@ -18,15 +18,15 @@ import NormalizeLanguages from './pages/NormalizeLanguages';
 import OpenPositions from './pages/OpenPositions';
 import Pipeline from './pages/Pipeline';
 import Position from './pages/Position';
+import QualityManagement from './pages/QualityManagement';
+import QualityReportDetail from './pages/QualityReportDetail';
 import QuizManagement from './pages/QuizManagement';
 import Settings from './pages/Settings';
+import SmartcatIntegration from './pages/SmartcatIntegration';
 import SmartcatPayments from './pages/SmartcatPayments';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import QualityManagement from './pages/QualityManagement';
-import QualityReportDetail from './pages/QualityReportDetail';
-import SmartcatIntegration from './pages/SmartcatIntegration';
 import __Layout from './Layout.jsx';
 
 
@@ -51,15 +51,15 @@ export const PAGES = {
     "OpenPositions": OpenPositions,
     "Pipeline": Pipeline,
     "Position": Position,
+    "QualityManagement": QualityManagement,
+    "QualityReportDetail": QualityReportDetail,
     "QuizManagement": QuizManagement,
     "Settings": Settings,
+    "SmartcatIntegration": SmartcatIntegration,
     "SmartcatPayments": SmartcatPayments,
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "QualityManagement": QualityManagement,
-    "QualityReportDetail": QualityReportDetail,
-    "SmartcatIntegration": SmartcatIntegration,
 }
 
 export const pagesConfig = {

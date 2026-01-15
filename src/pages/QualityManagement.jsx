@@ -15,27 +15,27 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
 import { 
-    Search, Plus, Filter, Star, FileCheck, AlertTriangle, 
-    CheckCircle2, Clock, Eye, TrendingUp, BarChart3, Users, Award
+    Search, Plus, Star, AlertTriangle, 
+    CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText
 } from "lucide-react";
 import QualityReportForm from "@/components/quality/QualityReportForm";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
 import QualityFilters from "@/components/quality/QualityFilters";
-
-const TRANSLATION_TYPES = ["Technical", "Marketing", "Legal", "Medical", "General", "UI/UX", "Support", "Creative"];
-const REPORT_STATUSES = ["draft", "submitted", "pending_translator_review", "translator_accepted", "translator_disputed", "pending_final_review", "finalized"];
+import BulkQualityImport from "@/components/quality/BulkQualityImport";
 
 export default function QualityManagementPage() {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState("reports");
     const [showCreateDialog, setShowCreateDialog] = useState(false);
-    const [selectedReport, setSelectedReport] = useState(null);
+    const [createReportType, setCreateReportType] = useState("LQA");
+    const [showImportDialog, setShowImportDialog] = useState(false);
     const [filters, setFilters] = useState({
         freelancer_id: "",
-        translation_type: "",
+        content_type: "",
+        job_type: "",
         client_account: "",
         source_language: "",
         target_language: "",
@@ -44,7 +44,6 @@ export default function QualityManagementPage() {
         search: ""
     });
 
-    // Fetch data
     const { data: reports = [], isLoading: reportsLoading } = useQuery({
         queryKey: ['qualityReports'],
         queryFn: () => base44.entities.QualityReport.list('-created_date'),
@@ -63,13 +62,11 @@ export default function QualityManagementPage() {
         },
     });
 
-    // Get unique client accounts from reports
     const clientAccounts = useMemo(() => {
         const accounts = new Set(reports.map(r => r.client_account).filter(Boolean));
         return Array.from(accounts);
     }, [reports]);
 
-    // Get unique languages from reports
     const languages = useMemo(() => {
         const sourceLangs = new Set(reports.map(r => r.source_language).filter(Boolean));
         const targetLangs = new Set(reports.map(r => r.target_language).filter(Boolean));
@@ -79,11 +76,11 @@ export default function QualityManagementPage() {
         };
     }, [reports]);
 
-    // Filter reports
     const filteredReports = useMemo(() => {
         return reports.filter(report => {
             if (filters.freelancer_id && report.freelancer_id !== filters.freelancer_id) return false;
-            if (filters.translation_type && report.translation_type !== filters.translation_type) return false;
+            if (filters.content_type && report.content_type !== filters.content_type) return false;
+            if (filters.job_type && report.job_type !== filters.job_type) return false;
             if (filters.client_account && report.client_account !== filters.client_account) return false;
             if (filters.source_language && report.source_language !== filters.source_language) return false;
             if (filters.target_language && report.target_language !== filters.target_language) return false;
@@ -101,7 +98,6 @@ export default function QualityManagementPage() {
         });
     }, [reports, filters, freelancers]);
 
-    // Calculate combined score
     const calculateCombinedScore = (lqaScores, qsScores) => {
         const lqaWeight = settings?.lqa_weight || 4;
         const qsMultiplier = settings?.qs_multiplier || 20;
@@ -113,8 +109,6 @@ export default function QualityManagementPage() {
             ? qsScores.reduce((a, b) => a + b, 0) / qsScores.length 
             : 0;
         
-        // Combined = (LQA avg * weight + QS avg * multiplier) / (weight + 1)
-        // This normalizes to 100
         if (lqaScores.length > 0 && qsScores.length > 0) {
             return ((avgLqa * lqaWeight) + (avgQs * qsMultiplier)) / (lqaWeight + 1);
         } else if (lqaScores.length > 0) {
@@ -125,20 +119,14 @@ export default function QualityManagementPage() {
         return 0;
     };
 
-    // Get freelancer quality stats with filters
     const getFreelancerQualityStats = (freelancerId) => {
         const freelancerReports = filteredReports.filter(r => 
             r.freelancer_id === freelancerId && 
             (r.status === 'finalized' || r.status === 'translator_accepted')
         );
         
-        const lqaScores = freelancerReports
-            .filter(r => r.lqa_score != null)
-            .map(r => r.lqa_score);
-        
-        const qsScores = freelancerReports
-            .filter(r => r.qs_score != null)
-            .map(r => r.qs_score);
+        const lqaScores = freelancerReports.filter(r => r.lqa_score != null).map(r => r.lqa_score);
+        const qsScores = freelancerReports.filter(r => r.qs_score != null).map(r => r.qs_score);
         
         return {
             totalReviews: freelancerReports.length,
@@ -152,12 +140,10 @@ export default function QualityManagementPage() {
         };
     };
 
-    // LQA qualified freelancers
     const lqaQualifiedFreelancers = useMemo(() => {
         return freelancers.filter(f => f.can_do_lqa || f.service_types?.includes('LQA'));
     }, [freelancers]);
 
-    // Stats
     const stats = useMemo(() => {
         const pending = reports.filter(r => 
             r.status === 'pending_translator_review' || 
@@ -179,13 +165,13 @@ export default function QualityManagementPage() {
 
     const getStatusBadge = (status) => {
         const config = {
-            draft: { color: "bg-gray-100 text-gray-700", label: "Taslak" },
-            submitted: { color: "bg-blue-100 text-blue-700", label: "Gönderildi" },
-            pending_translator_review: { color: "bg-yellow-100 text-yellow-700", label: "Çevirmen İncelemesinde" },
-            translator_accepted: { color: "bg-green-100 text-green-700", label: "Kabul Edildi" },
-            translator_disputed: { color: "bg-red-100 text-red-700", label: "İtiraz Edildi" },
-            pending_final_review: { color: "bg-orange-100 text-orange-700", label: "Final İncelemede" },
-            finalized: { color: "bg-emerald-100 text-emerald-700", label: "Tamamlandı" }
+            draft: { color: "bg-gray-100 text-gray-700", label: "Draft" },
+            submitted: { color: "bg-blue-100 text-blue-700", label: "Submitted" },
+            pending_translator_review: { color: "bg-yellow-100 text-yellow-700", label: "Pending Review" },
+            translator_accepted: { color: "bg-green-100 text-green-700", label: "Accepted" },
+            translator_disputed: { color: "bg-red-100 text-red-700", label: "Disputed" },
+            pending_final_review: { color: "bg-orange-100 text-orange-700", label: "Final Review" },
+            finalized: { color: "bg-emerald-100 text-emerald-700", label: "Finalized" }
         };
         return config[status] || { color: "bg-gray-100", label: status };
     };
@@ -194,28 +180,53 @@ export default function QualityManagementPage() {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Kalite Yönetimi</h1>
-                    <p className="text-gray-500">LQA ve QS raporlarını yönetin</p>
+                    <h1 className="text-2xl font-bold">Quality Management</h1>
+                    <p className="text-gray-500">LQA and QS reports</p>
                 </div>
-                <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-purple-600 hover:bg-purple-700">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Yeni Rapor
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>Yeni Kalite Raporu Oluştur</DialogTitle>
-                        </DialogHeader>
-                        <QualityReportForm 
-                            freelancers={freelancers}
-                            onSubmit={(data) => createMutation.mutate(data)}
-                            onCancel={() => setShowCreateDialog(false)}
-                            settings={settings}
-                        />
-                    </DialogContent>
-                </Dialog>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setShowImportDialog(true)}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Import Historical Data
+                    </Button>
+                    <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-purple-600 hover:bg-purple-700">
+                                <Plus className="w-4 h-4 mr-2" />
+                                New Report
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Create Quality Report</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex gap-2 mb-4">
+                                <Button 
+                                    variant={createReportType === 'LQA' ? 'default' : 'outline'}
+                                    onClick={() => setCreateReportType('LQA')}
+                                    className={createReportType === 'LQA' ? 'bg-blue-600' : ''}
+                                >
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    LQA Report
+                                </Button>
+                                <Button 
+                                    variant={createReportType === 'QS' ? 'default' : 'outline'}
+                                    onClick={() => setCreateReportType('QS')}
+                                    className={createReportType === 'QS' ? 'bg-yellow-600' : ''}
+                                >
+                                    <Star className="w-4 h-4 mr-2" />
+                                    QS Report
+                                </Button>
+                            </div>
+                            <QualityReportForm 
+                                freelancers={freelancers}
+                                onSubmit={(data) => createMutation.mutate(data)}
+                                onCancel={() => setShowCreateDialog(false)}
+                                settings={settings}
+                                defaultReportType={createReportType}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -224,7 +235,7 @@ export default function QualityManagementPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500">Toplam Rapor</p>
+                                <p className="text-sm text-gray-500">Total Reports</p>
                                 <p className="text-2xl font-bold">{stats.total}</p>
                             </div>
                             <BarChart3 className="w-8 h-8 text-purple-500" />
@@ -235,7 +246,7 @@ export default function QualityManagementPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500">Bekleyen</p>
+                                <p className="text-sm text-gray-500">Pending</p>
                                 <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
                             </div>
                             <Clock className="w-8 h-8 text-yellow-500" />
@@ -246,7 +257,7 @@ export default function QualityManagementPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500">İtiraz Edilen</p>
+                                <p className="text-sm text-gray-500">Disputed</p>
                                 <p className="text-2xl font-bold text-red-600">{stats.disputed}</p>
                             </div>
                             <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -257,7 +268,7 @@ export default function QualityManagementPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500">Tamamlanan</p>
+                                <p className="text-sm text-gray-500">Finalized</p>
                                 <p className="text-2xl font-bold text-green-600">{stats.finalized}</p>
                             </div>
                             <CheckCircle2 className="w-8 h-8 text-green-500" />
@@ -268,14 +279,13 @@ export default function QualityManagementPage() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-4">
-                    <TabsTrigger value="reports">Kalite Raporları</TabsTrigger>
-                    <TabsTrigger value="scores">Freelancer Skorları</TabsTrigger>
-                    <TabsTrigger value="lqa-reviewers">LQA Reviewerlar</TabsTrigger>
-                    <TabsTrigger value="quizzes">Quizler</TabsTrigger>
+                    <TabsTrigger value="reports">Quality Reports</TabsTrigger>
+                    <TabsTrigger value="scores">Freelancer Scores</TabsTrigger>
+                    <TabsTrigger value="lqa-reviewers">LQA Reviewers</TabsTrigger>
+                    <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="reports">
-                    {/* Filters */}
                     <QualityFilters 
                         filters={filters}
                         setFilters={setFilters}
@@ -284,21 +294,21 @@ export default function QualityManagementPage() {
                         languages={languages}
                     />
 
-                    {/* Reports Table */}
                     <Card>
                         <CardContent className="p-0">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Çevirmen</TableHead>
-                                        <TableHead>Proje</TableHead>
-                                        <TableHead>Tip</TableHead>
-                                        <TableHead>Dil Çifti</TableHead>
-                                        <TableHead>Alan</TableHead>
+                                        <TableHead>Freelancer</TableHead>
+                                        <TableHead>Project</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Languages</TableHead>
+                                        <TableHead>Content</TableHead>
+                                        <TableHead>Job Type</TableHead>
                                         <TableHead>LQA</TableHead>
                                         <TableHead>QS</TableHead>
-                                        <TableHead>Durum</TableHead>
-                                        <TableHead>Tarih</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Date</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -309,7 +319,7 @@ export default function QualityManagementPage() {
                                         return (
                                             <TableRow key={report.id}>
                                                 <TableCell className="font-medium">
-                                                    {freelancer?.full_name || "Bilinmiyor"}
+                                                    {freelancer?.full_name || "Unknown"}
                                                 </TableCell>
                                                 <TableCell>{report.project_name || "-"}</TableCell>
                                                 <TableCell>
@@ -323,7 +333,10 @@ export default function QualityManagementPage() {
                                                         : "-"
                                                     }
                                                 </TableCell>
-                                                <TableCell>{report.translation_type || "-"}</TableCell>
+                                                <TableCell>
+                                                    {report.content_type || report.translation_type || "-"}
+                                                </TableCell>
+                                                <TableCell>{report.job_type || "-"}</TableCell>
                                                 <TableCell>
                                                     {report.lqa_score != null ? (
                                                         <span className={`font-medium ${
@@ -349,7 +362,7 @@ export default function QualityManagementPage() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-gray-500 text-sm">
-                                                    {new Date(report.created_date).toLocaleDateString('tr-TR')}
+                                                    {new Date(report.report_date || report.created_date).toLocaleDateString()}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Link to={createPageUrl(`QualityReportDetail?id=${report.id}`)}>
@@ -363,8 +376,8 @@ export default function QualityManagementPage() {
                                     })}
                                     {filteredReports.length === 0 && (
                                         <TableRow>
-                                            <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-                                                {reportsLoading ? "Yükleniyor..." : "Rapor bulunamadı"}
+                                            <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                                                {reportsLoading ? "Loading..." : "No reports found"}
                                             </TableCell>
                                         </TableRow>
                                     )}
@@ -375,7 +388,6 @@ export default function QualityManagementPage() {
                 </TabsContent>
 
                 <TabsContent value="scores">
-                    {/* Filters for scores view */}
                     <QualityFilters 
                         filters={filters}
                         setFilters={setFilters}
@@ -411,17 +423,17 @@ export default function QualityManagementPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Users className="w-5 h-5" />
-                                LQA Yapabilecek Freelancerlar
+                                LQA Qualified Freelancers
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>İsim</TableHead>
-                                        <TableHead>LQA Dil Çiftleri</TableHead>
-                                        <TableHead>LQA Uzmanlıklar</TableHead>
-                                        <TableHead>Durum</TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>LQA Language Pairs</TableHead>
+                                        <TableHead>LQA Specializations</TableHead>
+                                        <TableHead>Status</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -470,7 +482,7 @@ export default function QualityManagementPage() {
                                     {lqaQualifiedFreelancers.length === 0 && (
                                         <TableRow>
                                             <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                                                LQA yapabilecek freelancer bulunamadı
+                                                No LQA qualified freelancers found
                                             </TableCell>
                                         </TableRow>
                                     )}
@@ -486,39 +498,55 @@ export default function QualityManagementPage() {
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
                                     <Award className="w-5 h-5" />
-                                    Quiz Yönetimi
+                                    Quiz Management
                                 </CardTitle>
                                 <Link to={createPageUrl('QuizManagement')}>
                                     <Button variant="outline">
-                                        Quiz Yönetimine Git
+                                        Go to Quiz Management
                                     </Button>
                                 </Link>
                             </div>
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-600">
-                                Quizler, freelancer kalitesini ölçmek için kullanılan önemli bir araçtır. 
-                                Çevirmenlerin dil bilgisi, terminoloji ve konu uzmanlığını değerlendirmek için 
-                                quiz oluşturabilir ve atayabilirsiniz.
+                                Quizzes are an important tool for measuring freelancer quality. 
+                                Create and assign quizzes to evaluate translators' language knowledge, 
+                                terminology, and subject matter expertise.
                             </p>
                             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="p-4 bg-purple-50 rounded-lg">
-                                    <p className="text-sm text-purple-600 font-medium">Dil Testleri</p>
-                                    <p className="text-xs text-gray-600 mt-1">Kaynak ve hedef dil yetkinliği</p>
+                                    <p className="text-sm text-purple-600 font-medium">Language Tests</p>
+                                    <p className="text-xs text-gray-600 mt-1">Source and target language proficiency</p>
                                 </div>
                                 <div className="p-4 bg-blue-50 rounded-lg">
-                                    <p className="text-sm text-blue-600 font-medium">Uzmanlık Testleri</p>
-                                    <p className="text-xs text-gray-600 mt-1">Tıbbi, hukuki, teknik terminoloji</p>
+                                    <p className="text-sm text-blue-600 font-medium">Specialization Tests</p>
+                                    <p className="text-xs text-gray-600 mt-1">Medical, legal, technical terminology</p>
                                 </div>
                                 <div className="p-4 bg-green-50 rounded-lg">
-                                    <p className="text-sm text-green-600 font-medium">Onay Süreci</p>
-                                    <p className="text-xs text-gray-600 mt-1">Freelancer onayı için zorunlu quizler</p>
+                                    <p className="text-sm text-green-600 font-medium">Approval Process</p>
+                                    <p className="text-xs text-gray-600 mt-1">Required quizzes for freelancer approval</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {/* Import Dialog */}
+            <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Import Historical Quality Data</DialogTitle>
+                    </DialogHeader>
+                    <BulkQualityImport 
+                        freelancers={freelancers}
+                        onComplete={() => {
+                            queryClient.invalidateQueries({ queryKey: ['qualityReports'] });
+                            setShowImportDialog(false);
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
