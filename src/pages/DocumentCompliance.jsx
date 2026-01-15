@@ -83,16 +83,16 @@ export default function DocumentCompliancePage() {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Document Compliance</h1>
-                        <p className="text-gray-600 mt-1">Track document signing status and compliance across all freelancers</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Document Compliance</h1>
+                        <p className="text-gray-600 mt-1 text-sm sm:text-base">Track document signing status and compliance</p>
                     </div>
                     <Button
                         onClick={() => setShowUploadForm(!showUploadForm)}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                     >
-                        Upload New Document
+                        Upload Document
                     </Button>
                 </div>
 
@@ -143,11 +143,11 @@ export default function DocumentCompliancePage() {
                 </div>
 
                 <Tabs defaultValue="overview" className="space-y-4">
-                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="documents">By Document</TabsTrigger>
-                        <TabsTrigger value="freelancers">By Freelancer</TabsTrigger>
-                        <TabsTrigger value="management">Management</TabsTrigger>
+                    <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full">
+                        <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+                        <TabsTrigger value="documents" className="text-xs sm:text-sm">Documents</TabsTrigger>
+                        <TabsTrigger value="freelancers" className="text-xs sm:text-sm">Freelancers</TabsTrigger>
+                        <TabsTrigger value="management" className="text-xs sm:text-sm">Manage</TabsTrigger>
                     </TabsList>
 
                     {/* Overview Tab */}
