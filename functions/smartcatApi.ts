@@ -54,29 +54,61 @@ Deno.serve(async (req) => {
         const body = await req.json();
         const { action, params } = body;
 
-        // ==================== GET MY TEAM ====================
+        // ==================== GET MY TEAM (from projects) ====================
         if (action === 'get_my_team') {
-            const team = await smartcatFetch('/account/myTeam');
+            // Smartcat doesn't have a direct team API, so we extract from projects
+            const projects = await smartcatFetch('/project/list');
+            const projectList = Array.isArray(projects) ? projects : [];
             
+            const teamMembers = new Map();
+            
+            // Scan recent projects to find all assignees
+            for (const project of projectList.slice(0, 30)) {
+                try {
+                    const details = await smartcatFetch(`/project/${project.id}`);
+                    
+                    for (const doc of (details.documents || [])) {
+                        for (const stage of (doc.workflowStages || [])) {
+                            for (const exec of (stage.executives || [])) {
+                                const execId = exec.id || exec.supplierName;
+                                if (!execId) continue;
+                                
+                                if (!teamMembers.has(execId)) {
+                                    teamMembers.set(execId, {
+                                        smartcat_id: execId,
+                                        name: exec.supplierName || 'Unknown',
+                                        email: exec.email || null,
+                                        role: stage.stageType,
+                                        projectCount: 0,
+                                        languages: new Set()
+                                    });
+                                }
+                                
+                                const member = teamMembers.get(execId);
+                                member.projectCount++;
+                                if (doc.targetLanguage) member.languages.add(doc.targetLanguage);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log(`Skip project ${project.id}: ${e.message}`);
+                }
+            }
+            
+            // Get freelancers for matching
             const freelancers = await base44.asServiceRole.entities.Freelancer.list();
-            const freelancerByEmail = new Map();
             const freelancerByName = new Map();
             
             for (const f of freelancers) {
-                if (f.email) freelancerByEmail.set(f.email.toLowerCase(), f);
                 if (f.full_name) freelancerByName.set(f.full_name.toLowerCase().trim(), f);
             }
             
-            const teamWithMatch = (Array.isArray(team) ? team : []).map(member => {
-                const name = member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim();
-                const email = member.email?.toLowerCase();
-                const matchedFreelancer = freelancerByEmail.get(email) || freelancerByName.get(name.toLowerCase());
-                
+            // Convert to array and match
+            const team = Array.from(teamMembers.values()).map(m => {
+                const matchedFreelancer = freelancerByName.get(m.name?.toLowerCase().trim());
                 return {
-                    smartcat_id: member.id || member.userId,
-                    name: name,
-                    email: member.email,
-                    role: member.role,
+                    ...m,
+                    languages: Array.from(m.languages),
                     matched: !!matchedFreelancer,
                     freelancer_id: matchedFreelancer?.id || null,
                     freelancer_email: matchedFreelancer?.email || null
@@ -84,8 +116,9 @@ Deno.serve(async (req) => {
             });
             
             return Response.json({ 
-                team: teamWithMatch,
-                total: teamWithMatch.length 
+                team,
+                total: team.length,
+                projectsScanned: Math.min(projectList.length, 30)
             });
         }
 
