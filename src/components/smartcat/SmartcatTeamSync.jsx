@@ -157,6 +157,38 @@ export default function SmartcatTeamSync() {
 
     return (
         <div className="space-y-6">
+            {/* Connection Test Card */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Zap className="w-5 h-5" />
+                        Smartcat Connection
+                    </CardTitle>
+                    <CardDescription>
+                        Test your Smartcat API connection before syncing
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center gap-4">
+                        <Button onClick={handleTestConnection} disabled={testingConnection} variant="outline">
+                            {testingConnection ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Zap className="w-4 h-4 mr-2" />
+                            )}
+                            Test Connection
+                        </Button>
+                        
+                        {connectionTest?.success && (
+                            <div className="flex items-center gap-2 text-green-600">
+                                <CheckCircle2 className="w-5 h-5" />
+                                <span>Connected to: <strong>{connectionTest.account?.name}</strong></span>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -164,7 +196,7 @@ export default function SmartcatTeamSync() {
                         Your Smartcat Team
                     </CardTitle>
                     <CardDescription>
-                        View your Smartcat team members and sync them with your freelancer database
+                        Smartcat identifies linguists by User ID, not name/email. You need to manually link them to your freelancers.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -188,7 +220,7 @@ export default function SmartcatTeamSync() {
                                 ) : (
                                     <ArrowRight className="w-4 h-4 mr-2" />
                                 )}
-                                Add {onlyInSmartcat.length} to Database
+                                Create Placeholders ({onlyInSmartcat.length})
                             </Button>
                         )}
                         {smartcatTeam.length > 0 && (
@@ -198,6 +230,12 @@ export default function SmartcatTeamSync() {
                             </Button>
                         )}
                     </div>
+                    
+                    {teamData?.note && (
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p className="text-sm text-amber-700">{teamData.note}</p>
+                        </div>
+                    )}
                     
                     {teamError && (
                         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
