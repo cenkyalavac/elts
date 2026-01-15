@@ -84,9 +84,9 @@ export default function OpenPositionsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Open Positions</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Open Positions</h1>
                         <p className="text-gray-600 mt-1">Manage your open freelancer positions</p>
                     </div>
                     <Button
@@ -118,15 +118,15 @@ export default function OpenPositionsPage() {
                     {positions.map(position => (
                         <Card key={position.id} className={position.is_active ? '' : 'opacity-60'}>
                             <CardHeader>
-                                <div className="flex justify-between items-start">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-3">
-                                            <CardTitle>{position.title}</CardTitle>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <CardTitle className="text-lg">{position.title}</CardTitle>
                                             {!position.is_active && (
                                                 <Badge variant="secondary">Inactive</Badge>
                                             )}
                                             {position.priority === 'high' && (
-                                                <Badge variant="destructive">High Priority</Badge>
+                                                <Badge variant="destructive">High</Badge>
                                             )}
                                             {position.linkedin_post_id && (
                                                 <Badge className="bg-[#0A66C2] gap-1">
@@ -136,7 +136,7 @@ export default function OpenPositionsPage() {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-1">
                                         <Button
                                             size="sm"
                                             variant="outline"

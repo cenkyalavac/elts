@@ -99,11 +99,11 @@ export default function MessagesPage() {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <MessageSquare className="w-8 h-8 text-blue-600" />
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                         Messages
                     </h1>
-                    <p className="text-gray-600 mt-1">Direct communication with team members and freelancers</p>
+                    <p className="text-gray-600 mt-1 text-sm sm:text-base">Direct communication with team members and freelancers</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
