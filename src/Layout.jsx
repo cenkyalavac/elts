@@ -5,9 +5,17 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "./utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
-    LayoutGrid, Users, Briefcase, FileText, 
-    UserCircle, LogOut, Settings, Shield, Menu, X, Upload, MessageSquare, Calendar as CalendarIcon, Star
+    Users, Briefcase, FileText, 
+    UserCircle, LogOut, Settings, Menu, X, MessageSquare, Star,
+    ChevronDown, Mail, Shield, Award, Bell, User
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -19,16 +27,13 @@ export default function Layout({ children, currentPageName }) {
             try {
                 const currentUser = await base44.auth.me();
                 
-                // Check and apply any pending role assignments
                 if (currentUser) {
                     try {
                         const roleResult = await base44.functions.invoke('applyPendingRole', {});
                         if (roleResult.data?.applied) {
-                            // Refetch user to get updated role
                             return await base44.auth.me();
                         }
                     } catch (e) {
-                        // Silent fail - role check is optional
                         console.log('Role check skipped:', e.message);
                     }
                 }
@@ -40,7 +45,6 @@ export default function Layout({ children, currentPageName }) {
         },
     });
 
-    // Fetch unread message count (must be before any conditional returns)
     const { data: unreadCount = 0 } = useQuery({
         queryKey: ['unreadMessages', user?.email],
         queryFn: async () => {
@@ -53,8 +57,8 @@ export default function Layout({ children, currentPageName }) {
             return userConvs.length;
         },
         enabled: !!user,
-        staleTime: 120000, // 2 minutes
-        refetchInterval: false, // Disable automatic refetch
+        staleTime: 120000,
+        refetchInterval: false,
         refetchOnMount: false,
         refetchOnWindowFocus: false,
     });
@@ -67,51 +71,58 @@ export default function Layout({ children, currentPageName }) {
         base44.auth.logout(createPageUrl('Home'));
     };
 
-    // Public pages that don't need authentication
     const publicPages = ['Home', 'Apply'];
     const isPublicPage = publicPages.includes(currentPageName);
 
-    // If not a public page and no user, don't show layout
     if (!isPublicPage && !user) {
         return <>{children}</>;
     }
 
-    const navItems = isApplicant ? [
-            { name: 'MyApplication', label: 'My Application', icon: FileText },
-            { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-        ] : [
-            { name: 'Dashboard', label: 'Dashboard', icon: LayoutGrid },
-            { name: 'Freelancers', label: 'Freelancers', icon: Users },
-            { name: 'Jobs', label: 'Jobs', icon: Briefcase },
-            { name: 'Inbox', label: 'Inbox', icon: MessageSquare },
-            { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-        ];
+    // Applicant navigation
+    const applicantNavItems = [
+        { name: 'MyApplication', label: 'Başvurum', icon: FileText },
+        { name: 'Messages', label: 'Mesajlar', icon: MessageSquare, badge: unreadCount },
+    ];
 
-    const adminItems = isAdmin ? [
-            { name: 'QualityManagement', label: 'Quality', icon: Star },
-            { name: 'SmartcatPayments', label: 'Smartcat', icon: Briefcase },
-            { name: 'DocumentCompliance', label: 'Document Compliance', icon: FileText },
-            { name: 'Settings', label: 'Settings', icon: Settings },
-        ] : [];
+    // Admin/PM navigation - main items
+    const mainNavItems = [
+        { name: 'Freelancers', label: 'Freelancerlar', icon: Users },
+        { name: 'Jobs', label: 'İşler', icon: Briefcase },
+        { name: 'QualityManagement', label: 'Quality', icon: Star },
+        { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
+        { name: 'Messages', label: 'Mesajlar', icon: MessageSquare, badge: unreadCount },
+    ];
 
-    // Don't show navigation on public pages
+    // Settings dropdown items (admin only)
+    const settingsItems = isAdmin ? [
+        { name: 'Inbox', label: 'Gmail Inbox', icon: Mail },
+        { name: 'QuizManagement', label: 'Quiz Yönetimi', icon: Award },
+        { name: 'SmartcatPayments', label: 'Smartcat Ödemeleri', icon: Briefcase },
+        { name: 'UserManagement', label: 'Kullanıcı Yönetimi', icon: Shield },
+        { name: 'Settings', label: 'Ayarlar', icon: Settings },
+    ] : [];
+
     if (isPublicPage) {
         return <>{children}</>;
     }
 
+    const navItems = isApplicant ? applicantNavItems : mainNavItems;
+
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Navigation */}
             <nav className="bg-gradient-to-r from-purple-900 via-purple-800 to-pink-700 text-white shadow-lg sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-8">
-                            <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Freelancers')} className="flex items-center gap-2">
+                            {/* Logo - links to Dashboard */}
+                            <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Dashboard')} className="flex items-center gap-2">
                                 <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-lg border border-white/30">
                                     et
                                 </div>
                                 <span className="text-xl font-bold hidden sm:inline tracking-wide">el turco</span>
                             </Link>
+                            
+                            {/* Main navigation */}
                             <div className="hidden md:flex items-center gap-1">
                                 {navItems.map(item => (
                                     <Link key={item.name} to={createPageUrl(item.name)}>
@@ -129,19 +140,6 @@ export default function Layout({ children, currentPageName }) {
                                         </Button>
                                     </Link>
                                 ))}
-                                {adminItems.map(item => (
-                                    <Link key={item.name} to={createPageUrl(item.name)}>
-                                        <Button
-                                            variant="ghost"
-                                            className={`gap-2 text-white hover:bg-white/10 ${
-                                                currentPageName === item.name ? 'bg-white/20' : ''
-                                            }`}
-                                        >
-                                            <item.icon className="w-4 h-4" />
-                                            {item.label}
-                                        </Button>
-                                    </Link>
-                                ))}
                             </div>
                         </div>
 
@@ -149,22 +147,58 @@ export default function Layout({ children, currentPageName }) {
                             {user && (
                                 <>
                                     <div className="hidden md:flex items-center gap-3">
-                                        <div className="text-right">
-                                            <div className="text-sm font-medium text-white">{user.full_name || user.email}</div>
-                                            <div className="text-xs text-purple-200">
-                                                {user.role === 'admin' ? 'Administrator' : 
-                                                 user.role === 'project_manager' ? 'Project Manager' : 
-                                                 'Applicant'}
-                                            </div>
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={handleLogout}>
-                                            <LogOut className="w-4 h-4" />
-                                        </Button>
+                                        {/* User dropdown with settings */}
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="gap-2 text-white hover:bg-white/10">
+                                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                                        <User className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="text-left hidden lg:block">
+                                                        <div className="text-sm font-medium">{user.full_name || user.email?.split('@')[0]}</div>
+                                                        <div className="text-xs text-purple-200">
+                                                            {user.role === 'admin' ? 'Yönetici' : 
+                                                             user.role === 'project_manager' ? 'Proje Yöneticisi' : 
+                                                             'Başvuran'}
+                                                        </div>
+                                                    </div>
+                                                    <ChevronDown className="w-4 h-4 text-purple-200" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-56">
+                                                <div className="px-2 py-2 border-b">
+                                                    <p className="text-sm font-medium">{user.full_name || user.email}</p>
+                                                    <p className="text-xs text-gray-500">{user.email}</p>
+                                                </div>
+                                                
+                                                {settingsItems.length > 0 && (
+                                                    <>
+                                                        <DropdownMenuSeparator />
+                                                        {settingsItems.map(item => (
+                                                            <DropdownMenuItem key={item.name} asChild>
+                                                                <Link to={createPageUrl(item.name)} className="flex items-center gap-2 cursor-pointer">
+                                                                    <item.icon className="w-4 h-4" />
+                                                                    {item.label}
+                                                                </Link>
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </>
+                                                )}
+                                                
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                                                    <LogOut className="w-4 h-4 mr-2" />
+                                                    Çıkış Yap
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
+                                    
+                                    {/* Mobile menu button */}
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="md:hidden"
+                                        className="md:hidden text-white"
                                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                     >
                                         {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -195,26 +229,36 @@ export default function Layout({ children, currentPageName }) {
                                     </Button>
                                 </Link>
                             ))}
-                            {adminItems.map(item => (
-                                <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`w-full justify-start gap-3 text-white hover:bg-white/10 ${
-                                            currentPageName === item.name ? 'bg-white/20' : ''
-                                        }`}
-                                    >
-                                        <item.icon className="w-5 h-5" />
-                                        {item.label}
-                                    </Button>
-                                </Link>
-                            ))}
+                            
+                            {/* Settings items in mobile */}
+                            {settingsItems.length > 0 && (
+                                <>
+                                    <div className="border-t border-white/10 pt-3 mt-3">
+                                        <p className="text-xs text-purple-300 px-3 mb-2">Yönetim</p>
+                                        {settingsItems.map(item => (
+                                            <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
+                                                <Button
+                                                    variant="ghost"
+                                                    className={`w-full justify-start gap-3 text-white hover:bg-white/10 ${
+                                                        currentPageName === item.name ? 'bg-white/20' : ''
+                                                    }`}
+                                                >
+                                                    <item.icon className="w-5 h-5" />
+                                                    {item.label}
+                                                </Button>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                            
                             <div className="border-t border-white/10 pt-3 mt-3">
                                 <div className="px-3 py-2">
                                     <div className="text-sm font-medium text-white">{user.full_name || user.email}</div>
                                     <div className="text-xs text-purple-200">
-                                        {user.role === 'admin' ? 'Administrator' : 
-                                         user.role === 'project_manager' ? 'Project Manager' : 
-                                         'Applicant'}
+                                        {user.role === 'admin' ? 'Yönetici' : 
+                                         user.role === 'project_manager' ? 'Proje Yöneticisi' : 
+                                         'Başvuran'}
                                     </div>
                                 </div>
                                 <Button
@@ -226,7 +270,7 @@ export default function Layout({ children, currentPageName }) {
                                     }}
                                 >
                                     <LogOut className="w-5 h-5" />
-                                    Logout
+                                    Çıkış Yap
                                 </Button>
                             </div>
                         </div>
@@ -234,7 +278,6 @@ export default function Layout({ children, currentPageName }) {
                 )}
             </nav>
 
-            {/* Page Content */}
             <main>{children}</main>
         </div>
     );
