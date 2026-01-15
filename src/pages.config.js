@@ -1,4 +1,5 @@
 import Analytics from './pages/Analytics';
+import Announcements from './pages/Announcements';
 import Apply from './pages/Apply';
 import Dashboard from './pages/Dashboard';
 import DocumentCompliance from './pages/DocumentCompliance';
@@ -6,6 +7,7 @@ import FreelancerDetail from './pages/FreelancerDetail';
 import FreelancerOnboarding from './pages/FreelancerOnboarding';
 import FreelancerPreview from './pages/FreelancerPreview';
 import Freelancers from './pages/Freelancers';
+import GettingStarted from './pages/GettingStarted';
 import GmailCallback from './pages/GmailCallback';
 import Home from './pages/Home';
 import ImportFreelancers from './pages/ImportFreelancers';
@@ -25,18 +27,17 @@ import QuizManagement from './pages/QuizManagement';
 import Settings from './pages/Settings';
 import SmartcatIntegration from './pages/SmartcatIntegration';
 import SmartcatPayments from './pages/SmartcatPayments';
+import Support from './pages/Support';
+import SupportTickets from './pages/SupportTickets';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import Announcements from './pages/Announcements';
-import SupportTickets from './pages/SupportTickets';
-import Support from './pages/Support';
-import GettingStarted from './pages/GettingStarted';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Analytics": Analytics,
+    "Announcements": Announcements,
     "Apply": Apply,
     "Dashboard": Dashboard,
     "DocumentCompliance": DocumentCompliance,
@@ -44,6 +45,7 @@ export const PAGES = {
     "FreelancerOnboarding": FreelancerOnboarding,
     "FreelancerPreview": FreelancerPreview,
     "Freelancers": Freelancers,
+    "GettingStarted": GettingStarted,
     "GmailCallback": GmailCallback,
     "Home": Home,
     "ImportFreelancers": ImportFreelancers,
@@ -63,13 +65,11 @@ export const PAGES = {
     "Settings": Settings,
     "SmartcatIntegration": SmartcatIntegration,
     "SmartcatPayments": SmartcatPayments,
+    "Support": Support,
+    "SupportTickets": SupportTickets,
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "Announcements": Announcements,
-    "SupportTickets": SupportTickets,
-    "Support": Support,
-    "GettingStarted": GettingStarted,
 }
 
 export const pagesConfig = {
