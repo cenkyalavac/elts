@@ -88,6 +88,7 @@ export default function Layout({ children, currentPageName }) {
         ];
 
     const adminItems = isAdmin ? [
+            { name: 'SmartcatPayments', label: 'Smartcat', icon: Briefcase },
             { name: 'DocumentCompliance', label: 'Document Compliance', icon: FileText },
             { name: 'Settings', label: 'Settings', icon: Settings },
         ] : [];
