@@ -207,13 +207,7 @@ export default function SmartcatPaymentsPage() {
                     </TabsContent>
                 </Tabs>
 
-                {/* Individual Payment Dialog */}
-                <SmartcatPaymentDialog
-                    open={showPaymentDialog}
-                    onOpenChange={setShowPaymentDialog}
-                    smartcatUserId={selectedLinguist?.id}
-                    freelancerName={selectedLinguist?.name}
-                />
+
             </div>
         </div>
     );
