@@ -146,16 +146,16 @@ export default function MyApplicationPage() {
                 </div>
 
                 <Tabs defaultValue="dashboard" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-9 h-auto gap-1">
-                        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="profile">Profile</TabsTrigger>
-                        <TabsTrigger value="preferences">Preferences</TabsTrigger>
-                        <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-                        <TabsTrigger value="payment">Payment</TabsTrigger>
-                        <TabsTrigger value="availability">Availability</TabsTrigger>
-                        <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-                        <TabsTrigger value="jobs">Jobs</TabsTrigger>
+                    <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full">
+                        <TabsTrigger value="dashboard" className="text-xs sm:text-sm">Dashboard</TabsTrigger>
+                        <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+                        <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
+                        <TabsTrigger value="preferences" className="text-xs sm:text-sm">Prefs</TabsTrigger>
+                        <TabsTrigger value="portfolio" className="text-xs sm:text-sm">Portfolio</TabsTrigger>
+                        <TabsTrigger value="payment" className="text-xs sm:text-sm">Payment</TabsTrigger>
+                        <TabsTrigger value="availability" className="text-xs sm:text-sm">Availability</TabsTrigger>
+                        <TabsTrigger value="quizzes" className="text-xs sm:text-sm">Quizzes</TabsTrigger>
+                        <TabsTrigger value="jobs" className="text-xs sm:text-sm">Jobs</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="dashboard" className="space-y-6">

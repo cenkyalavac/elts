@@ -180,27 +180,27 @@ export default function QualityManagementPage() {
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold">Quality Management</h1>
                     <p className="text-gray-500">LQA and QS reports</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <Link to={createPageUrl('QuizManagement')}>
-                        <Button variant="outline">
-                            <Award className="w-4 h-4 mr-2" />
-                            Quizzes
+                        <Button variant="outline" size="sm">
+                            <Award className="w-4 h-4" />
+                            <span className="hidden sm:inline ml-2">Quizzes</span>
                         </Button>
                     </Link>
                     <Link to={createPageUrl('PerformanceAnalytics')}>
-                        <Button variant="outline">
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            Analytics
+                        <Button variant="outline" size="sm">
+                            <BarChart3 className="w-4 h-4" />
+                            <span className="hidden sm:inline ml-2">Analytics</span>
                         </Button>
                     </Link>
-                    <Button variant="outline" onClick={() => setShowImportDialog(true)}>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Import
+                    <Button variant="outline" size="sm" onClick={() => setShowImportDialog(true)}>
+                        <Upload className="w-4 h-4" />
+                        <span className="hidden sm:inline ml-2">Import</span>
                     </Button>
                     <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                         <DialogTrigger asChild>
@@ -292,10 +292,10 @@ export default function QualityManagementPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4 grid w-full md:w-auto md:inline-grid md:grid-cols-3">
-                    <TabsTrigger value="reports">Quality Reports</TabsTrigger>
-                    <TabsTrigger value="scores">Freelancer Scores</TabsTrigger>
-                    <TabsTrigger value="lqa-reviewers">LQA Reviewers</TabsTrigger>
+                <TabsList className="mb-4 flex flex-wrap gap-1 h-auto p-1 w-full md:w-auto">
+                    <TabsTrigger value="reports" className="flex-1 md:flex-none">Reports</TabsTrigger>
+                    <TabsTrigger value="scores" className="flex-1 md:flex-none">Scores</TabsTrigger>
+                    <TabsTrigger value="lqa-reviewers" className="flex-1 md:flex-none">LQA Reviewers</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="reports">
