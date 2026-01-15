@@ -50,16 +50,16 @@ export default function SmartcatPaymentManager() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Filter className="w-5 h-5" />
-                        Ödeme Filtresi
+                        Payment Filter
                     </CardTitle>
                     <CardDescription>
-                        Smartcat'teki tamamlanmış işleri getir ve ödemeleri hazırla
+                        Fetch completed jobs from Smartcat and prepare payments
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-wrap gap-4 items-end">
                         <div className="space-y-2">
-                            <Label>Başlangıç Tarihi</Label>
+                            <Label>Start Date</Label>
                             <Input
                                 type="date"
                                 value={dateFrom}
@@ -67,7 +67,7 @@ export default function SmartcatPaymentManager() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Bitiş Tarihi</Label>
+                            <Label>End Date</Label>
                             <Input
                                 type="date"
                                 value={dateTo}
@@ -80,7 +80,7 @@ export default function SmartcatPaymentManager() {
                             ) : (
                                 <RefreshCw className="w-4 h-4 mr-2" />
                             )}
-                            Ödemeleri Getir
+                            Fetch Payments
                         </Button>
                     </div>
                 </CardContent>
@@ -96,7 +96,7 @@ export default function SmartcatPaymentManager() {
                                     <DollarSign className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-green-600">Toplam Ödeme</p>
+                                    <p className="text-sm text-green-600">Total Payment</p>
                                     <p className="text-2xl font-bold text-green-700">
                                         ${totalAmount.toFixed(2)}
                                     </p>
@@ -111,7 +111,7 @@ export default function SmartcatPaymentManager() {
                                     <CheckCircle2 className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Freelancer Sayısı</p>
+                                    <p className="text-sm text-gray-600">Freelancer Count</p>
                                     <p className="text-2xl font-bold">{payments.length}</p>
                                 </div>
                             </div>
@@ -124,7 +124,7 @@ export default function SmartcatPaymentManager() {
                                     <Calendar className="w-6 h-6 text-purple-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Toplam İş</p>
+                                    <p className="text-sm text-gray-600">Total Jobs</p>
                                     <p className="text-2xl font-bold">
                                         {payments.reduce((sum, p) => sum + p.jobs.length, 0)}
                                     </p>
@@ -140,10 +140,10 @@ export default function SmartcatPaymentManager() {
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle>Ödeme Listesi</CardTitle>
+                            <CardTitle>Payment List</CardTitle>
                             <Button variant="outline" size="sm">
                                 <Download className="w-4 h-4 mr-2" />
-                                Excel İndir
+                                Export Excel
                             </Button>
                         </div>
                     </CardHeader>
@@ -152,9 +152,9 @@ export default function SmartcatPaymentManager() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Freelancer</TableHead>
-                                    <TableHead>E-posta</TableHead>
-                                    <TableHead className="text-center">İş Sayısı</TableHead>
-                                    <TableHead className="text-right">Toplam</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead className="text-center">Jobs</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
                                     <TableHead></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -197,14 +197,14 @@ export default function SmartcatPaymentManager() {
                                             <TableRow>
                                                 <TableCell colSpan={5} className="bg-gray-50 p-4">
                                                     <div className="space-y-2">
-                                                        <p className="text-sm font-medium text-gray-700 mb-3">İş Detayları:</p>
+                                                        <p className="text-sm font-medium text-gray-700 mb-3">Job Details:</p>
                                                         {payment.jobs.map((job, jobIdx) => (
                                                             <div key={jobIdx} className="flex items-center justify-between p-2 bg-white rounded border">
                                                                 <div>
-                                                                    <p className="font-medium text-sm">{job.project_name || 'Proje'}</p>
+                                                                    <p className="font-medium text-sm">{job.project_name || 'Project'}</p>
                                                                     <p className="text-xs text-gray-500">
                                                                         {job.source_language} → {job.target_language}
-                                                                        {job.word_count && ` • ${job.word_count} kelime`}
+                                                                        {job.word_count && ` • ${job.word_count} words`}
                                                                     </p>
                                                                 </div>
                                                                 <p className="font-semibold text-green-600">${job.amount?.toFixed(2)}</p>
@@ -226,8 +226,8 @@ export default function SmartcatPaymentManager() {
                 <Card>
                     <CardContent className="py-12 text-center">
                         <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600">Bekleyen ödeme bulunamadı</p>
-                        <p className="text-sm text-gray-500">Tarih aralığını değiştirip tekrar deneyin</p>
+                        <p className="text-gray-600">No pending payments found</p>
+                        <p className="text-sm text-gray-500">Try changing the date range</p>
                     </CardContent>
                 </Card>
             )}

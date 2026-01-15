@@ -6,7 +6,6 @@ import {
 } from "recharts";
 import { TrendingUp } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
-import { tr } from "date-fns/locale";
 
 export default function QualityTrendChart({ reports = [], settings }) {
     const chartData = useMemo(() => {
@@ -14,7 +13,7 @@ export default function QualityTrendChart({ reports = [], settings }) {
         for (let i = 5; i >= 0; i--) {
             const date = subMonths(new Date(), i);
             months.push({
-                month: format(date, 'MMM', { locale: tr }),
+                month: format(date, 'MMM'),
                 start: startOfMonth(date),
                 end: endOfMonth(date)
             });
@@ -65,7 +64,7 @@ export default function QualityTrendChart({ reports = [], settings }) {
             <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <TrendingUp className="w-5 h-5" />
-                    Kalite Trend Analizi (Son 6 Ay)
+                    Quality Trend Analysis (Last 6 Months)
                 </CardTitle>
             </CardHeader>
             <CardContent>

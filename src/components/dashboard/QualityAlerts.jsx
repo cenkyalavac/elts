@@ -22,7 +22,7 @@ export default function QualityAlerts({
             type: 'probation',
             severity: 'high',
             icon: TrendingDown,
-            title: `${f.full_name} probasyonda`,
+            title: `${f.full_name} on probation`,
             description: `Combined Score: ${f.combinedScore?.toFixed(1) || 'N/A'}`,
             link: createPageUrl(`FreelancerDetail?id=${f.id}`),
             date: f.updated_date
@@ -32,8 +32,8 @@ export default function QualityAlerts({
             type: 'disputed',
             severity: 'high',
             icon: FileWarning,
-            title: `İtiraz edilmiş rapor`,
-            description: `${r.freelancerName} - ${r.project_name || 'Proje'}`,
+            title: `Disputed report`,
+            description: `${r.freelancerName} - ${r.project_name || 'Project'}`,
             link: createPageUrl(`QualityReportDetail?id=${r.id}`),
             date: r.updated_date
         })),
@@ -42,7 +42,7 @@ export default function QualityAlerts({
             type: 'pending',
             severity: 'medium',
             icon: Clock,
-            title: `İnceleme bekliyor`,
+            title: `Review pending`,
             description: `${r.freelancerName} - ${r.report_type}`,
             link: createPageUrl(`QualityReportDetail?id=${r.id}`),
             date: r.created_date
@@ -52,7 +52,7 @@ export default function QualityAlerts({
             type: 'lowscore',
             severity: 'medium',
             icon: AlertCircle,
-            title: `Düşük kalite skoru`,
+            title: `Low quality score`,
             description: `${f.full_name}: ${f.combinedScore?.toFixed(1)}`,
             link: createPageUrl(`FreelancerDetail?id=${f.id}&tab=quality`),
             date: f.updated_date
@@ -71,14 +71,14 @@ export default function QualityAlerts({
                 <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <AlertTriangle className={`w-5 h-5 ${criticalCount > 0 ? 'text-red-500' : 'text-yellow-500'}`} />
-                        Kritik Uyarılar
+                        Critical Alerts
                         {criticalCount > 0 && (
                             <Badge className="bg-red-500">{criticalCount}</Badge>
                         )}
                     </div>
                     <Link to={createPageUrl('QualityManagement')}>
                         <Button variant="ghost" size="sm">
-                            Tümünü Gör <ArrowRight className="w-4 h-4 ml-1" />
+                            View All <ArrowRight className="w-4 h-4 ml-1" />
                         </Button>
                     </Link>
                 </CardTitle>
@@ -87,7 +87,7 @@ export default function QualityAlerts({
                 {alerts.length === 0 ? (
                     <div className="text-center py-6 text-gray-500">
                         <Shield className="w-10 h-10 mx-auto mb-2 text-green-500" />
-                        <p className="text-sm">Kritik uyarı yok</p>
+                        <p className="text-sm">No critical alerts</p>
                     </div>
                 ) : (
                     alerts.map((alert, i) => {

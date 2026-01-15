@@ -107,23 +107,23 @@ export default function SmartcatMarketplaceSearch() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Search className="w-5 h-5" />
-                        Marketplace Araması
+                        Marketplace Search
                     </CardTitle>
                     <CardDescription>
-                        Smartcat marketplace'te belirli kriterlere uyan çevirmenleri bulun ve ekibinize davet edin.
-                        Ekibinizdeki çevirmenlerle çalışmak daha düşük komisyon oranları sağlar.
+                        Find translators matching specific criteria on Smartcat marketplace and invite them to your team.
+                        Working with your team members means lower commission rates.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
                         <div className="space-y-2">
-                            <Label>Kaynak Dil</Label>
+                            <Label>Source Language</Label>
                             <Select 
                                 value={filters.source_language} 
                                 onValueChange={(v) => setFilters({...filters, source_language: v})}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Seçin" />
+                                    <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {LANGUAGES.map(lang => (
@@ -133,13 +133,13 @@ export default function SmartcatMarketplaceSearch() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>Hedef Dil</Label>
+                            <Label>Target Language</Label>
                             <Select 
                                 value={filters.target_language} 
                                 onValueChange={(v) => setFilters({...filters, target_language: v})}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Seçin" />
+                                    <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {LANGUAGES.map(lang => (
@@ -149,13 +149,13 @@ export default function SmartcatMarketplaceSearch() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>Uzmanlık Alanı</Label>
+                            <Label>Specialization</Label>
                             <Select 
                                 value={filters.specialization} 
                                 onValueChange={(v) => setFilters({...filters, specialization: v})}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Seçin" />
+                                    <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {SPECIALIZATIONS.map(spec => (
@@ -165,7 +165,7 @@ export default function SmartcatMarketplaceSearch() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>Min Ücret ($/kelime)</Label>
+                            <Label>Min Rate ($/word)</Label>
                             <Input
                                 type="number"
                                 step="0.01"
@@ -175,7 +175,7 @@ export default function SmartcatMarketplaceSearch() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Max Ücret ($/kelime)</Label>
+                            <Label>Max Rate ($/word)</Label>
                             <Input
                                 type="number"
                                 step="0.01"
@@ -191,7 +191,7 @@ export default function SmartcatMarketplaceSearch() {
                         ) : (
                             <Search className="w-4 h-4 mr-2" />
                         )}
-                        Ara
+                        Search
                     </Button>
                 </CardContent>
             </Card>
@@ -202,10 +202,10 @@ export default function SmartcatMarketplaceSearch() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>
-                                Arama Sonuçları ({searchResults.total || searchResults.freelancers?.length || 0})
+                                Search Results ({searchResults.total || searchResults.freelancers?.length || 0})
                             </CardTitle>
                             {searchResults.source === 'team' && (
-                                <Badge variant="outline">Ekipten</Badge>
+                                <Badge variant="outline">From Team</Badge>
                             )}
                         </div>
                     </CardHeader>
@@ -222,11 +222,11 @@ export default function SmartcatMarketplaceSearch() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>İsim</TableHead>
-                                        <TableHead>E-posta</TableHead>
-                                        <TableHead>Diller</TableHead>
-                                        <TableHead>Uzmanlık</TableHead>
-                                        <TableHead>Ücret</TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Languages</TableHead>
+                                        <TableHead>Specialization</TableHead>
+                                        <TableHead>Rate</TableHead>
                                         <TableHead>Rating</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
@@ -273,7 +273,7 @@ export default function SmartcatMarketplaceSearch() {
                                                     onClick={() => handleInvite(freelancer)}
                                                 >
                                                     <UserPlus className="w-4 h-4 mr-1" />
-                                                    Davet Et
+                                                    Invite
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
@@ -283,8 +283,8 @@ export default function SmartcatMarketplaceSearch() {
                         ) : (
                             <div className="text-center py-8 text-gray-500">
                                 <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p>Sonuç bulunamadı</p>
-                                <p className="text-sm">Filtreleri değiştirip tekrar deneyin</p>
+                                <p>No results found</p>
+                                <p className="text-sm">Try changing the filters</p>
                             </div>
                         )}
                     </CardContent>
@@ -295,7 +295,7 @@ export default function SmartcatMarketplaceSearch() {
             <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Ekibe Davet Et</DialogTitle>
+                        <DialogTitle>Invite to Team</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-lg">
@@ -305,24 +305,24 @@ export default function SmartcatMarketplaceSearch() {
                             <p className="text-sm text-gray-600">{selectedFreelancer?.email}</p>
                         </div>
                         <div className="space-y-2">
-                            <Label>Davet Mesajı (Opsiyonel)</Label>
+                            <Label>Invitation Message (Optional)</Label>
                             <Textarea
                                 value={inviteMessage}
                                 onChange={(e) => setInviteMessage(e.target.value)}
-                                placeholder="Kişiselleştirilmiş bir mesaj ekleyin..."
+                                placeholder="Add a personalized message..."
                                 rows={4}
                             />
                         </div>
                         <div className="p-4 bg-blue-50 rounded-lg">
                             <p className="text-sm text-blue-800">
-                                <strong>Not:</strong> Bu kişi hem Smartcat'e hem de Base44'e eklenecek ve 
-                                bir davet e-postası gönderilecektir.
+                                <strong>Note:</strong> This person will be added to both Smartcat and Base44, 
+                                and an invitation email will be sent.
                             </p>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
-                            İptal
+                            Cancel
                         </Button>
                         <Button onClick={confirmInvite} disabled={inviteMutation.isPending}>
                             {inviteMutation.isPending ? (
@@ -330,7 +330,7 @@ export default function SmartcatMarketplaceSearch() {
                             ) : (
                                 <Send className="w-4 h-4 mr-2" />
                             )}
-                            Davet Gönder
+                            Send Invitation
                         </Button>
                     </DialogFooter>
                 </DialogContent>

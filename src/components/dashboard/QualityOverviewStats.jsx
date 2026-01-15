@@ -8,14 +8,14 @@ import {
 export default function QualityOverviewStats({ stats }) {
     const statCards = [
         {
-            label: "Toplam Rapor",
+            label: "Total Reports",
             value: stats.totalReports,
             icon: BarChart3,
             color: "text-purple-600",
             bgColor: "bg-purple-50"
         },
         {
-            label: "Ort. Combined Score",
+            label: "Avg Combined Score",
             value: stats.avgCombinedScore?.toFixed(1) || '-',
             icon: TrendingUp,
             color: stats.avgCombinedScore >= 80 ? "text-green-600" : 
@@ -24,42 +24,42 @@ export default function QualityOverviewStats({ stats }) {
                      stats.avgCombinedScore >= 70 ? "bg-yellow-50" : "bg-red-50"
         },
         {
-            label: "Ort. LQA",
+            label: "Avg LQA",
             value: stats.avgLqa?.toFixed(1) || '-',
             icon: FileCheck,
             color: "text-blue-600",
             bgColor: "bg-blue-50"
         },
         {
-            label: "Ort. QS",
+            label: "Avg QS",
             value: stats.avgQs ? `${stats.avgQs.toFixed(1)}/5` : '-',
             icon: Star,
             color: "text-yellow-600",
             bgColor: "bg-yellow-50"
         },
         {
-            label: "Probasyonda",
+            label: "On Probation",
             value: stats.probationCount,
             icon: AlertTriangle,
             color: stats.probationCount > 0 ? "text-red-600" : "text-green-600",
             bgColor: stats.probationCount > 0 ? "bg-red-50" : "bg-green-50"
         },
         {
-            label: "Onaylı Çevirmen",
+            label: "Approved",
             value: stats.approvedFreelancers,
             icon: Users,
             color: "text-indigo-600",
             bgColor: "bg-indigo-50"
         },
         {
-            label: "Bekleyen İnceleme",
+            label: "Pending Review",
             value: stats.pendingReviews,
             icon: Clock,
             color: stats.pendingReviews > 5 ? "text-orange-600" : "text-gray-600",
             bgColor: stats.pendingReviews > 5 ? "bg-orange-50" : "bg-gray-50"
         },
         {
-            label: "İtiraz Edilen",
+            label: "Disputed",
             value: stats.disputedCount,
             icon: AlertTriangle,
             color: stats.disputedCount > 0 ? "text-red-600" : "text-green-600",

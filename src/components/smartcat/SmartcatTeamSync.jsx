@@ -73,10 +73,10 @@ export default function SmartcatTeamSync() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Users className="w-5 h-5" />
-                        Ekip Senkronizasyonu
+                        Team Synchronization
                     </CardTitle>
                     <CardDescription>
-                        Smartcat ekibiniz ile Base44 freelancer veritabanınızı karşılaştırın ve senkronize edin.
+                        Compare and synchronize your Smartcat team with Base44 freelancer database.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -87,7 +87,7 @@ export default function SmartcatTeamSync() {
                             ) : (
                                 <RefreshCw className="w-4 h-4 mr-2" />
                             )}
-                            Smartcat Ekibini Getir
+                            Fetch Smartcat Team
                         </Button>
                         <Button 
                             onClick={handleSync} 
@@ -99,7 +99,7 @@ export default function SmartcatTeamSync() {
                             ) : (
                                 <ArrowRight className="w-4 h-4 mr-2" />
                             )}
-                            Otomatik Senkronize Et
+                            Auto Sync
                         </Button>
                     </div>
                 </CardContent>
@@ -112,9 +112,9 @@ export default function SmartcatTeamSync() {
                         <div className="flex items-center gap-3">
                             <CheckCircle2 className="w-8 h-8 text-green-600" />
                             <div>
-                                <p className="font-medium text-green-800">Senkronizasyon Tamamlandı</p>
+                                <p className="font-medium text-green-800">Synchronization Complete</p>
                                 <p className="text-sm text-green-600">
-                                    {syncResult.created} yeni eklendi, {syncResult.updated} güncellendi
+                                    {syncResult.created} added, {syncResult.updated} updated
                                 </p>
                             </div>
                         </div>
@@ -131,11 +131,11 @@ export default function SmartcatTeamSync() {
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                                    Sadece Smartcat'te ({onlyInSmartcat.length})
+                                    Only in Smartcat ({onlyInSmartcat.length})
                                 </CardTitle>
                             </div>
                             <CardDescription>
-                                Bu kişiler Smartcat ekibinizde var ama Base44'te kayıtlı değil
+                                These people are in your Smartcat team but not registered in Base44
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -150,7 +150,7 @@ export default function SmartcatTeamSync() {
                                                 <p className="text-sm text-gray-600">{member.email}</p>
                                             </div>
                                             <Badge variant="outline" className="text-yellow-600">
-                                                Base44'te Yok
+                                                Not in Base44
                                             </Badge>
                                         </div>
                                     ))}
@@ -158,7 +158,7 @@ export default function SmartcatTeamSync() {
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
                                     <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                                    <p>Tüm Smartcat üyeleri Base44'te kayıtlı</p>
+                                    <p>All Smartcat members are in Base44</p>
                                 </div>
                             )}
                         </CardContent>
@@ -170,11 +170,11 @@ export default function SmartcatTeamSync() {
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <AlertTriangle className="w-5 h-5 text-orange-500" />
-                                    Sadece Base44'te ({onlyInBase44.length})
+                                    Only in Base44 ({onlyInBase44.length})
                                 </CardTitle>
                             </div>
                             <CardDescription>
-                                Bu onaylı freelancerlar Base44'te var ama Smartcat ekibinizde değil
+                                These approved freelancers are in Base44 but not in your Smartcat team
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -192,7 +192,7 @@ export default function SmartcatTeamSync() {
                                                 <p className="text-sm text-gray-600">{freelancer.email}</p>
                                             </div>
                                             <Badge variant="outline" className="text-orange-600">
-                                                Smartcat'te Yok
+                                                Not in Smartcat
                                             </Badge>
                                         </div>
                                     ))}
@@ -200,7 +200,7 @@ export default function SmartcatTeamSync() {
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
                                     <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                                    <p>Tüm onaylı freelancerlar Smartcat'te</p>
+                                    <p>All approved freelancers are in Smartcat</p>
                                 </div>
                             )}
                         </CardContent>
@@ -212,15 +212,15 @@ export default function SmartcatTeamSync() {
             {teamData?.team && teamData.team.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Smartcat Ekip Listesi ({teamData.total})</CardTitle>
+                        <CardTitle>Smartcat Team List ({teamData.total})</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>İsim</TableHead>
-                                    <TableHead>E-posta</TableHead>
-                                    <TableHead>Durum</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Status</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -236,11 +236,11 @@ export default function SmartcatTeamSync() {
                                                 {inBase44 ? (
                                                     <Badge className="bg-green-100 text-green-700">
                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                        Eşleşti
+                                                        Matched
                                                     </Badge>
                                                 ) : (
                                                     <Badge variant="outline" className="text-yellow-600">
-                                                        Base44'te Yok
+                                                        Not in Base44
                                                     </Badge>
                                                 )}
                                             </TableCell>
@@ -251,7 +251,7 @@ export default function SmartcatTeamSync() {
                         </Table>
                         {teamData.team.length > 20 && (
                             <p className="text-center text-sm text-gray-500 mt-4">
-                                +{teamData.team.length - 20} daha fazla üye
+                                +{teamData.team.length - 20} more members
                             </p>
                         )}
                     </CardContent>
