@@ -318,7 +318,7 @@ export default function BulkSmartcatPayment() {
                             <div className="text-sm text-gray-500">
                                 {matchedCount < parsedData.length && (
                                     <span className="text-yellow-600">
-                                        ⚠️ {parsedData.length - matchedCount} freelancers not found in Smartcat
+                                        ⚠️ {parsedData.length - matchedCount} freelancers not found in system
                                     </span>
                                 )}
                             </div>
@@ -335,7 +335,7 @@ export default function BulkSmartcatPayment() {
                                 ) : (
                                     <>
                                         <Send className="w-4 h-4 mr-2" />
-                                        Process {matchedCount} Payments
+                                        Process {matchedCount} Records
                                     </>
                                 )}
                             </Button>
