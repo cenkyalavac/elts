@@ -21,6 +21,7 @@ import QuizAttemptsView from "../components/quiz/QuizAttemptsView";
 import SendEmailDialog from "../components/freelancers/SendEmailDialog";
 import QuizAssignmentDialog from "../components/quiz/QuizAssignmentDialog";
 import SmartcatProfileSection from "../components/smartcat/SmartcatProfileSection";
+import FreelancerQualityTab from "../components/freelancers/FreelancerQualityTab";
 
 const statusConfig = {
     'New Application': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: User },
@@ -257,6 +258,7 @@ export default function FreelancerDetailPage() {
                     <Tabs defaultValue="overview" className="space-y-6">
                         <TabsList className="bg-white border">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
+                            <TabsTrigger value="quality">Quality</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="notes">Notes & Feedback</TabsTrigger>
                             <TabsTrigger value="emails">Email History</TabsTrigger>
@@ -514,6 +516,11 @@ export default function FreelancerDetailPage() {
                                     )}
                                 </div>
                             </div>
+                        </TabsContent>
+
+                        {/* Quality Tab */}
+                        <TabsContent value="quality">
+                            <FreelancerQualityTab freelancerId={freelancerId} />
                         </TabsContent>
 
                         {/* Documents Tab */}
