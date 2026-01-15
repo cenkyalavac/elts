@@ -147,8 +147,9 @@ export default function SettingsPage() {
                     </p>
                 </div>
 
-                <Tabs defaultValue="email" className="space-y-6">
-                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-7 gap-1">
+                <Tabs defaultValue="integrations" className="space-y-6">
+                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-8 gap-1">
+                        <TabsTrigger value="integrations">Integrations</TabsTrigger>
                         <TabsTrigger value="email">Email Templates</TabsTrigger>
                         <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                         <TabsTrigger value="quiz">Quizzes</TabsTrigger>
@@ -157,6 +158,24 @@ export default function SettingsPage() {
                         <TabsTrigger value="application">Application</TabsTrigger>
                         <TabsTrigger value="admin">Admin Tools</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="integrations">
+                        <div className="space-y-6">
+                            <GmailConnect />
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Google Calendar</CardTitle>
+                                    <CardDescription>
+                                        Google Calendar integration is available for freelancers to sync their availability.
+                                        They can connect it from their "My Availability" page.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Badge className="bg-green-100 text-green-800">Configured</Badge>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
 
                     <TabsContent value="email">
                         {/* Email Templates Section */}
@@ -361,10 +380,7 @@ export default function SettingsPage() {
                     </TabsContent>
 
                     <TabsContent value="admin">
-                        <div className="space-y-6">
-                            <GmailConnect />
-                            <AdminTools />
-                        </div>
+                        <AdminTools />
                     </TabsContent>
                 </Tabs>
             </div>
