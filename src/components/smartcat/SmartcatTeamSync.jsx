@@ -139,9 +139,17 @@ export default function SmartcatTeamSync() {
     });
 
     const exportTeamCSV = () => {
-        const rows = [['Name', 'Email', 'Role', 'In Database']];
+        const rows = [['Smartcat ID', 'Type', 'Languages', 'Assigned Words', 'Completed Words', 'Linked Freelancer', 'Projects']];
         smartcatTeam.forEach(m => {
-            rows.push([m.name, m.email || '', m.role || '', m.matched ? 'Yes' : 'No']);
+            rows.push([
+                m.smartcat_id, 
+                m.supplierType || '', 
+                m.languages?.join('; ') || '',
+                m.assignedWordsCount || 0,
+                m.completedWordsCount || 0,
+                m.freelancer_name || (m.matched ? 'Yes' : 'No'),
+                m.projectCount || 0
+            ]);
         });
         
         const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
