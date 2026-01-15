@@ -43,27 +43,43 @@ export default function FreelancersPage() {
     const [showBulkDialog, setShowBulkDialog] = useState(false);
     const [showSmartMatch, setShowSmartMatch] = useState(false);
     const [selectedFreelancer, setSelectedFreelancer] = useState(null);
-    const [filters, setFilters] = useState({
-        search: '',
-        status: 'all',
-        selectedStatuses: [],
-        selectedResourceTypes: [],
-        selectedLanguagePairs: [],
-        selectedSpecializations: [],
-        selectedServices: [],
-        selectedSoftware: [],
-        selectedSkills: [],
-        minExperience: '',
-        maxExperience: '',
-        availability: 'all',
-        maxRate: '',
-        ndaSigned: false,
-        tested: false,
-        certified: false,
-        minRating: '',
-        quizPassed: 'all',
-        minQuizScore: ''
-    });
+    // Read URL params for initial filter
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlStatus = urlParams.get('status');
+    
+    const getInitialFilters = () => {
+        const base = {
+            search: '',
+            status: 'all',
+            selectedStatuses: [],
+            selectedResourceTypes: [],
+            selectedLanguagePairs: [],
+            selectedSpecializations: [],
+            selectedServices: [],
+            selectedSoftware: [],
+            selectedSkills: [],
+            minExperience: '',
+            maxExperience: '',
+            availability: 'all',
+            maxRate: '',
+            ndaSigned: false,
+            tested: false,
+            certified: false,
+            minRating: '',
+            quizPassed: 'all',
+            minQuizScore: ''
+        };
+        
+        if (urlStatus === 'in_review') {
+            base.selectedStatuses = ['Form Sent', 'Price Negotiation', 'Test Sent'];
+        } else if (urlStatus) {
+            base.status = urlStatus;
+        }
+        
+        return base;
+    };
+    
+    const [filters, setFilters] = useState(getInitialFilters);
 
     const queryClient = useQueryClient();
 
@@ -465,23 +481,35 @@ export default function FreelancersPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white rounded-lg shadow p-4">
+                    <div 
+                        className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => setFilters({ ...getInitialFilters(), status: 'all', selectedStatuses: [] })}
+                    >
                         <div className="text-sm text-gray-600">Total Applications</div>
                         <div className="text-2xl font-bold text-gray-900">{freelancers.length}</div>
                     </div>
-                    <div className="bg-white rounded-lg shadow p-4">
+                    <div 
+                        className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => setFilters({ ...getInitialFilters(), status: 'New Application', selectedStatuses: [] })}
+                    >
                         <div className="text-sm text-gray-600">New Applications</div>
                         <div className="text-2xl font-bold text-blue-600">
                             {freelancers.filter(f => f.status === 'New Application').length}
                         </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow p-4">
+                    <div 
+                        className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => setFilters({ ...getInitialFilters(), status: 'all', selectedStatuses: ['Form Sent', 'Price Negotiation', 'Test Sent'] })}
+                    >
                         <div className="text-sm text-gray-600">In Review</div>
                         <div className="text-2xl font-bold text-yellow-600">
                             {freelancers.filter(f => ['Form Sent', 'Price Negotiation', 'Test Sent'].includes(f.status)).length}
                         </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow p-4">
+                    <div 
+                        className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => setFilters({ ...getInitialFilters(), status: 'Approved', selectedStatuses: [] })}
+                    >
                         <div className="text-sm text-gray-600">Approved</div>
                         <div className="text-2xl font-bold text-green-600">
                             {freelancers.filter(f => f.status === 'Approved').length}
