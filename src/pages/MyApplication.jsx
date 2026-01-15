@@ -146,7 +146,7 @@ export default function MyApplicationPage() {
                 </div>
 
                 <Tabs defaultValue="dashboard" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 h-auto">
+                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-9 h-auto gap-1">
                         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="profile">Profile</TabsTrigger>

@@ -122,12 +122,12 @@ export default function FreelancerCard({ freelancer, onQuickView, allQuizAttempt
                     </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                         {freelancer.experience_years && (
                             <div className="flex items-center gap-1">
                                 <Award className="w-4 h-4" />
-                                {freelancer.experience_years} years
+                                {freelancer.experience_years}y
                             </div>
                         )}
                         <FreelancerRatesUSD freelancer={freelancer} compact={true} />
@@ -137,16 +137,17 @@ export default function FreelancerCard({ freelancer, onQuickView, allQuizAttempt
                             </Badge>
                         )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-shrink-0">
                         {onQuickView && (
                             <Button variant="ghost" size="sm" onClick={() => onQuickView(freelancer)}>
                                 <Eye className="w-4 h-4" />
                             </Button>
                         )}
                         <Link to={createPageUrl(`FreelancerDetail?id=${encodeURIComponent(freelancer.id)}`)}>
-                            <Button variant="outline" size="sm">
-                                View Details
-                                <ExternalLink className="w-3 h-3 ml-2" />
+                            <Button variant="outline" size="sm" className="gap-1">
+                                <span className="hidden sm:inline">View Details</span>
+                                <span className="sm:hidden">View</span>
+                                <ExternalLink className="w-3 h-3" />
                             </Button>
                         </Link>
                     </div>

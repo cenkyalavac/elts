@@ -107,7 +107,7 @@ export default function DocumentCompliancePage() {
                 )}
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <Card className={`p-4 ${overallColor}`}>
                         <div className="flex items-center justify-between">
                             <div>
@@ -143,7 +143,7 @@ export default function DocumentCompliancePage() {
                 </div>
 
                 <Tabs defaultValue="overview" className="space-y-4">
-                    <TabsList>
+                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="documents">By Document</TabsTrigger>
                         <TabsTrigger value="freelancers">By Freelancer</TabsTrigger>

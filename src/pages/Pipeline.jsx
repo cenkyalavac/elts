@@ -227,7 +227,7 @@ export default function PipelinePage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <Card>
                         <CardContent className="pt-6">
                             <div className="text-2xl font-bold text-blue-600">

@@ -236,7 +236,7 @@ export default function PerformanceAnalyticsPage() {
             />
 
             <Tabs defaultValue="trends" className="mt-6">
-                <TabsList>
+                <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-3">
                     <TabsTrigger value="trends">Performance Trends</TabsTrigger>
                     <TabsTrigger value="errors">Error Analysis</TabsTrigger>
                     <TabsTrigger value="rankings">Rankings</TabsTrigger>

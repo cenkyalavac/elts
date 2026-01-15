@@ -19,8 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { 
     Search, Plus, Star, AlertTriangle, 
-    CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText
+    CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText, Share2
 } from "lucide-react";
+import ShareReportDialog from "@/components/quality/ShareReportDialog";
 import QualityReportForm from "@/components/quality/QualityReportForm";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
 import QualityFilters from "@/components/quality/QualityFilters";
@@ -32,6 +33,7 @@ export default function QualityManagementPage() {
     const [showCreateDialog, setShowCreateDialog] = useState(false);
     const [createReportType, setCreateReportType] = useState("LQA");
     const [showImportDialog, setShowImportDialog] = useState(false);
+    const [shareDialogReport, setShareDialogReport] = useState(null);
     const [filters, setFilters] = useState({
         freelancer_id: "",
         content_type: "",
@@ -278,7 +280,7 @@ export default function QualityManagementPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4">
+                <TabsList className="mb-4 grid w-full md:w-auto md:inline-grid md:grid-cols-4">
                     <TabsTrigger value="reports">Quality Reports</TabsTrigger>
                     <TabsTrigger value="scores">Freelancer Scores</TabsTrigger>
                     <TabsTrigger value="lqa-reviewers">LQA Reviewers</TabsTrigger>
@@ -365,11 +367,23 @@ export default function QualityManagementPage() {
                                                     {new Date(report.report_date || report.created_date).toLocaleDateString()}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Link to={createPageUrl(`QualityReportDetail?id=${report.id}`)}>
-                                                        <Button variant="ghost" size="sm">
-                                                            <Eye className="w-4 h-4" />
-                                                        </Button>
-                                                    </Link>
+                                                    <div className="flex gap-1">
+                                                        {(report.status === 'finalized' || report.status === 'translator_accepted') && (
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="sm"
+                                                                onClick={() => setShareDialogReport(report)}
+                                                                title="Share with freelancer"
+                                                            >
+                                                                <Share2 className="w-4 h-4" />
+                                                            </Button>
+                                                        )}
+                                                        <Link to={createPageUrl(`QualityReportDetail?id=${report.id}`)}>
+                                                            <Button variant="ghost" size="sm">
+                                                                <Eye className="w-4 h-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -547,6 +561,16 @@ export default function QualityManagementPage() {
                     />
                 </DialogContent>
             </Dialog>
+
+            {/* Share Report Dialog */}
+            {shareDialogReport && (
+                <ShareReportDialog
+                    open={!!shareDialogReport}
+                    onOpenChange={(open) => !open && setShareDialogReport(null)}
+                    report={shareDialogReport}
+                    freelancer={freelancers.find(f => f.id === shareDialogReport.freelancer_id)}
+                />
+            )}
         </div>
     );
 }

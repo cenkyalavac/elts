@@ -148,7 +148,7 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="email" className="space-y-6">
-                    <TabsList className="flex flex-wrap gap-2">
+                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-7 gap-1">
                         <TabsTrigger value="email">Email Templates</TabsTrigger>
                         <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                         <TabsTrigger value="quiz">Quizzes</TabsTrigger>

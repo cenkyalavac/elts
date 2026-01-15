@@ -165,8 +165,8 @@ export default function Layout({ children, currentPageName }) {
                                         <DropdownMenuContent align="start" className="w-48">
                                             <DropdownMenuItem asChild>
                                                 <Link to={createPageUrl('SmartcatIntegration')} className="flex items-center gap-2 cursor-pointer">
-                                                    <CreditCard className="w-4 h-4" />
-                                                    Smartcat Payments
+                                                    <DollarSign className="w-4 h-4" />
+                                                    Payment Dashboard
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem asChild>

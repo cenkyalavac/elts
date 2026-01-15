@@ -256,7 +256,7 @@ export default function FreelancerDetailPage() {
                     />
                 ) : (
                     <Tabs defaultValue="overview" className="space-y-6">
-                        <TabsList className="bg-white border">
+                        <TabsList className="bg-white border grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-7 gap-1">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
                             <TabsTrigger value="quality">Quality</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
