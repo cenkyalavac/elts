@@ -283,15 +283,19 @@ export default function SmartcatTeamSync() {
                     {smartcatTeam.length > 0 && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Team Members ({smartcatTeam.length})</CardTitle>
+                                <CardTitle>Smartcat Assignees ({smartcatTeam.length})</CardTitle>
+                                <CardDescription>
+                                    These are linguists found in your Smartcat projects. Link them to your freelancers by clicking "Link".
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Role</TableHead>
+                                            <TableHead>Smartcat User ID</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Languages</TableHead>
+                                            <TableHead>Words</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead></TableHead>
                                         </TableRow>
@@ -299,8 +303,8 @@ export default function SmartcatTeamSync() {
                                     <TableBody>
                                         {smartcatTeam.map((member, idx) => (
                                             <TableRow key={idx} className={!member.matched ? 'bg-yellow-50' : ''}>
-                                                <TableCell className="font-medium">
-                                                    {member.name || 'Unknown'}
+                                                <TableCell className="font-mono text-sm">
+                                                    {member.smartcat_id?.substring(0, 12)}...
                                                     {member._debug && (
                                                         <details className="text-xs text-gray-400 mt-1">
                                                             <summary>Debug</summary>
@@ -310,32 +314,45 @@ export default function SmartcatTeamSync() {
                                                         </details>
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="text-sm text-gray-600">
-                                                    {member.email || '-'}
-                                                </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline" className="text-xs">
-                                                        {member.role || 'Member'}
+                                                        {member.supplierType || 'Unknown'}
                                                     </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-sm">
+                                                    {member.languages?.slice(0, 3).join(', ')}
+                                                    {member.languages?.length > 3 && ` +${member.languages.length - 3}`}
+                                                </TableCell>
+                                                <TableCell className="text-sm">
+                                                    {member.completedWordsCount?.toLocaleString() || member.assignedWordsCount?.toLocaleString() || '-'}
                                                 </TableCell>
                                                 <TableCell>
                                                     {member.matched ? (
                                                         <Badge className="bg-green-100 text-green-700">
                                                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                            In Database
+                                                            {member.freelancer_name || 'Linked'}
                                                         </Badge>
                                                     ) : (
                                                         <Badge variant="outline" className="text-yellow-600">
-                                                            <AlertTriangle className="w-3 h-3 mr-1" />
-                                                            Not in DB
+                                                            <Unlink className="w-3 h-3 mr-1" />
+                                                            Not Linked
                                                         </Badge>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {member.matched && member.freelancer_id && (
+                                                    {member.matched && member.freelancer_id ? (
                                                         <Link to={createPageUrl(`FreelancerDetail?id=${member.freelancer_id}`)}>
                                                             <Button variant="ghost" size="sm">View</Button>
                                                         </Link>
+                                                    ) : (
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm"
+                                                            onClick={() => handleLinkFreelancer(member.smartcat_id)}
+                                                        >
+                                                            <Link2 className="w-3 h-3 mr-1" />
+                                                            Link
+                                                        </Button>
                                                     )}
                                                 </TableCell>
                                             </TableRow>
