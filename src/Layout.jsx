@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
     LayoutGrid, Users, Briefcase, FileText, 
-    UserCircle, LogOut, Settings, Shield, Menu, X, Upload, MessageSquare, Calendar as CalendarIcon
+    UserCircle, LogOut, Settings, Shield, Menu, X, Upload, MessageSquare, Calendar as CalendarIcon, Star
 } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -88,6 +88,7 @@ export default function Layout({ children, currentPageName }) {
         ];
 
     const adminItems = isAdmin ? [
+            { name: 'QualityManagement', label: 'Quality', icon: Star },
             { name: 'SmartcatPayments', label: 'Smartcat', icon: Briefcase },
             { name: 'DocumentCompliance', label: 'Document Compliance', icon: FileText },
             { name: 'Settings', label: 'Settings', icon: Settings },
