@@ -154,49 +154,19 @@ export default function Layout({ children, currentPageName }) {
                                     );
                                 })}
 
-                                {/* Payments Dropdown - Only for admin/PM */}
+                                {/* Payments - Only for admin/PM */}
                                 {!isApplicant && (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button 
-                                                variant="ghost" 
-                                                className={`gap-2 text-white hover:bg-white/10 ${
-                                                    currentPageName === 'SmartcatIntegration' ? 'bg-white/20' : ''
-                                                }`}
-                                            >
-                                                <DollarSign className="w-4 h-4" />
-                                                Payments
-                                                <ChevronDown className="w-3 h-3" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="start" className="w-48">
-                                            <DropdownMenuItem asChild>
-                                                <Link to={createPageUrl('SmartcatIntegration')} className="flex items-center gap-2 cursor-pointer">
-                                                    <DollarSign className="w-4 h-4" />
-                                                    Payment Dashboard
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem asChild>
-                                                <Link to={createPageUrl('SmartcatIntegration') + '?tab=tbms'} className="flex items-center gap-2 cursor-pointer">
-                                                    <Upload className="w-4 h-4" />
-                                                    TBMS Import
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem asChild>
-                                                <Link to={createPageUrl('SmartcatIntegration') + '?tab=marketplace'} className="flex items-center gap-2 cursor-pointer">
-                                                    <Users className="w-4 h-4" />
-                                                    Marketplace Search
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem asChild>
-                                                <Link to={createPageUrl('SmartcatIntegration') + '?tab=team'} className="flex items-center gap-2 cursor-pointer">
-                                                    <Users className="w-4 h-4" />
-                                                    Team Sync
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <Link to={createPageUrl('SmartcatIntegration')}>
+                                        <Button
+                                            variant="ghost"
+                                            className={`gap-2 text-white hover:bg-white/10 ${
+                                                currentPageName === 'SmartcatIntegration' ? 'bg-white/20' : ''
+                                            }`}
+                                        >
+                                            <DollarSign className="w-4 h-4" />
+                                            Payments
+                                        </Button>
+                                    </Link>
                                 )}
                             </div>
                         </div>
@@ -298,13 +268,7 @@ export default function Layout({ children, currentPageName }) {
                                         <Link to={createPageUrl('SmartcatIntegration')} onClick={() => setMobileMenuOpen(false)}>
                                             <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
                                                 <CreditCard className="w-5 h-5" />
-                                                Smartcat Payments
-                                            </Button>
-                                        </Link>
-                                        <Link to={createPageUrl('SmartcatIntegration') + '?tab=tbms'} onClick={() => setMobileMenuOpen(false)}>
-                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
-                                                <Upload className="w-5 h-5" />
-                                                TBMS Import
+                                                Invoices
                                             </Button>
                                         </Link>
                                     </div>
