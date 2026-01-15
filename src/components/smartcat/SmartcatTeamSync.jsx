@@ -97,6 +97,10 @@ export default function SmartcatTeamSync() {
         }
     });
 
+    const handleTestConnection = () => {
+        testConnection();
+    };
+
     const handleFetchTeam = () => {
         refetchTeam();
     };
@@ -113,20 +117,25 @@ export default function SmartcatTeamSync() {
         syncMutation.mutate(membersToSync);
     };
 
-    const freelancerNames = new Set((freelancers || []).map(f => f.full_name?.toLowerCase()));
-    const freelancerEmails = new Set((freelancers || []).map(f => f.email?.toLowerCase()).filter(Boolean));
+    const handleLinkFreelancer = (smartcatId) => {
+        setSelectedSmartcatId(smartcatId);
+        setSelectedFreelancerId('');
+        setShowLinkDialog(true);
+    };
+
+    const handleConfirmLink = () => {
+        if (!selectedFreelancerId || !selectedSmartcatId) return;
+        linkMutation.mutate({ freelancer_id: selectedFreelancerId, smartcat_id: selectedSmartcatId });
+    };
     
     const smartcatTeam = teamData?.team || [];
     const onlyInSmartcat = smartcatTeam.filter(m => !m.matched);
     const matched = smartcatTeam.filter(m => m.matched);
     
-    const onlyInBase44 = (freelancers || []).filter(f => {
-        if (f.status !== 'Approved') return false;
-        const inSmartcat = smartcatTeam.some(m => 
-            m.name?.toLowerCase() === f.full_name?.toLowerCase() ||
-            m.email?.toLowerCase() === f.email?.toLowerCase()
-        );
-        return !inSmartcat;
+    // Freelancers without Smartcat link
+    const unlinkedFreelancers = (freelancers || []).filter(f => {
+        const hasSmartcatTag = f.tags?.some(t => t.startsWith('smartcat:'));
+        return f.status === 'Approved' && !hasSmartcatTag;
     });
 
     const exportTeamCSV = () => {
