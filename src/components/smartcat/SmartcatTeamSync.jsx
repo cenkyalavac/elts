@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { 
     RefreshCw, Users, CheckCircle2, AlertTriangle, Loader2,
-    ArrowRight, UserPlus
+    ArrowRight, UserPlus, Info
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
@@ -18,26 +18,32 @@ export default function SmartcatTeamSync() {
     const queryClient = useQueryClient();
     const [syncResult, setSyncResult] = useState(null);
 
-    const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useQuery({
-        queryKey: ['smartcatTeam'],
+    // Fetch Smartcat team from projects
+    const { data: teamData, isLoading: teamLoading, refetch: refetchTeam, error: teamError } = useQuery({
+        queryKey: ['smartcatTeamFromProjects'],
         queryFn: async () => {
-            const response = await base44.functions.invoke('smartcatMarketplace', {
-                action: 'get_my_team'
+            const response = await base44.functions.invoke('smartcatApi', {
+                action: 'get_team_from_projects',
+                params: { limit: 30 }
             });
             return response.data;
         },
-        enabled: false
+        enabled: false,
+        retry: false
     });
 
-    const { data: freelancers } = useQuery({
+    // Fetch Base44 freelancers
+    const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list(),
     });
 
+    // Sync mutation
     const syncMutation = useMutation({
-        mutationFn: async () => {
-            const response = await base44.functions.invoke('smartcatMarketplace', {
-                action: 'sync_team_to_base44'
+        mutationFn: async (members) => {
+            const response = await base44.functions.invoke('smartcatApi', {
+                action: 'sync_to_base44',
+                params: { members }
             });
             return response.data;
         },
@@ -52,18 +58,20 @@ export default function SmartcatTeamSync() {
     };
 
     const handleSync = () => {
-        syncMutation.mutate();
+        if (teamData?.team?.length) {
+            syncMutation.mutate(teamData.team);
+        }
     };
 
     // Compare teams
-    const freelancerEmails = new Set((freelancers || []).map(f => f.email?.toLowerCase()));
-    const smartcatEmails = new Set((teamData?.team || []).map(m => m.email?.toLowerCase()));
+    const freelancerNames = new Set((freelancers || []).map(f => f.full_name?.toLowerCase()));
+    const smartcatNames = new Set((teamData?.team || []).map(m => m.name?.toLowerCase()));
     
     const onlyInSmartcat = (teamData?.team || []).filter(m => 
-        m.email && !freelancerEmails.has(m.email.toLowerCase())
+        m.name && !freelancerNames.has(m.name.toLowerCase())
     );
     const onlyInBase44 = (freelancers || []).filter(f => 
-        f.email && f.status === 'Approved' && !smartcatEmails.has(f.email.toLowerCase())
+        f.full_name && f.status === 'Approved' && !smartcatNames.has(f.full_name.toLowerCase())
     );
 
     return (
@@ -76,32 +84,46 @@ export default function SmartcatTeamSync() {
                         Team Synchronization
                     </CardTitle>
                     <CardDescription>
-                        Compare and synchronize your Smartcat team with Base44 freelancer database.
+                        Scan your Smartcat projects to find all assigned translators and sync them with your database.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap">
                         <Button onClick={handleFetchTeam} disabled={teamLoading}>
                             {teamLoading ? (
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             ) : (
                                 <RefreshCw className="w-4 h-4 mr-2" />
                             )}
-                            Fetch Smartcat Team
+                            Scan Smartcat Projects
                         </Button>
-                        <Button 
-                            onClick={handleSync} 
-                            disabled={syncMutation.isPending}
-                            variant="outline"
-                        >
-                            {syncMutation.isPending ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <ArrowRight className="w-4 h-4 mr-2" />
-                            )}
-                            Auto Sync
-                        </Button>
+                        {teamData?.team?.length > 0 && (
+                            <Button 
+                                onClick={handleSync} 
+                                disabled={syncMutation.isPending || onlyInSmartcat.length === 0}
+                                variant="outline"
+                            >
+                                {syncMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <ArrowRight className="w-4 h-4 mr-2" />
+                                )}
+                                Sync {onlyInSmartcat.length} New to Database
+                            </Button>
+                        )}
                     </div>
+                    
+                    {teamError && (
+                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-red-800">Error scanning projects</p>
+                                    <p className="text-sm text-red-600">{teamError.message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -112,9 +134,9 @@ export default function SmartcatTeamSync() {
                         <div className="flex items-center gap-3">
                             <CheckCircle2 className="w-8 h-8 text-green-600" />
                             <div>
-                                <p className="font-medium text-green-800">Synchronization Complete</p>
+                                <p className="font-medium text-green-800">Sync Complete</p>
                                 <p className="text-sm text-green-600">
-                                    {syncResult.created} added, {syncResult.updated} updated
+                                    {syncResult.created} created, {syncResult.updated} updated
                                 </p>
                             </div>
                         </div>
@@ -122,43 +144,69 @@ export default function SmartcatTeamSync() {
                 </Card>
             )}
 
-            {/* Comparison */}
+            {/* Stats */}
             {teamData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <p className="text-sm text-gray-500">Projects Scanned</p>
+                            <p className="text-2xl font-bold">{teamData.projectsScanned || 0}</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="pt-6">
+                            <p className="text-sm text-gray-500">Unique Assignees</p>
+                            <p className="text-2xl font-bold">{teamData.total || 0}</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-yellow-50 border-yellow-200">
+                        <CardContent className="pt-6">
+                            <p className="text-sm text-yellow-600">Not in Database</p>
+                            <p className="text-2xl font-bold text-yellow-700">{onlyInSmartcat.length}</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-orange-50 border-orange-200">
+                        <CardContent className="pt-6">
+                            <p className="text-sm text-orange-600">Only in Database</p>
+                            <p className="text-2xl font-bold text-orange-700">{onlyInBase44.length}</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* Comparison Cards */}
+            {teamData && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Only in Smartcat */}
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                                    Only in Smartcat ({onlyInSmartcat.length})
-                                </CardTitle>
-                            </div>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                                In Smartcat, Not in Database ({onlyInSmartcat.length})
+                            </CardTitle>
                             <CardDescription>
-                                These people are in Smartcat projects but not in your database
+                                These people appear in your Smartcat projects but aren't in your freelancer database
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {onlyInSmartcat.length > 0 ? (
-                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                <div className="space-y-2 max-h-80 overflow-y-auto">
                                     {onlyInSmartcat.map((member, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                                             <div>
-                                                <p className="font-medium">
-                                                    {member.name || `${member.firstName} ${member.lastName}`}
+                                                <p className="font-medium">{member.name}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {member.projectCount} project(s) • {member.stageTypes?.join(', ')}
                                                 </p>
-                                                <p className="text-sm text-gray-600">{member.email}</p>
                                             </div>
-                                            <Badge variant="outline" className="text-yellow-600">
-                                                Missing
-                                            </Badge>
+                                            <Badge variant="outline" className="text-yellow-600">Missing</Badge>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
                                     <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                                    <p>All Smartcat members are in Base44</p>
+                                    <p>All Smartcat assignees are in your database</p>
                                 </div>
                             )}
                         </CardContent>
@@ -167,20 +215,18 @@ export default function SmartcatTeamSync() {
                     {/* Only in Base44 */}
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <AlertTriangle className="w-5 h-5 text-orange-500" />
-                                    Only in Base44 ({onlyInBase44.length})
-                                </CardTitle>
-                            </div>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5 text-orange-500" />
+                                Only in Database ({onlyInBase44.length})
+                            </CardTitle>
                             <CardDescription>
-                                These approved freelancers are in Base44 but not in your Smartcat team
+                                These approved freelancers don't appear in your recent Smartcat projects
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {onlyInBase44.length > 0 ? (
-                                <div className="space-y-2 max-h-96 overflow-y-auto">
-                                    {onlyInBase44.map((freelancer, idx) => (
+                                <div className="space-y-2 max-h-80 overflow-y-auto">
+                                    {onlyInBase44.slice(0, 20).map((freelancer, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                                             <div>
                                                 <Link 
@@ -189,18 +235,21 @@ export default function SmartcatTeamSync() {
                                                 >
                                                     {freelancer.full_name}
                                                 </Link>
-                                                <p className="text-sm text-gray-600">{freelancer.email}</p>
+                                                <p className="text-xs text-gray-500">{freelancer.email}</p>
                                             </div>
-                                            <Badge variant="outline" className="text-orange-600">
-                                                Not in Smartcat
-                                            </Badge>
+                                            <Badge variant="outline" className="text-orange-600">No Projects</Badge>
                                         </div>
                                     ))}
+                                    {onlyInBase44.length > 20 && (
+                                        <p className="text-center text-sm text-gray-500 pt-2">
+                                            +{onlyInBase44.length - 20} more
+                                        </p>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
                                     <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                                    <p>All approved freelancers are in Smartcat</p>
+                                    <p>All approved freelancers have Smartcat projects</p>
                                 </div>
                             )}
                         </CardContent>
@@ -212,35 +261,49 @@ export default function SmartcatTeamSync() {
             {teamData?.team && teamData.team.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Smartcat Team List ({teamData.total})</CardTitle>
+                        <CardTitle>All Smartcat Assignees ({teamData.total})</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
+                                    <TableHead>Projects</TableHead>
+                                    <TableHead>Work Types</TableHead>
+                                    <TableHead>Languages</TableHead>
                                     <TableHead>Status</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {teamData.team.slice(0, 20).map((member, idx) => {
-                                    const inBase44 = freelancerEmails.has(member.email?.toLowerCase());
+                                {teamData.team.slice(0, 30).map((member, idx) => {
+                                    const inDatabase = freelancerNames.has(member.name?.toLowerCase());
                                     return (
                                         <TableRow key={idx}>
-                                            <TableCell className="font-medium">
-                                                {member.name || `${member.firstName || ''} ${member.lastName || ''}`}
-                                            </TableCell>
-                                            <TableCell>{member.email}</TableCell>
+                                            <TableCell className="font-medium">{member.name}</TableCell>
                                             <TableCell>
-                                                {inBase44 ? (
+                                                <Badge variant="secondary">{member.projectCount}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {member.stageTypes?.slice(0, 2).map((type, i) => (
+                                                        <Badge key={i} variant="outline" className="text-xs">{type}</Badge>
+                                                    ))}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="text-sm text-gray-600">
+                                                    {member.languages?.slice(0, 3).join(', ')}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                {inDatabase ? (
                                                     <Badge className="bg-green-100 text-green-700">
                                                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                                                        Matched
+                                                        In Database
                                                     </Badge>
                                                 ) : (
                                                     <Badge variant="outline" className="text-yellow-600">
-                                                        Not in Base44
+                                                        Missing
                                                     </Badge>
                                                 )}
                                             </TableCell>
@@ -249,14 +312,31 @@ export default function SmartcatTeamSync() {
                                 })}
                             </TableBody>
                         </Table>
-                        {teamData.team.length > 20 && (
+                        {teamData.team.length > 30 && (
                             <p className="text-center text-sm text-gray-500 mt-4">
-                                +{teamData.team.length - 20} more members
+                                Showing 30 of {teamData.team.length} assignees
                             </p>
                         )}
                     </CardContent>
                 </Card>
             )}
+
+            {/* Help Card */}
+            <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                        <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <div>
+                            <p className="font-medium text-blue-800">How Team Sync Works</p>
+                            <p className="text-sm text-blue-600">
+                                This tool scans your recent Smartcat projects to find everyone who has been assigned work.
+                                It matches them against your freelancer database by name. Use the sync button to add any
+                                missing translators to your database automatically.
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

@@ -6,17 +6,17 @@ import { createPageUrl } from "./utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-    Users, FileText, UserCircle, LogOut, Settings, Menu, X, 
-    MessageSquare, Star, ChevronDown, Mail, Shield, Award, 
-    User, DollarSign, LayoutDashboard, CreditCard, Upload
-} from "lucide-react";
+          DropdownMenu,
+          DropdownMenuContent,
+          DropdownMenuItem,
+          DropdownMenuSeparator,
+          DropdownMenuTrigger,
+      } from "@/components/ui/dropdown-menu";
+      import { 
+          Users, FileText, LogOut, Settings, Menu, X, 
+          MessageSquare, Star, ChevronDown, Mail, Shield, Award, 
+          User, DollarSign, CreditCard, Upload, Briefcase
+      } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -85,12 +85,13 @@ export default function Layout({ children, currentPageName }) {
     ];
 
     // Admin/PM navigation - main items
-    const mainNavItems = [
-        { name: 'Freelancers', label: 'Freelancers', icon: Users },
-        { name: 'QualityManagement', label: 'Quality', icon: Star },
-        { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
-        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-    ];
+          const mainNavItems = [
+              { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
+              { name: 'Freelancers', label: 'Freelancers', icon: Users },
+              { name: 'QualityManagement', label: 'Quality', icon: Star },
+              { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
+              { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
+          ];
 
     // Payment dropdown items
     const paymentItems = [

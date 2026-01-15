@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,307 +17,263 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { 
-    Search, UserPlus, Send, Loader2, Globe, Star, DollarSign,
-    CheckCircle2, AlertCircle
+    Search, UserPlus, Send, Loader2, Globe, Star, Mail,
+    CheckCircle2, AlertCircle, Info, ExternalLink, Users
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../../utils";
 
 const LANGUAGES = [
     "English", "Turkish", "German", "French", "Spanish", "Italian", 
-    "Portuguese", "Russian", "Chinese", "Japanese", "Korean", "Arabic"
+    "Portuguese", "Russian", "Chinese", "Japanese", "Korean", "Arabic",
+    "Dutch", "Polish", "Swedish", "Norwegian", "Danish", "Finnish"
 ];
 
 const SPECIALIZATIONS = [
     "General", "Legal", "Medical", "Technical", "Marketing", 
-    "Financial", "IT/Software", "Gaming", "E-commerce"
+    "Financial", "IT/Software", "Gaming", "E-commerce", "Automotive",
+    "Life Sciences", "Engineering", "Energy"
 ];
 
 export default function SmartcatMarketplaceSearch() {
-    const [filters, setFilters] = useState({
-        source_language: '',
-        target_language: '',
-        specialization: '',
-        min_rate: '',
-        max_rate: ''
-    });
-    const [searchResults, setSearchResults] = useState(null);
-    const [selectedFreelancer, setSelectedFreelancer] = useState(null);
+    const queryClient = useQueryClient();
+    const [manualEmail, setManualEmail] = useState('');
+    const [manualName, setManualName] = useState('');
     const [inviteMessage, setInviteMessage] = useState('');
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+    const [selectedPerson, setSelectedPerson] = useState(null);
 
-    const searchMutation = useMutation({
-        mutationFn: async () => {
-            const response = await base44.functions.invoke('smartcatMarketplace', {
-                action: 'search_marketplace',
-                filters: {
-                    source_language: filters.source_language || undefined,
-                    target_language: filters.target_language || undefined,
-                    specialization: filters.specialization || undefined,
-                    min_rate: filters.min_rate ? parseFloat(filters.min_rate) : undefined,
-                    max_rate: filters.max_rate ? parseFloat(filters.max_rate) : undefined
-                }
-            });
-            return response.data;
-        },
-        onSuccess: (data) => {
-            setSearchResults(data);
-        }
+    // Get existing freelancers
+    const { data: freelancers = [] } = useQuery({
+        queryKey: ['freelancers'],
+        queryFn: () => base44.entities.Freelancer.list(),
     });
 
+    // Invite mutation
     const inviteMutation = useMutation({
-        mutationFn: async ({ email, name }) => {
-            const response = await base44.functions.invoke('smartcatMarketplace', {
-                action: 'invite_to_team',
-                filters: {
-                    email,
-                    name,
-                    message: inviteMessage
-                }
+        mutationFn: async ({ email, name, message }) => {
+            const response = await base44.functions.invoke('smartcatApi', {
+                action: 'invite_user',
+                params: { email, name, message }
             });
             return response.data;
         },
         onSuccess: () => {
             setInviteDialogOpen(false);
-            setSelectedFreelancer(null);
+            setSelectedPerson(null);
             setInviteMessage('');
+            setManualEmail('');
+            setManualName('');
+            queryClient.invalidateQueries({ queryKey: ['freelancers'] });
         }
     });
 
-    const handleSearch = () => {
-        searchMutation.mutate();
-    };
-
-    const handleInvite = (freelancer) => {
-        setSelectedFreelancer(freelancer);
+    const handleManualInvite = () => {
+        if (!manualEmail) return;
+        setSelectedPerson({ email: manualEmail, name: manualName || manualEmail.split('@')[0] });
         setInviteDialogOpen(true);
     };
 
     const confirmInvite = () => {
-        if (selectedFreelancer) {
+        if (selectedPerson) {
             inviteMutation.mutate({
-                email: selectedFreelancer.email,
-                name: selectedFreelancer.name || selectedFreelancer.firstName
+                email: selectedPerson.email,
+                name: selectedPerson.name,
+                message: inviteMessage
             });
         }
     };
 
+    // Check if email already exists
+    const emailExists = freelancers.some(f => 
+        f.email?.toLowerCase() === manualEmail.toLowerCase()
+    );
+
     return (
         <div className="space-y-6">
-            {/* Search Filters */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Search className="w-5 h-5" />
-                        Marketplace Search
-                    </CardTitle>
-                    <CardDescription>
-                        Find translators matching specific criteria on Smartcat marketplace and invite them to your team.
-                        Working with your team members means lower commission rates.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-                        <div className="space-y-2">
-                            <Label>Source Language</Label>
-                            <Select 
-                                value={filters.source_language} 
-                                onValueChange={(v) => setFilters({...filters, source_language: v})}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {LANGUAGES.map(lang => (
-                                        <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Target Language</Label>
-                            <Select 
-                                value={filters.target_language} 
-                                onValueChange={(v) => setFilters({...filters, target_language: v})}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {LANGUAGES.map(lang => (
-                                        <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Specialization</Label>
-                            <Select 
-                                value={filters.specialization} 
-                                onValueChange={(v) => setFilters({...filters, specialization: v})}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {SPECIALIZATIONS.map(spec => (
-                                        <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Min Rate ($/word)</Label>
-                            <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.03"
-                                value={filters.min_rate}
-                                onChange={(e) => setFilters({...filters, min_rate: e.target.value})}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Max Rate ($/word)</Label>
-                            <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.10"
-                                value={filters.max_rate}
-                                onChange={(e) => setFilters({...filters, max_rate: e.target.value})}
-                            />
+            {/* Info Banner */}
+            <Card className="bg-amber-50 border-amber-200">
+                <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                        <Info className="w-5 h-5 text-amber-600 mt-0.5" />
+                        <div>
+                            <p className="font-medium text-amber-800">About Smartcat Marketplace</p>
+                            <p className="text-sm text-amber-700">
+                                Smartcat's marketplace API is not publicly available. To find freelancers, 
+                                use the <a href="https://www.smartcat.com/marketplace/" target="_blank" rel="noopener noreferrer" className="underline">Smartcat Marketplace website</a> directly,
+                                then invite them using their email address below.
+                            </p>
                         </div>
                     </div>
-                    <Button onClick={handleSearch} disabled={searchMutation.isPending}>
-                        {searchMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                            <Search className="w-4 h-4 mr-2" />
-                        )}
-                        Search
-                    </Button>
                 </CardContent>
             </Card>
 
-            {/* Search Results */}
-            {searchResults && (
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>
-                                Search Results ({searchResults.total || searchResults.freelancers?.length || 0})
-                            </CardTitle>
-                            {searchResults.source === 'team' && (
-                                <Badge variant="outline">From Team</Badge>
+            {/* Manual Invite */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <UserPlus className="w-5 h-5" />
+                        Invite Freelancer
+                    </CardTitle>
+                    <CardDescription>
+                        Add a new freelancer to your team by entering their email address
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="space-y-2">
+                            <Label>Email Address *</Label>
+                            <Input
+                                type="email"
+                                placeholder="translator@example.com"
+                                value={manualEmail}
+                                onChange={(e) => setManualEmail(e.target.value)}
+                            />
+                            {emailExists && (
+                                <p className="text-xs text-yellow-600">This email already exists in your database</p>
                             )}
                         </div>
+                        <div className="space-y-2">
+                            <Label>Full Name</Label>
+                            <Input
+                                placeholder="John Doe"
+                                value={manualName}
+                                onChange={(e) => setManualName(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex items-end">
+                            <Button 
+                                onClick={handleManualInvite} 
+                                disabled={!manualEmail || emailExists}
+                                className="w-full"
+                            >
+                                <Mail className="w-4 h-4 mr-2" />
+                                Send Invitation
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <ExternalLink className="w-5 h-5" />
+                            Find on Smartcat
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {searchResults.error ? (
-                            <div className="text-center py-8">
-                                <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                                <p className="text-gray-600">{searchResults.error}</p>
-                                {searchResults.suggestion && (
-                                    <p className="text-sm text-gray-500 mt-2">{searchResults.suggestion}</p>
-                                )}
-                            </div>
-                        ) : searchResults.freelancers?.length > 0 ? (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Languages</TableHead>
-                                        <TableHead>Specialization</TableHead>
-                                        <TableHead>Rate</TableHead>
-                                        <TableHead>Rating</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {searchResults.freelancers.map((freelancer, idx) => (
-                                        <TableRow key={idx}>
-                                            <TableCell className="font-medium">
-                                                {freelancer.name || `${freelancer.firstName} ${freelancer.lastName}`}
-                                            </TableCell>
-                                            <TableCell>{freelancer.email}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-1">
-                                                    <Globe className="w-3 h-3 text-gray-400" />
-                                                    <span className="text-sm">
-                                                        {freelancer.sourceLanguages?.join(', ') || '-'}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">
-                                                    {freelancer.specialization || 'General'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {freelancer.rate || freelancer.pricePerWord ? (
-                                                    <span className="flex items-center gap-1 text-green-600">
-                                                        <DollarSign className="w-3 h-3" />
-                                                        {freelancer.rate || freelancer.pricePerWord}
-                                                    </span>
-                                                ) : '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {freelancer.rating ? (
-                                                    <span className="flex items-center gap-1">
-                                                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                                        {freelancer.rating}
-                                                    </span>
-                                                ) : '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button 
-                                                    size="sm" 
-                                                    onClick={() => handleInvite(freelancer)}
-                                                >
-                                                    <UserPlus className="w-4 h-4 mr-1" />
-                                                    Invite
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        ) : (
-                            <div className="text-center py-8 text-gray-500">
-                                <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p>No results found</p>
-                                <p className="text-sm">Try changing the filters</p>
-                            </div>
-                        )}
+                        <p className="text-sm text-gray-600 mb-4">
+                            Search for translators on Smartcat's marketplace, then come back here to invite them.
+                        </p>
+                        <Button variant="outline" asChild>
+                            <a href="https://www.smartcat.com/marketplace/" target="_blank" rel="noopener noreferrer">
+                                <Globe className="w-4 h-4 mr-2" />
+                                Open Smartcat Marketplace
+                            </a>
+                        </Button>
                     </CardContent>
                 </Card>
-            )}
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <Users className="w-5 h-5" />
+                            Recent Additions
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {freelancers
+                                .filter(f => f.tags?.includes('Invited') || f.tags?.includes('Smartcat Invite'))
+                                .slice(0, 5)
+                                .map(f => (
+                                    <div key={f.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                        <Link 
+                                            to={createPageUrl(`FreelancerDetail?id=${f.id}`)}
+                                            className="text-sm font-medium hover:text-blue-600"
+                                        >
+                                            {f.full_name}
+                                        </Link>
+                                        <Badge variant="outline" className="text-xs">
+                                            {f.status}
+                                        </Badge>
+                                    </div>
+                                ))
+                            }
+                            {freelancers.filter(f => f.tags?.includes('Invited')).length === 0 && (
+                                <p className="text-sm text-gray-500 text-center py-4">
+                                    No recent invitations
+                                </p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Workflow Tips */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Recommended Workflow</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                                <span className="text-blue-600 font-bold">1</span>
+                            </div>
+                            <p className="font-medium text-blue-800">Search Marketplace</p>
+                            <p className="text-sm text-blue-600">Find translators on Smartcat marketplace by language pair and specialization</p>
+                        </div>
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                                <span className="text-green-600 font-bold">2</span>
+                            </div>
+                            <p className="font-medium text-green-800">Invite Here</p>
+                            <p className="text-sm text-green-600">Enter their email above to add them to your database and send an invitation</p>
+                        </div>
+                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+                                <span className="text-purple-600 font-bold">3</span>
+                            </div>
+                            <p className="font-medium text-purple-800">Add to Smartcat Team</p>
+                            <p className="text-sm text-purple-600">Invite them to your Smartcat team from the Smartcat dashboard for lower rates</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Invite Dialog */}
             <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Invite to Team</DialogTitle>
+                        <DialogTitle>Send Invitation</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-lg">
-                            <p className="font-medium">
-                                {selectedFreelancer?.name || `${selectedFreelancer?.firstName} ${selectedFreelancer?.lastName}`}
-                            </p>
-                            <p className="text-sm text-gray-600">{selectedFreelancer?.email}</p>
+                            <p className="font-medium">{selectedPerson?.name}</p>
+                            <p className="text-sm text-gray-600">{selectedPerson?.email}</p>
                         </div>
                         <div className="space-y-2">
-                            <Label>Invitation Message (Optional)</Label>
+                            <Label>Personal Message (Optional)</Label>
                             <Textarea
                                 value={inviteMessage}
                                 onChange={(e) => setInviteMessage(e.target.value)}
-                                placeholder="Add a personalized message..."
+                                placeholder="Add a personalized message to your invitation..."
                                 rows={4}
                             />
                         </div>
                         <div className="p-4 bg-blue-50 rounded-lg">
                             <p className="text-sm text-blue-800">
-                                <strong>Note:</strong> This person will be added to both Smartcat and Base44, 
-                                and an invitation email will be sent.
+                                <strong>What happens:</strong>
                             </p>
+                            <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                                <li>• A freelancer record will be created in your database</li>
+                                <li>• An invitation email will be sent to this address</li>
+                                <li>• You should also invite them via Smartcat dashboard</li>
+                            </ul>
                         </div>
                     </div>
                     <DialogFooter>
@@ -335,6 +291,23 @@ export default function SmartcatMarketplaceSearch() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Success Message */}
+            {inviteMutation.isSuccess && (
+                <Card className="bg-green-50 border-green-200">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle2 className="w-6 h-6 text-green-600" />
+                            <div>
+                                <p className="font-medium text-green-800">Invitation Sent!</p>
+                                <p className="text-sm text-green-600">
+                                    The freelancer has been added to your database and an invitation email was sent.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }
