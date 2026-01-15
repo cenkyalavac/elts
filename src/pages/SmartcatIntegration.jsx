@@ -4,23 +4,18 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
-    DollarSign, Users, Search, Upload, AlertTriangle
+    DollarSign, FileText, AlertTriangle, Construction
 } from "lucide-react";
 
-import SmartcatPaymentManager from "../components/smartcat/SmartcatPaymentManager";
-import SmartcatMarketplaceSearch from "../components/smartcat/SmartcatMarketplaceSearch";
-import SmartcatTBMSImport from "../components/smartcat/SmartcatTBMSImport";
-import SmartcatTeamSync from "../components/smartcat/SmartcatTeamSync";
+import InvoiceImport from "../components/payments/InvoiceImport";
 
 export default function SmartcatIntegrationPage() {
-    // Get tab from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    const [activeTab, setActiveTab] = useState(tabParam || "payments");
+    const [activeTab, setActiveTab] = useState(tabParam || "invoices");
 
-    // Update tab when URL changes
     useEffect(() => {
-        if (tabParam && ['payments', 'tbms', 'marketplace', 'team'].includes(tabParam)) {
+        if (tabParam && ['invoices', 'payments'].includes(tabParam)) {
             setActiveTab(tabParam);
         }
     }, [tabParam]);
@@ -46,47 +41,39 @@ export default function SmartcatIntegrationPage() {
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Payments & Smartcat</h1>
-                <p className="text-gray-600">Manage payments, TBMS imports, and Smartcat team</p>
+                <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
+                <p className="text-gray-600">Manage invoices and payments</p>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-6 grid w-full md:w-auto md:inline-grid md:grid-cols-4 gap-1">
+                <TabsList className="mb-6">
+                    <TabsTrigger value="invoices" className="gap-2">
+                        <FileText className="w-4 h-4" />
+                        Invoices
+                    </TabsTrigger>
                     <TabsTrigger value="payments" className="gap-2">
                         <DollarSign className="w-4 h-4" />
-                        <span className="hidden sm:inline">Smartcat Payments</span>
-                        <span className="sm:hidden">Payments</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="tbms" className="gap-2">
-                        <Upload className="w-4 h-4" />
-                        <span className="hidden sm:inline">TBMS Import</span>
-                        <span className="sm:hidden">TBMS</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="marketplace" className="gap-2">
-                        <Search className="w-4 h-4" />
-                        Marketplace
-                    </TabsTrigger>
-                    <TabsTrigger value="team" className="gap-2">
-                        <Users className="w-4 h-4" />
-                        <span className="hidden sm:inline">Team Sync</span>
-                        <span className="sm:hidden">Team</span>
+                        Payments
                     </TabsTrigger>
                 </TabsList>
 
+                <TabsContent value="invoices">
+                    <InvoiceImport />
+                </TabsContent>
+
                 <TabsContent value="payments">
-                    <SmartcatPaymentManager />
-                </TabsContent>
-
-                <TabsContent value="tbms">
-                    <SmartcatTBMSImport />
-                </TabsContent>
-
-                <TabsContent value="marketplace">
-                    <SmartcatMarketplaceSearch />
-                </TabsContent>
-
-                <TabsContent value="team">
-                    <SmartcatTeamSync />
+                    <Card>
+                        <CardContent className="pt-12 pb-12">
+                            <div className="text-center">
+                                <Construction className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+                                <h2 className="text-xl font-bold text-gray-900 mb-2">Under Construction</h2>
+                                <p className="text-gray-600 max-w-md mx-auto">
+                                    The payment processing feature is currently being developed. 
+                                    You can use the Invoices tab to import and view your TBMS data.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
         </div>
