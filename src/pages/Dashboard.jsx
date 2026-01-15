@@ -417,7 +417,7 @@ export default function Dashboard() {
                                     <div className="flex flex-col items-start">
                                         <DollarSign className="w-5 h-5 mb-1 text-green-600" />
                                         <span className="font-medium">Payments</span>
-                                        <span className="text-xs text-gray-500">Smartcat & TBMS</span>
+                                        <span className="text-xs text-gray-500">Invoices & payments</span>
                                     </div>
                                 </Button>
                             </Link>

@@ -368,76 +368,78 @@ export default function FreelancersPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <Users className="w-8 h-8 text-blue-600" />
+                        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <Users className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
                             Freelancers
                         </h1>
-                        <p className="text-gray-600 mt-1">
+                        <p className="text-gray-600 mt-1 text-sm lg:text-base">
                             Manage applications, availability, and performance
                         </p>
                         <div className="mt-2">
                             <ExchangeRateWidget currencies={['EUR', 'GBP', 'TRY']} />
                         </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-wrap gap-2">
                         <div className="flex gap-1 border rounded-lg p-1 bg-white">
                             <Button 
                                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => setViewMode('list')}
                             >
-                                <List className="w-4 h-4 mr-2" />
-                                List
+                                <List className="w-4 h-4" />
+                                <span className="hidden sm:inline ml-2">List</span>
                             </Button>
                             <Button 
                                 variant={viewMode === 'board' ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => setViewMode('board')}
                             >
-                                <LayoutGrid className="w-4 h-4 mr-2" />
-                                Board
+                                <LayoutGrid className="w-4 h-4" />
+                                <span className="hidden sm:inline ml-2">Board</span>
                             </Button>
                             <Button 
                                 variant={viewMode === 'table' ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => setViewMode('table')}
                             >
-                                <Table className="w-4 h-4 mr-2" />
-                                Table
+                                <Table className="w-4 h-4" />
+                                <span className="hidden sm:inline ml-2">Table</span>
                             </Button>
                         </div>
                         <BulkQuizAssignment freelancers={filteredFreelancers} />
                         <Button
                             variant="outline"
+                            size="sm"
                             onClick={() => setShowSmartMatch(true)}
                             className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100"
                         >
-                            <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
-                            Smart Match
+                            <Sparkles className="w-4 h-4 text-purple-600" />
+                            <span className="hidden sm:inline ml-2">Smart Match</span>
                         </Button>
                         <Link to={createPageUrl('ImportFreelancers')}>
-                            <Button variant="outline">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Import
+                            <Button variant="outline" size="sm">
+                                <Plus className="w-4 h-4" />
+                                <span className="hidden sm:inline ml-2">Import</span>
                             </Button>
                         </Link>
                         <Button
+                            size="sm"
                             onClick={() => window.location.href = createPageUrl('FreelancerOnboarding')}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
-                            <Plus className="w-5 h-5 mr-2" />
-                            Add Freelancer
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden sm:inline ml-2">Add</span>
                         </Button>
                     </div>
                 </div>
 
                 <Tabs defaultValue="applications" className="space-y-6">
-                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-3">
-                        <TabsTrigger value="applications">Applications</TabsTrigger>
-                        <TabsTrigger value="availability">Team Availability</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                    <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full md:w-auto">
+                        <TabsTrigger value="applications" className="flex-1 md:flex-none">Applications</TabsTrigger>
+                        <TabsTrigger value="availability" className="flex-1 md:flex-none">Availability</TabsTrigger>
+                        <TabsTrigger value="analytics" className="flex-1 md:flex-none">Analytics</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="applications" className="space-y-6">

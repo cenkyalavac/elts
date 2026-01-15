@@ -256,14 +256,14 @@ export default function FreelancerDetailPage() {
                     />
                 ) : (
                     <Tabs defaultValue="overview" className="space-y-6">
-                        <TabsList className="bg-white border grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-7 gap-1">
-                            <TabsTrigger value="overview">Overview</TabsTrigger>
-                            <TabsTrigger value="quality">Quality</TabsTrigger>
-                            <TabsTrigger value="documents">Documents</TabsTrigger>
-                            <TabsTrigger value="notes">Notes & Feedback</TabsTrigger>
-                            <TabsTrigger value="emails">Email History</TabsTrigger>
-                            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-                            <TabsTrigger value="activity">Activity Log</TabsTrigger>
+                        <TabsList className="bg-white border flex flex-wrap gap-1 h-auto p-1">
+                            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+                            <TabsTrigger value="quality" className="text-xs sm:text-sm">Quality</TabsTrigger>
+                            <TabsTrigger value="documents" className="text-xs sm:text-sm">Documents</TabsTrigger>
+                            <TabsTrigger value="notes" className="text-xs sm:text-sm">Notes</TabsTrigger>
+                            <TabsTrigger value="emails" className="text-xs sm:text-sm">Emails</TabsTrigger>
+                            <TabsTrigger value="quizzes" className="text-xs sm:text-sm">Quizzes</TabsTrigger>
+                            <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
                         </TabsList>
 
                         {/* Overview Tab */}

@@ -511,19 +511,19 @@ export default function AnalyticsPage() {
                     <CardContent>
                         <div className="space-y-3">
                             {analytics.topPerformers.map((performer, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3">
                                     <div>
                                         <div className="font-medium">{performer.email.split('@')[0]}</div>
-                                        <div className="text-sm text-gray-600">{performer.email}</div>
+                                        <div className="text-sm text-gray-600 truncate max-w-[200px]">{performer.email}</div>
                                     </div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 justify-between sm:justify-end">
                                         <div className="text-center">
                                             <div className="text-lg font-bold text-blue-600">{performer.actions}</div>
-                                            <div className="text-xs text-gray-600">Total Actions</div>
+                                            <div className="text-xs text-gray-600">Actions</div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-lg font-bold text-green-600">{performer.stageChanges}</div>
-                                            <div className="text-xs text-gray-600">Stage Changes</div>
+                                            <div className="text-xs text-gray-600">Changes</div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-lg font-bold text-purple-600">{performer.notes}</div>
