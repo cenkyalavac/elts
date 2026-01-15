@@ -92,7 +92,14 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { action, ...params } = await req.json();
+        let body;
+        try {
+            body = await req.json();
+        } catch {
+            return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+
+        const { action, ...params } = body;
 
         switch (action) {
             case 'getAccount': {
@@ -100,49 +107,32 @@ Deno.serve(async (req) => {
                 return Response.json({ success: true, data: account });
             }
 
-            case 'getLinguists': {
-                const linguists = await getMyTeamLinguists();
-                return Response.json({ success: true, data: linguists });
-            }
-
-            case 'searchLinguist': {
-                const linguist = await searchLinguist(params.email);
-                return Response.json({ success: true, data: linguist });
-            }
-
-            case 'getLinguist': {
-                const linguist = await getLinguistById(params.linguistId);
-                return Response.json({ success: true, data: linguist });
-            }
-
-            case 'createPayable': {
-                // Only admin can create payables
-                if (user.role !== 'admin') {
-                    return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-                }
-                const result = await createPayable(params.payableData);
+            case 'getFreelancers': {
+                const result = await getFreelancers();
                 return Response.json({ success: true, data: result });
             }
 
-            case 'createBulkPayables': {
-                // Only admin can create bulk payables
-                if (user.role !== 'admin') {
-                    return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-                }
-                const results = await createBulkPayables(params.payables);
-                return Response.json({ success: true, data: results });
+            case 'getProjects': {
+                const projects = await getProjects(params.filters || {});
+                return Response.json({ success: true, data: projects });
             }
 
-            case 'getPayables': {
-                const payables = await getPayables(params.filters || {});
-                return Response.json({ success: true, data: payables });
+            case 'getProjectDetails': {
+                if (!params.projectId) {
+                    return Response.json({ error: 'projectId is required' }, { status: 400 });
+                }
+                const project = await getProjectDetails(params.projectId);
+                return Response.json({ success: true, data: project });
             }
 
             default:
-                return Response.json({ error: 'Invalid action' }, { status: 400 });
+                return Response.json({ error: `Invalid action: ${action}` }, { status: 400 });
         }
     } catch (error) {
         console.error('Smartcat API error:', error);
-        return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ 
+            error: error.message,
+            hint: 'Check if SMARTCAT_ACCOUNT_ID and SMARTCAT_API_KEY are correctly set'
+        }, { status: 500 });
     }
 });
