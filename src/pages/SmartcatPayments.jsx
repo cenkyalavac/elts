@@ -33,27 +33,33 @@ export default function SmartcatPaymentsPage() {
     });
 
     // Fetch Smartcat account info
-    const { data: accountInfo, isLoading: accountLoading } = useQuery({
+    const { data: accountInfo, isLoading: accountLoading, error: accountError } = useQuery({
         queryKey: ['smartcatAccount'],
         queryFn: async () => {
             const response = await base44.functions.invoke('smartcat', {
                 action: 'getAccount'
             });
+            if (!response.data?.success) {
+                throw new Error(response.data?.error || 'Failed to connect');
+            }
             return response.data?.data;
         },
         staleTime: 300000,
+        retry: 1,
     });
 
-    // Fetch Smartcat linguists
-    const { data: linguists = [], isLoading: linguistsLoading, refetch: refetchLinguists } = useQuery({
-        queryKey: ['smartcatLinguists'],
+    // Fetch Smartcat projects (to get linguist info)
+    const { data: projects = [], isLoading: projectsLoading, refetch: refetchProjects } = useQuery({
+        queryKey: ['smartcatProjects'],
         queryFn: async () => {
             const response = await base44.functions.invoke('smartcat', {
-                action: 'getLinguists'
+                action: 'getProjects'
             });
             return response.data?.data || [];
         },
         staleTime: 300000,
+        enabled: !!accountInfo,
+        retry: 1,
     });
 
     const isAdmin = user?.role === 'admin';
