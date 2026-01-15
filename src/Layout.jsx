@@ -13,10 +13,10 @@ import {
           DropdownMenuTrigger,
       } from "@/components/ui/dropdown-menu";
       import { 
-          Users, FileText, LogOut, Settings, Menu, X, 
-          MessageSquare, Star, ChevronDown, Mail, Shield, Award, 
-          User, DollarSign, CreditCard, Upload, Briefcase, BarChart3
-      } from "lucide-react";
+                  Users, FileText, LogOut, Settings, Menu, X, 
+                  MessageSquare, Star, ChevronDown, Mail, Shield, Award, 
+                  User, DollarSign, CreditCard, Upload, Briefcase, BarChart3
+              } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -85,14 +85,13 @@ export default function Layout({ children, currentPageName }) {
     ];
 
     // Admin/PM navigation - main items
-          const mainNavItems = [
-              { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
-              { name: 'Freelancers', label: 'Freelancers', icon: Users },
-              { name: 'QualityManagement', label: 'Quality', icon: Star },
-              { name: 'PerformanceAnalytics', label: 'Analytics', icon: BarChart3 },
-              { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
-              { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-          ];
+            const mainNavItems = [
+                { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
+                { name: 'Freelancers', label: 'Freelancers', icon: Users, hasDropdown: true },
+                { name: 'QualityManagement', label: 'Quality', icon: Star, hasDropdown: true },
+                { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
+                { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
+            ];
 
     // Payment dropdown items
     const paymentItems = [
@@ -103,7 +102,6 @@ export default function Layout({ children, currentPageName }) {
     // Settings dropdown items (admin only)
     const settingsItems = isAdmin ? [
         { name: 'Inbox', label: 'Gmail Inbox', icon: Mail },
-        { name: 'QuizManagement', label: 'Quiz Management', icon: Award },
         { name: 'UserManagement', label: 'User Management', icon: Shield },
         { name: 'Settings', label: 'Settings', icon: Settings },
     ] : [];
@@ -130,22 +128,100 @@ export default function Layout({ children, currentPageName }) {
                             
                             {/* Main navigation */}
                             <div className="hidden md:flex items-center gap-1">
-                                {navItems.map(item => (
-                                    <Link key={item.name} to={createPageUrl(item.name)}>
-                                        <Button
-                                            variant="ghost"
-                                            className={`gap-2 text-white hover:bg-white/10 ${
-                                                currentPageName === item.name ? 'bg-white/20' : ''
-                                            }`}
-                                        >
-                                            <item.icon className="w-4 h-4" />
-                                            {item.label}
-                                            {item.badge > 0 && (
-                                                <Badge className="bg-red-500 ml-1">{item.badge}</Badge>
-                                            )}
-                                        </Button>
-                                    </Link>
-                                ))}
+                                {navItems.map(item => {
+                                    // Freelancers dropdown
+                                    if (item.name === 'Freelancers') {
+                                        return (
+                                            <DropdownMenu key={item.name}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        className={`gap-2 text-white hover:bg-white/10 ${
+                                                            currentPageName === 'Freelancers' || currentPageName === 'ImportFreelancers' ? 'bg-white/20' : ''
+                                                        }`}
+                                                    >
+                                                        <item.icon className="w-4 h-4" />
+                                                        {item.label}
+                                                        <ChevronDown className="w-3 h-3" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="start" className="w-48">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={createPageUrl('Freelancers')} className="flex items-center gap-2 cursor-pointer">
+                                                            <Users className="w-4 h-4" />
+                                                            All Freelancers
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={createPageUrl('ImportFreelancers')} className="flex items-center gap-2 cursor-pointer">
+                                                            <Upload className="w-4 h-4" />
+                                                            Import Freelancers
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        );
+                                    }
+
+                                    // Quality dropdown
+                                    if (item.name === 'QualityManagement') {
+                                        return (
+                                            <DropdownMenu key={item.name}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        className={`gap-2 text-white hover:bg-white/10 ${
+                                                            currentPageName === 'QualityManagement' || currentPageName === 'QuizManagement' || currentPageName === 'PerformanceAnalytics' ? 'bg-white/20' : ''
+                                                        }`}
+                                                    >
+                                                        <item.icon className="w-4 h-4" />
+                                                        {item.label}
+                                                        <ChevronDown className="w-3 h-3" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="start" className="w-48">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={createPageUrl('QualityManagement')} className="flex items-center gap-2 cursor-pointer">
+                                                            <Star className="w-4 h-4" />
+                                                            Quality Reports
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={createPageUrl('QuizManagement')} className="flex items-center gap-2 cursor-pointer">
+                                                            <Award className="w-4 h-4" />
+                                                            Quiz Management
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={createPageUrl('PerformanceAnalytics')} className="flex items-center gap-2 cursor-pointer">
+                                                            <BarChart3 className="w-4 h-4" />
+                                                            Analytics
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        );
+                                    }
+
+                                    // Regular nav item
+                                    return (
+                                        <Link key={item.name} to={createPageUrl(item.name)}>
+                                            <Button
+                                                variant="ghost"
+                                                className={`gap-2 text-white hover:bg-white/10 ${
+                                                    currentPageName === item.name ? 'bg-white/20' : ''
+                                                }`}
+                                            >
+                                                <item.icon className="w-4 h-4" />
+                                                {item.label}
+                                                {item.badge > 0 && (
+                                                    <Badge className="bg-red-500 ml-1">{item.badge}</Badge>
+                                                )}
+                                            </Button>
+                                        </Link>
+                                    );
+                                })}
 
                                 {/* Payments Dropdown - Only for admin/PM */}
                                 {!isApplicant && (
