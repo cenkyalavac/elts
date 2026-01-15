@@ -20,7 +20,6 @@ import {
     CheckCircle2, Clock, AlertCircle, ExternalLink
 } from "lucide-react";
 import BulkSmartcatPayment from "../components/smartcat/BulkSmartcatPayment";
-import SmartcatPaymentDialog from "../components/smartcat/SmartcatPaymentDialog";
 
 export default function SmartcatPaymentsPage() {
     const [selectedLinguist, setSelectedLinguist] = useState(null);
