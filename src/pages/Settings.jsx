@@ -238,31 +238,32 @@ export default function SettingsPage() {
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleToggleActive(template)}
-                                                        >
-                                                            {template.is_active ? (
-                                                                <PowerOff className="w-4 h-4" />
-                                                            ) : (
-                                                                <Power className="w-4 h-4" />
-                                                            )}
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleEdit(template)}
-                                                        >
-                                                            <Pencil className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleDelete(template.id)}
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-red-600" />
-                                                        </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleToggleActive(template)}
+                                                            >
+                                                                {template.is_active ? (
+                                                                    <PowerOff className="w-4 h-4" />
+                                                                ) : (
+                                                                    <Power className="w-4 h-4" />
+                                                                )}
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleEdit(template)}
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleDelete(template.id)}
+                                                            >
+                                                                <Trash2 className="w-4 h-4 text-red-600" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -302,31 +303,32 @@ export default function SettingsPage() {
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleToggleActive(template)}
-                                                        >
-                                                            {template.is_active ? (
-                                                                <PowerOff className="w-4 h-4" />
-                                                            ) : (
-                                                                <Power className="w-4 h-4" />
-                                                            )}
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleEdit(template)}
-                                                        >
-                                                            <Pencil className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleDelete(template.id)}
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-red-600" />
-                                                        </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleToggleActive(template)}
+                                                            >
+                                                                {template.is_active ? (
+                                                                    <PowerOff className="w-4 h-4" />
+                                                                ) : (
+                                                                    <Power className="w-4 h-4" />
+                                                                )}
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleEdit(template)}
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleDelete(template.id)}
+                                                            >
+                                                                <Trash2 className="w-4 h-4 text-red-600" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
