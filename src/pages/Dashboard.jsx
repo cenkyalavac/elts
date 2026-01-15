@@ -17,6 +17,7 @@ import QualityOverviewStats from "../components/dashboard/QualityOverviewStats";
 import QualityAlerts from "../components/dashboard/QualityAlerts";
 import QualityTrendChart from "../components/dashboard/QualityTrendChart";
 import TopPerformers from "../components/dashboard/TopPerformers";
+import AnnouncementsBanner from "../components/dashboard/AnnouncementsBanner";
 
 export default function Dashboard() {
     const { data: user, isLoading } = useQuery({
@@ -224,6 +225,9 @@ export default function Dashboard() {
                         </Link>
                     </div>
                 </div>
+
+                {/* Announcements Banner */}
+                <AnnouncementsBanner />
 
                 {/* Key Metrics Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

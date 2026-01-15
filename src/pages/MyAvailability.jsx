@@ -65,7 +65,14 @@ export default function MyAvailabilityPage() {
                     <GoogleCalendarConnect freelancerId={freelancer.id} />
                 </div>
 
-                <AvailabilityCalendar freelancerId={freelancer.id} readOnly={false} />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2">
+                        <AvailabilityCalendar freelancerId={freelancer.id} readOnly={false} />
+                    </div>
+                    <div>
+                        <GoogleCalendarConnect freelancerId={freelancer.id} />
+                    </div>
+                </div>
             </div>
         </div>
     );

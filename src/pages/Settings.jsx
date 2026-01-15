@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Mail, Plus, Pencil, Trash2, Power, PowerOff } from "lucide-react";
+import { Settings as SettingsIcon, Mail, Plus, Pencil, Trash2, Power, PowerOff, Calendar, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import EmailTemplateForm from "../components/settings/EmailTemplateForm";
 import PipelineSettings from "../components/settings/PipelineSettings";
@@ -147,9 +147,8 @@ export default function SettingsPage() {
                     </p>
                 </div>
 
-                <Tabs defaultValue="integrations" className="space-y-6">
-                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-8 gap-1">
-                        <TabsTrigger value="integrations">Integrations</TabsTrigger>
+                <Tabs defaultValue="email" className="space-y-6">
+                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-7 gap-1">
                         <TabsTrigger value="email">Email Templates</TabsTrigger>
                         <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                         <TabsTrigger value="quiz">Quizzes</TabsTrigger>
@@ -158,24 +157,6 @@ export default function SettingsPage() {
                         <TabsTrigger value="application">Application</TabsTrigger>
                         <TabsTrigger value="admin">Admin Tools</TabsTrigger>
                     </TabsList>
-
-                    <TabsContent value="integrations">
-                        <div className="space-y-6">
-                            <GmailConnect />
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Google Calendar</CardTitle>
-                                    <CardDescription>
-                                        Google Calendar integration is available for freelancers to sync their availability.
-                                        They can connect it from their "My Availability" page.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Badge className="bg-green-100 text-green-800">Configured</Badge>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </TabsContent>
 
                     <TabsContent value="email">
                         {/* Email Templates Section */}
@@ -380,7 +361,35 @@ export default function SettingsPage() {
                     </TabsContent>
 
                     <TabsContent value="admin">
-                        <AdminTools />
+                        <div className="space-y-6">
+                            <GmailConnect />
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Calendar className="w-5 h-5" />
+                                        Google Calendar Integration
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Connect Google Calendar for availability sync
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                                        <CheckCircle className="w-5 h-5 text-green-600" />
+                                        <div>
+                                            <div className="font-medium">Connected</div>
+                                            <div className="text-sm text-gray-600">
+                                                Google Calendar is authorized for this app
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-3">
+                                        Freelancers can now sync their availability from Google Calendar in their profile settings.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                            <AdminTools />
+                        </div>
                     </TabsContent>
                 </Tabs>
             </div>
