@@ -97,7 +97,7 @@ export default function Layout({ children, currentPageName }) {
     const settingsItems = isAdmin ? [
         { name: 'Inbox', label: 'Gmail Inbox', icon: Mail },
         { name: 'QuizManagement', label: 'Quiz Yönetimi', icon: Award },
-        { name: 'SmartcatPayments', label: 'Smartcat Ödemeleri', icon: Briefcase },
+        { name: 'SmartcatIntegration', label: 'Smartcat', icon: Briefcase },
         { name: 'UserManagement', label: 'Kullanıcı Yönetimi', icon: Shield },
         { name: 'Settings', label: 'Ayarlar', icon: Settings },
     ] : [];
