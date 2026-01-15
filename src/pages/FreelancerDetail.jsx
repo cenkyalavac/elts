@@ -217,28 +217,29 @@ export default function FreelancerDetailPage() {
                             </div>
                             
                             <div className="flex gap-2 flex-wrap">
-                                <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Send Email
+                                <Button variant="outline" size="sm" onClick={() => setShowEmailDialog(true)}>
+                                    <Send className="w-4 h-4" />
+                                    <span className="hidden sm:inline ml-2">Email</span>
                                 </Button>
-                                <Button variant="outline" onClick={() => setShowQuizDialog(true)}>
-                                    <Award className="w-4 h-4 mr-2" />
-                                    Assign Quiz
+                                <Button variant="outline" size="sm" onClick={() => setShowQuizDialog(true)}>
+                                    <Award className="w-4 h-4" />
+                                    <span className="hidden sm:inline ml-2">Quiz</span>
                                 </Button>
                                 {canManage && (
                                     <Button
+                                        size="sm"
                                         variant={isEditing ? "default" : "outline"}
                                         onClick={() => setIsEditing(!isEditing)}
                                     >
                                         {isEditing ? (
                                             <>
-                                                <Eye className="w-4 h-4 mr-2" />
-                                                View Mode
+                                                <Eye className="w-4 h-4" />
+                                                <span className="hidden sm:inline ml-2">View</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Edit className="w-4 h-4 mr-2" />
-                                                Edit Profile
+                                                <Edit className="w-4 h-4" />
+                                                <span className="hidden sm:inline ml-2">Edit</span>
                                             </>
                                         )}
                                     </Button>
