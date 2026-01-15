@@ -83,16 +83,26 @@ export default function QualityReportDetailPage() {
         return null;
     };
 
-    const handleSubmitToTranslator = () => {
-        const deadline = addDays(new Date(), settings?.dispute_period_days || 7);
-        updateMutation.mutate({
-            id: reportId,
-            data: {
-                status: 'pending_translator_review',
-                submission_date: new Date().toISOString(),
-                review_deadline: deadline.toISOString()
-            }
-        });
+    const handleSubmitToTranslator = async () => {
+        try {
+            await base44.functions.invoke('handleDisputedReport', {
+                report_id: reportId,
+                action: 'submit_for_review'
+            });
+            queryClient.invalidateQueries({ queryKey: ['qualityReport', reportId] });
+        } catch (error) {
+            console.error('Submit error:', error);
+            // Fallback to direct update
+            const deadline = addDays(new Date(), settings?.dispute_period_days || 7);
+            updateMutation.mutate({
+                id: reportId,
+                data: {
+                    status: 'pending_translator_review',
+                    submission_date: new Date().toISOString(),
+                    review_deadline: deadline.toISOString()
+                }
+            });
+        }
     };
 
     const handleTranslatorAccept = () => {
@@ -105,26 +115,50 @@ export default function QualityReportDetailPage() {
         });
     };
 
-    const handleTranslatorDispute = () => {
+    const handleTranslatorDispute = async () => {
         if (!translatorComment.trim()) return;
-        updateMutation.mutate({
-            id: reportId,
-            data: {
-                status: 'translator_disputed',
-                translator_comments: translatorComment
-            }
-        });
+        try {
+            await base44.functions.invoke('handleDisputedReport', {
+                report_id: reportId,
+                action: 'dispute',
+                comments: translatorComment
+            });
+            queryClient.invalidateQueries({ queryKey: ['qualityReport', reportId] });
+            setTranslatorComment("");
+        } catch (error) {
+            console.error('Dispute error:', error);
+            // Fallback to direct update
+            updateMutation.mutate({
+                id: reportId,
+                data: {
+                    status: 'translator_disputed',
+                    translator_comments: translatorComment
+                }
+            });
+        }
     };
 
-    const handleFinalize = () => {
-        updateMutation.mutate({
-            id: reportId,
-            data: {
-                status: 'finalized',
-                final_reviewer_comments: finalComment,
-                finalization_date: new Date().toISOString()
-            }
-        });
+    const handleFinalize = async () => {
+        try {
+            await base44.functions.invoke('handleDisputedReport', {
+                report_id: reportId,
+                action: 'finalize',
+                comments: finalComment
+            });
+            queryClient.invalidateQueries({ queryKey: ['qualityReport', reportId] });
+            setFinalComment("");
+        } catch (error) {
+            console.error('Finalize error:', error);
+            // Fallback to direct update
+            updateMutation.mutate({
+                id: reportId,
+                data: {
+                    status: 'finalized',
+                    final_reviewer_comments: finalComment,
+                    finalization_date: new Date().toISOString()
+                }
+            });
+        }
     };
 
     if (isLoading) {
