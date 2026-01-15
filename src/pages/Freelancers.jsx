@@ -470,13 +470,13 @@ export default function FreelancersPage() {
                     <div className="bg-white rounded-lg shadow p-4">
                         <div className="text-sm text-gray-600">In Review</div>
                         <div className="text-2xl font-bold text-yellow-600">
-                            {freelancers.filter(f => f.status === 'Reviewing').length}
+                            {freelancers.filter(f => ['Form Sent', 'Price Negotiation', 'Test Sent'].includes(f.status)).length}
                         </div>
                     </div>
                     <div className="bg-white rounded-lg shadow p-4">
-                        <div className="text-sm text-gray-600">Accepted</div>
+                        <div className="text-sm text-gray-600">Approved</div>
                         <div className="text-2xl font-bold text-green-600">
-                            {freelancers.filter(f => f.status === 'Accepted').length}
+                            {freelancers.filter(f => f.status === 'Approved').length}
                         </div>
                     </div>
                 </div>

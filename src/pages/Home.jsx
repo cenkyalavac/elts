@@ -24,7 +24,7 @@ export default function HomePage() {
             if (user.role === 'applicant') {
                 window.location.href = createPageUrl('MyApplication');
             } else {
-                window.location.href = createPageUrl('Pipeline');
+                window.location.href = createPageUrl('Dashboard');
             }
         }
     }, [user]);
