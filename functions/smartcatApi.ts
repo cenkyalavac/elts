@@ -60,6 +60,8 @@ Deno.serve(async (req) => {
             const projects = await smartcatFetch('/project/list');
             const projectList = Array.isArray(projects) ? projects : [];
             
+            console.log(`Found ${projectList.length} projects`);
+            
             const teamMembers = new Map();
             
             // Scan recent projects to find all assignees
@@ -67,26 +69,50 @@ Deno.serve(async (req) => {
                 try {
                     const details = await smartcatFetch(`/project/${project.id}`);
                     
+                    // Log first project structure for debugging
+                    if (teamMembers.size === 0 && details.documents?.length > 0) {
+                        const firstDoc = details.documents[0];
+                        const firstStage = firstDoc?.workflowStages?.[0];
+                        console.log('Sample document structure:', JSON.stringify({
+                            docKeys: Object.keys(firstDoc || {}),
+                            stageKeys: Object.keys(firstStage || {}),
+                            executiveSample: firstStage?.executives?.[0] || 'no executives'
+                        }));
+                    }
+                    
                     for (const doc of (details.documents || [])) {
                         for (const stage of (doc.workflowStages || [])) {
-                            for (const exec of (stage.executives || [])) {
-                                const execId = exec.id || exec.supplierName;
-                                if (!execId) continue;
+                            const executives = stage.executives || stage.assignees || [];
+                            
+                            for (const exec of executives) {
+                                // Try multiple possible field names
+                                const name = exec.supplierName || exec.name || exec.fullName || 
+                                            exec.displayName || exec.userName || 
+                                            (exec.firstName && exec.lastName ? `${exec.firstName} ${exec.lastName}` : null);
+                                const email = exec.email || exec.supplierEmail || exec.userEmail;
+                                const execId = exec.id || exec visibleId || exec.userId || exec.supplierId || name || `unknown_${Math.random()}`;
+                                
+                                if (!name && !email) {
+                                    console.log('Executive without name/email:', JSON.stringify(exec));
+                                    continue;
+                                }
                                 
                                 if (!teamMembers.has(execId)) {
                                     teamMembers.set(execId, {
                                         smartcat_id: execId,
-                                        name: exec.supplierName || 'Unknown',
-                                        email: exec.email || null,
-                                        role: stage.stageType,
+                                        name: name || 'Unknown',
+                                        email: email || null,
+                                        role: stage.stageType || stage.name || 'Unknown',
                                         projectCount: 0,
-                                        languages: new Set()
+                                        languages: new Set(),
+                                        rawData: exec // Keep for debugging
                                     });
                                 }
                                 
                                 const member = teamMembers.get(execId);
                                 member.projectCount++;
-                                if (doc.targetLanguage) member.languages.add(doc.targetLanguage);
+                                const targetLang = doc.targetLanguage || doc.targetLanguageId;
+                                if (targetLang) member.languages.add(targetLang);
                             }
                         }
                     }
@@ -94,6 +120,8 @@ Deno.serve(async (req) => {
                     console.log(`Skip project ${project.id}: ${e.message}`);
                 }
             }
+            
+            console.log(`Found ${teamMembers.size} unique team members`);
             
             // Get freelancers for matching
             const freelancers = await base44.asServiceRole.entities.Freelancer.list();
@@ -107,11 +135,16 @@ Deno.serve(async (req) => {
             const team = Array.from(teamMembers.values()).map(m => {
                 const matchedFreelancer = freelancerByName.get(m.name?.toLowerCase().trim());
                 return {
-                    ...m,
+                    smartcat_id: m.smartcat_id,
+                    name: m.name,
+                    email: m.email,
+                    role: m.role,
+                    projectCount: m.projectCount,
                     languages: Array.from(m.languages),
                     matched: !!matchedFreelancer,
                     freelancer_id: matchedFreelancer?.id || null,
-                    freelancer_email: matchedFreelancer?.email || null
+                    freelancer_email: matchedFreelancer?.email || null,
+                    _debug: m.rawData // Include raw data for debugging
                 };
             });
             
