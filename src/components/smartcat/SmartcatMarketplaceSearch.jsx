@@ -127,7 +127,7 @@ export default function SmartcatMarketplaceSearch() {
                                 </p>
                                 <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
                                     Send Invitation
-                                    <ArrowRight className="w-4 h-4" />
+                                    <Send className="w-4 h-4" />
                                 </div>
                             </div>
                         </div>
