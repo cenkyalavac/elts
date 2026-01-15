@@ -21,6 +21,7 @@ import {
     Search, Plus, Star, AlertTriangle, 
     CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText, Share2
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import ShareReportDialog from "@/components/quality/ShareReportDialog";
 import QualityReportForm from "@/components/quality/QualityReportForm";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
@@ -186,9 +187,21 @@ export default function QualityManagementPage() {
                     <p className="text-gray-500">LQA and QS reports</p>
                 </div>
                 <div className="flex gap-2">
+                    <Link to={createPageUrl('QuizManagement')}>
+                        <Button variant="outline">
+                            <Award className="w-4 h-4 mr-2" />
+                            Quizzes
+                        </Button>
+                    </Link>
+                    <Link to={createPageUrl('PerformanceAnalytics')}>
+                        <Button variant="outline">
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            Analytics
+                        </Button>
+                    </Link>
                     <Button variant="outline" onClick={() => setShowImportDialog(true)}>
                         <Upload className="w-4 h-4 mr-2" />
-                        Import Historical Data
+                        Import
                     </Button>
                     <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                         <DialogTrigger asChild>
@@ -280,11 +293,10 @@ export default function QualityManagementPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4 grid w-full md:w-auto md:inline-grid md:grid-cols-4">
+                <TabsList className="mb-4 grid w-full md:w-auto md:inline-grid md:grid-cols-3">
                     <TabsTrigger value="reports">Quality Reports</TabsTrigger>
                     <TabsTrigger value="scores">Freelancer Scores</TabsTrigger>
                     <TabsTrigger value="lqa-reviewers">LQA Reviewers</TabsTrigger>
-                    <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="reports">
@@ -506,44 +518,7 @@ export default function QualityManagementPage() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="quizzes">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2">
-                                    <Award className="w-5 h-5" />
-                                    Quiz Management
-                                </CardTitle>
-                                <Link to={createPageUrl('QuizManagement')}>
-                                    <Button variant="outline">
-                                        Go to Quiz Management
-                                    </Button>
-                                </Link>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">
-                                Quizzes are an important tool for measuring freelancer quality. 
-                                Create and assign quizzes to evaluate translators' language knowledge, 
-                                terminology, and subject matter expertise.
-                            </p>
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="p-4 bg-purple-50 rounded-lg">
-                                    <p className="text-sm text-purple-600 font-medium">Language Tests</p>
-                                    <p className="text-xs text-gray-600 mt-1">Source and target language proficiency</p>
-                                </div>
-                                <div className="p-4 bg-blue-50 rounded-lg">
-                                    <p className="text-sm text-blue-600 font-medium">Specialization Tests</p>
-                                    <p className="text-xs text-gray-600 mt-1">Medical, legal, technical terminology</p>
-                                </div>
-                                <div className="p-4 bg-green-50 rounded-lg">
-                                    <p className="text-sm text-green-600 font-medium">Approval Process</p>
-                                    <p className="text-xs text-gray-600 mt-1">Required quizzes for freelancer approval</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+
             </Tabs>
 
             {/* Import Dialog */}

@@ -417,6 +417,12 @@ export default function FreelancersPage() {
                             <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
                             Smart Match
                         </Button>
+                        <Link to={createPageUrl('ImportFreelancers')}>
+                            <Button variant="outline">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Import
+                            </Button>
+                        </Link>
                         <Button
                             onClick={() => window.location.href = createPageUrl('FreelancerOnboarding')}
                             className="bg-blue-600 hover:bg-blue-700"

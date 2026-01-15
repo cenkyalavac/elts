@@ -9,10 +9,10 @@ import { Settings as SettingsIcon, Mail, Plus, Pencil, Trash2, Power, PowerOff, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import EmailTemplateForm from "../components/settings/EmailTemplateForm";
 import PipelineSettings from "../components/settings/PipelineSettings";
-import QuizSettings from "../components/settings/QuizSettings";
+
 import NotificationSettings from "../components/settings/NotificationSettings";
 import ApplicationSettings from "../components/settings/ApplicationSettings";
-import AdminTools from "../components/settings/AdminTools";
+
 import StatusSettings from "../components/settings/StatusSettings";
 import GmailConnect from "../components/gmail/GmailConnect";
 import QualityManagementSettings from "../components/settings/QualityManagementSettings";
@@ -148,14 +148,13 @@ export default function SettingsPage() {
                 </div>
 
                 <Tabs defaultValue="email" className="space-y-6">
-                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-4 lg:grid-cols-7 gap-1">
-                        <TabsTrigger value="email">Email Templates</TabsTrigger>
+                    <TabsList className="grid w-full md:w-auto md:inline-grid md:grid-cols-6 gap-1">
+                        <TabsTrigger value="email">Email</TabsTrigger>
                         <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-                        <TabsTrigger value="quiz">Quizzes</TabsTrigger>
                         <TabsTrigger value="quality">Quality</TabsTrigger>
                         <TabsTrigger value="notifications">Notifications</TabsTrigger>
                         <TabsTrigger value="application">Application</TabsTrigger>
-                        <TabsTrigger value="admin">Admin Tools</TabsTrigger>
+                        <TabsTrigger value="integrations">Integrations</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="email">
@@ -344,10 +343,6 @@ export default function SettingsPage() {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="quiz">
-                        <QuizSettings />
-                    </TabsContent>
-
                     <TabsContent value="quality">
                         <QualityManagementSettings />
                     </TabsContent>
@@ -360,7 +355,7 @@ export default function SettingsPage() {
                         <ApplicationSettings />
                     </TabsContent>
 
-                    <TabsContent value="admin">
+                    <TabsContent value="integrations">
                         <div className="space-y-6">
                             <GmailConnect />
                             <Card>
@@ -388,7 +383,6 @@ export default function SettingsPage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <AdminTools />
                         </div>
                     </TabsContent>
                 </Tabs>

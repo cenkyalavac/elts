@@ -91,8 +91,8 @@ export default function Layout({ children, currentPageName }) {
     // Admin/PM navigation - main items
             const mainNavItems = [
                 { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
-                { name: 'Freelancers', label: 'Freelancers', icon: Users, hasDropdown: true },
-                { name: 'QualityManagement', label: 'Quality', icon: Star, hasDropdown: true },
+                { name: 'Freelancers', label: 'Freelancers', icon: Users },
+                { name: 'QualityManagement', label: 'Quality', icon: Star },
                 { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
                 { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
                 { name: 'Announcements', label: 'Announcements', icon: Megaphone },
@@ -135,81 +135,6 @@ export default function Layout({ children, currentPageName }) {
                             {/* Main navigation */}
                             <div className="hidden md:flex items-center gap-1">
                                 {navItems.map(item => {
-                                    // Freelancers dropdown
-                                    if (item.name === 'Freelancers') {
-                                        return (
-                                            <DropdownMenu key={item.name}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        className={`gap-2 text-white hover:bg-white/10 ${
-                                                            currentPageName === 'Freelancers' || currentPageName === 'ImportFreelancers' ? 'bg-white/20' : ''
-                                                        }`}
-                                                    >
-                                                        <item.icon className="w-4 h-4" />
-                                                        {item.label}
-                                                        <ChevronDown className="w-3 h-3" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="start" className="w-48">
-                                                    <DropdownMenuItem asChild>
-                                                        <Link to={createPageUrl('Freelancers')} className="flex items-center gap-2 cursor-pointer">
-                                                            <Users className="w-4 h-4" />
-                                                            All Freelancers
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem asChild>
-                                                        <Link to={createPageUrl('ImportFreelancers')} className="flex items-center gap-2 cursor-pointer">
-                                                            <Upload className="w-4 h-4" />
-                                                            Import Freelancers
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        );
-                                    }
-
-                                    // Quality dropdown
-                                    if (item.name === 'QualityManagement') {
-                                        return (
-                                            <DropdownMenu key={item.name}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        className={`gap-2 text-white hover:bg-white/10 ${
-                                                            currentPageName === 'QualityManagement' || currentPageName === 'QuizManagement' || currentPageName === 'PerformanceAnalytics' ? 'bg-white/20' : ''
-                                                        }`}
-                                                    >
-                                                        <item.icon className="w-4 h-4" />
-                                                        {item.label}
-                                                        <ChevronDown className="w-3 h-3" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="start" className="w-48">
-                                                    <DropdownMenuItem asChild>
-                                                        <Link to={createPageUrl('QualityManagement')} className="flex items-center gap-2 cursor-pointer">
-                                                            <Star className="w-4 h-4" />
-                                                            Quality Reports
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem asChild>
-                                                        <Link to={createPageUrl('QuizManagement')} className="flex items-center gap-2 cursor-pointer">
-                                                            <Award className="w-4 h-4" />
-                                                            Quiz Management
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem asChild>
-                                                        <Link to={createPageUrl('PerformanceAnalytics')} className="flex items-center gap-2 cursor-pointer">
-                                                            <BarChart3 className="w-4 h-4" />
-                                                            Analytics
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        );
-                                    }
-
                                     // Regular nav item
                                     return (
                                         <Link key={item.name} to={createPageUrl(item.name)}>
@@ -363,35 +288,7 @@ export default function Layout({ children, currentPageName }) {
                                 </Link>
                             ))}
 
-                            {/* Mobile Quality sub-items */}
-                            {!isApplicant && (
-                                <>
-                                    <div className="border-t border-white/10 pt-3 mt-3">
-                                        <p className="text-xs text-purple-300 px-3 mb-2">Quality</p>
-                                        <Link to={createPageUrl('QuizManagement')} onClick={() => setMobileMenuOpen(false)}>
-                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
-                                                <Award className="w-5 h-5" />
-                                                Quiz Management
-                                            </Button>
-                                        </Link>
-                                        <Link to={createPageUrl('PerformanceAnalytics')} onClick={() => setMobileMenuOpen(false)}>
-                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
-                                                <BarChart3 className="w-5 h-5" />
-                                                Analytics
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                    <div className="border-t border-white/10 pt-3 mt-3">
-                                        <p className="text-xs text-purple-300 px-3 mb-2">Freelancers</p>
-                                        <Link to={createPageUrl('ImportFreelancers')} onClick={() => setMobileMenuOpen(false)}>
-                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
-                                                <Upload className="w-5 h-5" />
-                                                Import Freelancers
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </>
-                            )}
+
 
                             {/* Mobile Payments section */}
                             {!isApplicant && (
