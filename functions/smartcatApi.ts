@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
                                             exec.displayName || exec.userName || 
                                             (exec.firstName && exec.lastName ? `${exec.firstName} ${exec.lastName}` : null);
                                 const email = exec.email || exec.supplierEmail || exec.userEmail;
-                                const execId = exec.id || exec visibleId || exec.userId || exec.supplierId || name || `unknown_${Math.random()}`;
+                                const execId = exec.id || exec.externalId || exec.userId || exec.supplierId || name || `unknown_${Math.random()}`;
                                 
                                 if (!name && !email) {
                                     console.log('Executive without name/email:', JSON.stringify(exec));
