@@ -4,12 +4,19 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
+import {
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
+} from "@/components/ui/dialog";
+import {
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
 import { 
     RefreshCw, Users, CheckCircle2, AlertTriangle, Loader2,
-    ArrowRight, Info, Download
+    ArrowRight, Info, Download, Link2, Unlink, Zap
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
