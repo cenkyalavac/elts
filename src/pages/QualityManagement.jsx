@@ -22,7 +22,6 @@ import {
     CheckCircle2, Clock, Eye, TrendingUp, BarChart3, Users
 } from "lucide-react";
 import QualityReportForm from "@/components/quality/QualityReportForm";
-import QualityReportCard from "@/components/quality/QualityReportCard";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
 import QualityFilters from "@/components/quality/QualityFilters";
 
