@@ -9,14 +9,46 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { freelancerId, daysAhead = 30 } = await req.json();
+        const { freelancerId, calendarId, action, daysAhead = 30 } = await req.json();
 
+        // Get access token from Google Calendar connector
+        const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
+
+        // Action: List available calendars
+        if (action === 'listCalendars') {
+            const calendarListResponse = await fetch(
+                'https://www.googleapis.com/calendar/v3/users/me/calendarList',
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                }
+            );
+
+            if (!calendarListResponse.ok) {
+                const error = await calendarListResponse.text();
+                return Response.json({ error: 'Failed to fetch calendars: ' + error }, { status: 500 });
+            }
+
+            const calendarListData = await calendarListResponse.json();
+            const calendars = (calendarListData.items || []).map(cal => ({
+                id: cal.id,
+                summary: cal.summary,
+                description: cal.description,
+                backgroundColor: cal.backgroundColor,
+                primary: cal.primary || false,
+            }));
+
+            return Response.json({ calendars });
+        }
+
+        // For sync action, freelancerId is required
         if (!freelancerId) {
             return Response.json({ error: 'freelancerId is required' }, { status: 400 });
         }
 
-        // Get access token from Google Calendar connector
-        const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
+        // Use selected calendar or primary
+        const targetCalendarId = calendarId || 'primary';
 
         // Calculate date range
         const now = new Date();
@@ -24,7 +56,7 @@ Deno.serve(async (req) => {
         endDate.setDate(endDate.getDate() + daysAhead);
 
         // Fetch calendar events
-        const calendarUrl = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
+        const calendarUrl = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
         calendarUrl.searchParams.set('timeMin', now.toISOString());
         calendarUrl.searchParams.set('timeMax', endDate.toISOString());
         calendarUrl.searchParams.set('singleEvents', 'true');
@@ -64,7 +96,7 @@ Deno.serve(async (req) => {
         
         for (const event of busyEvents) {
             const startDate = new Date(event.start.dateTime);
-            const endDate = new Date(event.end.dateTime);
+            const endDateEvent = new Date(event.end.dateTime);
             const dateKey = startDate.toISOString().split('T')[0];
 
             if (!busyDates.has(dateKey)) {
@@ -74,12 +106,12 @@ Deno.serve(async (req) => {
                 });
             }
 
-            const durationHours = (endDate - startDate) / (1000 * 60 * 60);
+            const durationHours = (endDateEvent - startDate) / (1000 * 60 * 60);
             const dateData = busyDates.get(dateKey);
             dateData.totalBusyHours += durationHours;
             dateData.events.push({
                 start_time: startDate.toTimeString().slice(0, 5),
-                end_time: endDate.toTimeString().slice(0, 5),
+                end_time: endDateEvent.toTimeString().slice(0, 5),
                 summary: event.summary || 'Busy'
             });
         }
@@ -127,6 +159,7 @@ Deno.serve(async (req) => {
             success: true,
             eventsProcessed: busyEvents.length,
             datesAffected: busyDates.size,
+            calendarId: targetCalendarId,
             created,
             updated
         });
