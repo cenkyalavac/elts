@@ -11,9 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
     HelpCircle, Plus, MessageSquare, Clock, CheckCircle, 
-    AlertCircle, User, Send, ChevronRight
+    AlertCircle, User, Send, ChevronRight, TrendingUp, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
+import FAQSuggestions from "../components/support/FAQSuggestions";
+import AICategorizer, { getAIAnalysis } from "../components/support/AICategorizer";
+import AIReplyDraft from "../components/support/AIReplyDraft";
+import TicketTrends from "../components/support/TicketTrends";
 
 const statusConfig = {
     open: { label: 'Open', color: 'bg-blue-100 text-blue-800', icon: AlertCircle },
@@ -108,6 +112,10 @@ export default function SupportPage() {
                     <TabsList>
                         <TabsTrigger value="my_tickets">My Tickets</TabsTrigger>
                         {isAdmin && <TabsTrigger value="all_tickets">All Tickets</TabsTrigger>}
+                        {isAdmin && <TabsTrigger value="trends">
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                            Trends & Insights
+                        </TabsTrigger>}
                     </TabsList>
 
                     <TabsContent value="my_tickets" className="mt-4">
@@ -127,6 +135,12 @@ export default function SupportPage() {
                                 onSelect={setSelectedTicket}
                                 isAdmin={isAdmin}
                             />
+                        </TabsContent>
+                    )}
+
+                    {isAdmin && (
+                        <TabsContent value="trends" className="mt-4">
+                            <TicketTrends tickets={allTickets} />
                         </TabsContent>
                     )}
                 </Tabs>
@@ -231,23 +245,52 @@ function NewTicketDialog({ open, onOpenChange, user }) {
         category: 'general_question',
         priority: 'medium',
     });
+    const [faqResolved, setFaqResolved] = useState(false);
 
     const createMutation = useMutation({
-        mutationFn: (data) => base44.entities.SupportTicket.create({
-            ...data,
-            requester_email: user?.email,
-            requester_name: user?.full_name,
-            requester_role: user?.role,
-            status: 'open',
-            responses: [],
-        }),
+        mutationFn: async (data) => {
+            // Get AI analysis before creating
+            let aiData = {};
+            try {
+                const analysis = await getAIAnalysis(data.subject, data.message);
+                aiData = {
+                    ai_suggested_category: analysis?.category,
+                    ai_suggested_priority: analysis?.priority,
+                    sentiment: analysis?.sentiment,
+                    tags: analysis?.tags || [],
+                };
+            } catch (e) {
+                console.error('AI analysis failed:', e);
+            }
+
+            return base44.entities.SupportTicket.create({
+                ...data,
+                ...aiData,
+                requester_email: user?.email,
+                requester_name: user?.full_name,
+                requester_role: user?.role,
+                status: 'open',
+                responses: [],
+            });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['supportTickets'] });
             onOpenChange(false);
             setFormData({ subject: '', message: '', category: 'general_question', priority: 'medium' });
+            setFaqResolved(false);
             toast.success('Ticket created successfully');
         },
     });
+
+    const handleFAQResolved = (faq) => {
+        setFaqResolved(true);
+        toast.success('Glad that helped! No need to submit a ticket.');
+        setTimeout(() => {
+            onOpenChange(false);
+            setFaqResolved(false);
+            setFormData({ subject: '', message: '', category: 'general_question', priority: 'medium' });
+        }, 2000);
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -256,70 +299,96 @@ function NewTicketDialog({ open, onOpenChange, user }) {
                     <DialogTitle>Create New Ticket</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                    <div>
-                        <label className="text-sm font-medium">Subject</label>
-                        <Input
-                            value={formData.subject}
-                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                            placeholder="Brief description of your issue"
-                        />
+                {faqResolved ? (
+                    <div className="py-8 text-center">
+                        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                        <p className="text-lg font-medium text-gray-800">Great!</p>
+                        <p className="text-gray-600">Glad we could help without needing a ticket.</p>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                ) : (
+                    <div className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium">Category</label>
-                            <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="general_question">General Question</SelectItem>
-                                    <SelectItem value="technical_issue">Technical Issue</SelectItem>
-                                    <SelectItem value="payment_inquiry">Payment Inquiry</SelectItem>
-                                    <SelectItem value="application_status">Application Status</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <label className="text-sm font-medium">Subject</label>
+                            <Input
+                                value={formData.subject}
+                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                placeholder="Brief description of your issue"
+                            />
                         </div>
+
                         <div>
-                            <label className="text-sm font-medium">Priority</label>
-                            <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="low">Low</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="urgent">Urgent</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <label className="text-sm font-medium">Message</label>
+                            <Textarea
+                                value={formData.message}
+                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                placeholder="Describe your question or issue in detail..."
+                                rows={4}
+                            />
+                        </div>
+
+                        {/* FAQ Suggestions - before submitting */}
+                        {(formData.subject || formData.message) && (
+                            <FAQSuggestions
+                                subject={formData.subject}
+                                message={formData.message}
+                                category={formData.category}
+                                onSelectFAQ={handleFAQResolved}
+                            />
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm font-medium">Category</label>
+                                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="general_question">General Question</SelectItem>
+                                        <SelectItem value="technical_issue">Technical Issue</SelectItem>
+                                        <SelectItem value="payment_inquiry">Payment Inquiry</SelectItem>
+                                        <SelectItem value="application_status">Application Status</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Priority</label>
+                                <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="low">Low</SelectItem>
+                                        <SelectItem value="medium">Medium</SelectItem>
+                                        <SelectItem value="high">High</SelectItem>
+                                        <SelectItem value="urgent">Urgent</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        {/* AI Category Suggestion */}
+                        <AICategorizer
+                            subject={formData.subject}
+                            message={formData.message}
+                            onCategoryChange={(cat) => setFormData({ ...formData, category: cat })}
+                            onPriorityChange={(pri) => setFormData({ ...formData, priority: pri })}
+                        />
+
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => onOpenChange(false)}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                onClick={() => createMutation.mutate(formData)}
+                                disabled={!formData.subject || !formData.message || createMutation.isPending}
+                            >
+                                {createMutation.isPending ? 'Creating...' : 'Create Ticket'}
+                            </Button>
                         </div>
                     </div>
-
-                    <div>
-                        <label className="text-sm font-medium">Message</label>
-                        <Textarea
-                            value={formData.message}
-                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                            placeholder="Describe your question or issue in detail..."
-                            rows={6}
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
-                        </Button>
-                        <Button 
-                            onClick={() => createMutation.mutate(formData)}
-                            disabled={!formData.subject || !formData.message || createMutation.isPending}
-                        >
-                            Create Ticket
-                        </Button>
-                    </div>
-                </div>
+                )}
             </DialogContent>
         </Dialog>
     );
@@ -329,10 +398,13 @@ function TicketDetailDialog({ ticket, onClose, user, isAdmin }) {
     const queryClient = useQueryClient();
     const [reply, setReply] = useState('');
     const [newStatus, setNewStatus] = useState('');
+    const [showAIDraft, setShowAIDraft] = useState(false);
 
     React.useEffect(() => {
         if (ticket) {
             setNewStatus(ticket.status);
+            setReply('');
+            setShowAIDraft(false);
         }
     }, [ticket]);
 
@@ -421,14 +493,39 @@ function TicketDetailDialog({ ticket, onClose, user, isAdmin }) {
 
                     {/* Reply Form */}
                     {!['resolved', 'closed'].includes(ticket.status) && (
-                        <div className="border-t pt-4">
+                        <div className="border-t pt-4 space-y-4">
+                            {/* AI Draft for Admins */}
+                            {isAdmin && (
+                                <div>
+                                    {showAIDraft ? (
+                                        <AIReplyDraft 
+                                            ticket={ticket} 
+                                            onUseDraft={(draft) => {
+                                                setReply(draft);
+                                                setShowAIDraft(false);
+                                            }}
+                                        />
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setShowAIDraft(true)}
+                                            className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                                        >
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Get AI Draft
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+
                             <Textarea
                                 value={reply}
                                 onChange={(e) => setReply(e.target.value)}
                                 placeholder="Write your reply..."
                                 rows={4}
                             />
-                            <div className="flex justify-between items-center mt-3">
+                            <div className="flex justify-between items-center">
                                 {isAdmin && (
                                     <Select value={newStatus} onValueChange={setNewStatus}>
                                         <SelectTrigger className="w-48">
