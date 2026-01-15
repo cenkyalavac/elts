@@ -209,7 +209,17 @@ export default function SmartcatTeamSync() {
                                     <TableBody>
                                         {smartcatTeam.map((member, idx) => (
                                             <TableRow key={idx} className={!member.matched ? 'bg-yellow-50' : ''}>
-                                                <TableCell className="font-medium">{member.name}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    {member.name || 'Unknown'}
+                                                    {member._debug && (
+                                                        <details className="text-xs text-gray-400 mt-1">
+                                                            <summary>Debug</summary>
+                                                            <pre className="text-xs overflow-auto max-w-xs">
+                                                                {JSON.stringify(member._debug, null, 2)}
+                                                            </pre>
+                                                        </details>
+                                                    )}
+                                                </TableCell>
                                                 <TableCell className="text-sm text-gray-600">
                                                     {member.email || '-'}
                                                 </TableCell>
