@@ -264,29 +264,35 @@ export default function SmartcatTeamSync() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <Card className="bg-blue-50 border-blue-200">
                             <CardContent className="pt-6">
-                                <p className="text-sm text-blue-600">Smartcat Team</p>
+                                <p className="text-sm text-blue-600">Smartcat Assignees</p>
                                 <p className="text-2xl font-bold text-blue-700">{smartcatTeam.length}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-green-50 border-green-200">
                             <CardContent className="pt-6">
-                                <p className="text-sm text-green-600">Already in DB</p>
+                                <p className="text-sm text-green-600">Linked</p>
                                 <p className="text-2xl font-bold text-green-700">{matched.length}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-yellow-50 border-yellow-200">
                             <CardContent className="pt-6">
-                                <p className="text-sm text-yellow-600">Need to Add</p>
+                                <p className="text-sm text-yellow-600">Not Linked</p>
                                 <p className="text-2xl font-bold text-yellow-700">{onlyInSmartcat.length}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-orange-50 border-orange-200">
+                        <Card className="bg-purple-50 border-purple-200">
                             <CardContent className="pt-6">
-                                <p className="text-sm text-orange-600">Only in DB</p>
-                                <p className="text-2xl font-bold text-orange-700">{onlyInBase44.length}</p>
+                                <p className="text-sm text-purple-600">Projects Scanned</p>
+                                <p className="text-2xl font-bold text-purple-700">{teamData?.projectsScanned || 0}</p>
                             </CardContent>
                         </Card>
                     </div>
+                    
+                    {teamData?.accountName && (
+                        <p className="text-sm text-gray-500">
+                            Data from Smartcat account: <strong>{teamData.accountName}</strong>
+                        </p>
+                    )}
 
                     {smartcatTeam.length > 0 && (
                         <Card>
