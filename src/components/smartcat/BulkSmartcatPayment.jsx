@@ -149,7 +149,7 @@ export default function BulkSmartcatPayment() {
     };
 
     const totalAmount = parsedData.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
-    const matchedCount = parsedData.filter(p => p.smartcat_matched).length;
+    const matchedCount = parsedData.filter(p => p.freelancer_matched).length;
 
     return (
         <div className="space-y-6">
