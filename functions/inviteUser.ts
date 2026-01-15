@@ -21,8 +21,8 @@ Deno.serve(async (req) => {
         console.log('Inviting user:', email, 'with base44 role:', base44Role, '(requested app role:', role, ')');
         
         try {
-            // Step 1: Send the invitation
-            const result = await base44.asServiceRole.users.inviteUser(email, base44Role);
+            // Step 1: Send the invitation using the base44 SDK
+            const result = await base44.users.inviteUser(email, base44Role);
             console.log('Invite result:', result);
             
             // Step 2: Store the pending role assignment for non-standard roles
