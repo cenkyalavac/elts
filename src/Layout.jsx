@@ -357,6 +357,36 @@ export default function Layout({ children, currentPageName }) {
                                 </Link>
                             ))}
 
+                            {/* Mobile Quality sub-items */}
+                            {!isApplicant && (
+                                <>
+                                    <div className="border-t border-white/10 pt-3 mt-3">
+                                        <p className="text-xs text-purple-300 px-3 mb-2">Quality</p>
+                                        <Link to={createPageUrl('QuizManagement')} onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
+                                                <Award className="w-5 h-5" />
+                                                Quiz Management
+                                            </Button>
+                                        </Link>
+                                        <Link to={createPageUrl('PerformanceAnalytics')} onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
+                                                <BarChart3 className="w-5 h-5" />
+                                                Analytics
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                    <div className="border-t border-white/10 pt-3 mt-3">
+                                        <p className="text-xs text-purple-300 px-3 mb-2">Freelancers</p>
+                                        <Link to={createPageUrl('ImportFreelancers')} onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
+                                                <Upload className="w-5 h-5" />
+                                                Import Freelancers
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </>
+                            )}
+
                             {/* Mobile Payments section */}
                             {!isApplicant && (
                                 <>
