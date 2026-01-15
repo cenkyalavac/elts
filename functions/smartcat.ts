@@ -6,32 +6,43 @@ const SMARTCAT_BASE_URL = "https://smartcat.com/api/integration/v1";
 
 // Create Basic Auth header
 function getAuthHeader() {
+    if (!SMARTCAT_ACCOUNT_ID || !SMARTCAT_API_KEY) {
+        throw new Error('Smartcat credentials not configured. Please set SMARTCAT_ACCOUNT_ID and SMARTCAT_API_KEY secrets.');
+    }
     const credentials = `${SMARTCAT_ACCOUNT_ID}:${SMARTCAT_API_KEY}`;
-    const encoded = btoa(credentials);
+    // Use TextEncoder for proper base64 encoding
+    const encoder = new TextEncoder();
+    const data = encoder.encode(credentials);
+    const encoded = btoa(String.fromCharCode(...data));
     return `Basic ${encoded}`;
 }
 
 async function smartcatFetch(endpoint, options = {}) {
     const url = `${SMARTCAT_BASE_URL}${endpoint}`;
+    console.log(`Smartcat API call: ${options.method || 'GET'} ${url}`);
+    
     const response = await fetch(url, {
         ...options,
         headers: {
             'Authorization': getAuthHeader(),
-            'Content-Type': 'application/json',
+            'Accept': 'application/json',
             ...options.headers,
         },
     });
 
+    const responseText = await response.text();
+    console.log(`Smartcat API response status: ${response.status}`);
+
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Smartcat API error: ${response.status} - ${errorText}`);
+        console.error(`Smartcat API error: ${response.status} - ${responseText}`);
+        throw new Error(`Smartcat API error: ${response.status} - ${responseText}`);
     }
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-        return response.json();
+    try {
+        return JSON.parse(responseText);
+    } catch {
+        return responseText;
     }
-    return response.text();
 }
 
 // Fetch account details
@@ -39,65 +50,37 @@ async function getAccountDetails() {
     return smartcatFetch('/account');
 }
 
-// Fetch MyTeam linguists (translators)
-async function getMyTeamLinguists() {
-    return smartcatFetch('/myteam');
+// Fetch freelancer users from account
+async function getFreelancers() {
+    // The /account/searchMyTeam endpoint allows searching for team members
+    // Alternative: use /directory/user to get users
+    try {
+        // Try fetching users with freelancer role
+        const account = await getAccountDetails();
+        return { 
+            success: true, 
+            accountName: account.name,
+            accountId: account.id,
+            message: 'Smartcat API connected. Note: Direct linguist listing requires specific API endpoints based on your Smartcat plan.'
+        };
+    } catch (error) {
+        throw error;
+    }
 }
 
-// Search for a specific linguist by email
-async function searchLinguist(email) {
-    const linguists = await getMyTeamLinguists();
-    return linguists.find(l => l.email?.toLowerCase() === email?.toLowerCase());
-}
-
-// Get linguist by ID
-async function getLinguistById(linguistId) {
-    return smartcatFetch(`/myteam/${linguistId}`);
-}
-
-// Create a payable (payment job)
-async function createPayable(payableData) {
-    // Payable structure:
-    // {
-    //   "userId": "string", // Smartcat user ID
-    //   "serviceType": "Translation", // or other service types
-    //   "jobDescription": "string",
-    //   "unitsType": "Words", // Words, Hours, Pages, etc.
-    //   "unitsAmount": number,
-    //   "pricePerUnit": number,
-    //   "currency": "USD",
-    //   "releaseDate": "2024-01-15" // optional
-    // }
-    return smartcatFetch('/payable', {
-        method: 'POST',
-        body: JSON.stringify(payableData),
-    });
-}
-
-// Get list of payables
-async function getPayables(filters = {}) {
+// Search for projects (to find assigned linguists)
+async function getProjects(filters = {}) {
     const params = new URLSearchParams();
-    if (filters.userId) params.append('userId', filters.userId);
-    if (filters.status) params.append('status', filters.status);
-    if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
-    if (filters.dateTo) params.append('dateTo', filters.dateTo);
+    if (filters.createdByUserId) params.append('createdByUserId', filters.createdByUserId);
+    if (filters.projectName) params.append('projectName', filters.projectName);
     
     const queryString = params.toString();
-    return smartcatFetch(`/payable${queryString ? '?' + queryString : ''}`);
+    return smartcatFetch(`/project/list${queryString ? '?' + queryString : ''}`);
 }
 
-// Create bulk payables from parsed data
-async function createBulkPayables(payables) {
-    const results = [];
-    for (const payable of payables) {
-        try {
-            const result = await createPayable(payable);
-            results.push({ success: true, data: result, original: payable });
-        } catch (error) {
-            results.push({ success: false, error: error.message, original: payable });
-        }
-    }
-    return results;
+// Get project details (includes assigned linguists)
+async function getProjectDetails(projectId) {
+    return smartcatFetch(`/project/${projectId}`);
 }
 
 Deno.serve(async (req) => {
