@@ -55,14 +55,13 @@ export default function QualityManagementSettings() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['qualitySettings'] });
-            toast.success("Kalite ayarları kaydedildi");
+            toast.success("Quality settings saved");
         },
         onError: () => {
-            toast.error("Ayarlar kaydedilemedi");
+            toast.error("Failed to save settings");
         }
     });
 
-    // Preview combined score calculation
     const previewScore = () => {
         const sampleLqa = 85;
         const sampleQs = 4;
@@ -75,16 +74,16 @@ export default function QualityManagementSettings() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Calculator className="w-5 h-5" />
-                        Combined Score Hesaplama
+                        Combined Score Calculation
                     </CardTitle>
                     <CardDescription>
-                        LQA ve QS puanlarının birleşik skora nasıl dönüştürüleceğini ayarlayın
+                        Configure how LQA and QS scores are combined into a single score
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <Label>LQA Ağırlığı (Weight)</Label>
+                            <Label>LQA Weight</Label>
                             <Input
                                 type="number"
                                 min="1"
@@ -97,11 +96,11 @@ export default function QualityManagementSettings() {
                                 }))}
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                LQA puanı bu sayı ile çarpılır (önerilen: 4)
+                                LQA score is multiplied by this value (recommended: 4)
                             </p>
                         </div>
                         <div>
-                            <Label>QS Çarpanı (Multiplier)</Label>
+                            <Label>QS Multiplier</Label>
                             <Input
                                 type="number"
                                 min="1"
@@ -114,18 +113,18 @@ export default function QualityManagementSettings() {
                                 }))}
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                QS (5 üzerinden) bu sayı ile çarpılarak 100'e dönüştürülür
+                                QS (out of 5) is multiplied to convert to 100 scale
                             </p>
                         </div>
                     </div>
 
                     <div className="bg-purple-50 rounded-lg p-4">
-                        <p className="text-sm font-medium text-purple-700 mb-2">Formül Önizleme</p>
+                        <p className="text-sm font-medium text-purple-700 mb-2">Formula Preview</p>
                         <code className="text-sm bg-white px-2 py-1 rounded">
                             Combined = (LQA × {settings.lqa_weight} + QS × {settings.qs_multiplier}) / {settings.lqa_weight + 1}
                         </code>
                         <p className="text-xs text-purple-600 mt-2">
-                            Örnek: LQA=85, QS=4 → Combined = {previewScore().toFixed(1)}
+                            Example: LQA=85, QS=4 → Combined = {previewScore().toFixed(1)}
                         </p>
                     </div>
                 </CardContent>
@@ -135,13 +134,13 @@ export default function QualityManagementSettings() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Clock className="w-5 h-5" />
-                        İtiraz ve Onay Süreleri
+                        Dispute & Approval Periods
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <Label>İtiraz Süresi (Gün)</Label>
+                            <Label>Dispute Period (Days)</Label>
                             <Input
                                 type="number"
                                 min="1"
@@ -153,14 +152,14 @@ export default function QualityManagementSettings() {
                                 }))}
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                Çevirmenin LQA raporuna itiraz edebileceği süre
+                                Time allowed for translator to dispute an LQA report
                             </p>
                         </div>
                         <div className="flex items-center justify-between p-4 border rounded-lg">
                             <div>
-                                <Label>Otomatik Kabul</Label>
+                                <Label>Auto Accept</Label>
                                 <p className="text-xs text-gray-500">
-                                    Süre dolduğunda raporu otomatik onayla
+                                    Automatically finalize reports after dispute period
                                 </p>
                             </div>
                             <Switch
@@ -179,10 +178,10 @@ export default function QualityManagementSettings() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5" />
-                        LQA Hata Ağırlıkları
+                        LQA Error Weights
                     </CardTitle>
                     <CardDescription>
-                        Her hata seviyesinin puan kesintisini belirleyin (1000 kelime başına)
+                        Define point deductions for each error severity level (per 1000 words)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -202,6 +201,7 @@ export default function QualityManagementSettings() {
                                     }
                                 }))}
                             />
+                            <p className="text-xs text-gray-500 mt-1">Default: 10</p>
                         </div>
                         <div>
                             <Label className="text-orange-600">Major</Label>
@@ -218,6 +218,7 @@ export default function QualityManagementSettings() {
                                     }
                                 }))}
                             />
+                            <p className="text-xs text-gray-500 mt-1">Default: 5</p>
                         </div>
                         <div>
                             <Label className="text-yellow-600">Minor</Label>
@@ -234,6 +235,7 @@ export default function QualityManagementSettings() {
                                     }
                                 }))}
                             />
+                            <p className="text-xs text-gray-500 mt-1">Default: 2</p>
                         </div>
                         <div>
                             <Label className="text-gray-600">Preferential</Label>
@@ -250,19 +252,25 @@ export default function QualityManagementSettings() {
                                     }
                                 }))}
                             />
+                            <p className="text-xs text-gray-500 mt-1">Default: 0.5</p>
                         </div>
+                    </div>
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-600">
+                            <strong>Calculation:</strong> LQA Score = 100 - (Total Penalty ÷ Words Reviewed × 1000)
+                        </p>
                     </div>
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Probation Eşiği</CardTitle>
+                    <CardTitle>Probation Threshold</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-4">
                         <div className="flex-1">
-                            <Label>Combined Score Eşiği</Label>
+                            <Label>Combined Score Threshold</Label>
                             <Input
                                 type="number"
                                 min="0"
@@ -274,7 +282,7 @@ export default function QualityManagementSettings() {
                                 }))}
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                Bu skorun altına düşen freelancerlar probation'a alınır
+                                Freelancers falling below this score will be flagged for probation
                             </p>
                         </div>
                     </div>
@@ -288,7 +296,7 @@ export default function QualityManagementSettings() {
                     className="bg-purple-600 hover:bg-purple-700"
                 >
                     <Save className="w-4 h-4 mr-2" />
-                    {saveMutation.isPending ? "Kaydediliyor..." : "Ayarları Kaydet"}
+                    {saveMutation.isPending ? "Saving..." : "Save Settings"}
                 </Button>
             </div>
         </div>
