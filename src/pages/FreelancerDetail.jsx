@@ -20,6 +20,7 @@ import FreelancerEmailHistory from "../components/gmail/FreelancerEmailHistory";
 import QuizAttemptsView from "../components/quiz/QuizAttemptsView";
 import SendEmailDialog from "../components/freelancers/SendEmailDialog";
 import QuizAssignmentDialog from "../components/quiz/QuizAssignmentDialog";
+import SmartcatProfileSection from "../components/smartcat/SmartcatProfileSection";
 
 const statusConfig = {
     'New Application': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: User },
