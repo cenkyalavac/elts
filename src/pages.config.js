@@ -28,6 +28,8 @@ import SmartcatPayments from './pages/SmartcatPayments';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
+import Announcements from './pages/Announcements';
+import SupportTickets from './pages/SupportTickets';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +64,8 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
+    "Announcements": Announcements,
+    "SupportTickets": SupportTickets,
 }
 
 export const pagesConfig = {

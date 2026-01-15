@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import AvailabilityCalendar from "../components/availability/AvailabilityCalendar";
+import GoogleCalendarConnect from "../components/integrations/GoogleCalendarConnect";
 import { Calendar, AlertCircle } from "lucide-react";
 
 export default function MyAvailabilityPage() {
@@ -58,6 +59,10 @@ export default function MyAvailabilityPage() {
                     <p className="text-gray-600 mt-1">
                         Manage your available dates and working hours
                     </p>
+                </div>
+
+                <div className="mb-6">
+                    <GoogleCalendarConnect freelancerId={freelancer.id} />
                 </div>
 
                 <AvailabilityCalendar freelancerId={freelancer.id} readOnly={false} />
