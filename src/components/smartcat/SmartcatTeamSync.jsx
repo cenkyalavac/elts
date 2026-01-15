@@ -24,6 +24,23 @@ import { toast } from "sonner";
 
 export default function SmartcatTeamSync() {
     const queryClient = useQueryClient();
+    const [showLinkDialog, setShowLinkDialog] = useState(false);
+    const [selectedSmartcatId, setSelectedSmartcatId] = useState('');
+    const [selectedFreelancerId, setSelectedFreelancerId] = useState('');
+
+    // Test connection first
+    const { data: connectionTest, isLoading: testingConnection, refetch: testConnection } = useQuery({
+        queryKey: ['smartcatConnection'],
+        queryFn: async () => {
+            const response = await base44.functions.invoke('smartcatApi', {
+                action: 'test_connection',
+                params: {}
+            });
+            return response.data;
+        },
+        enabled: false,
+        retry: 1
+    });
 
     const { data: teamData, isLoading: teamLoading, refetch: refetchTeam, error: teamError } = useQuery({
         queryKey: ['smartcatMyTeam'],
@@ -58,6 +75,25 @@ export default function SmartcatTeamSync() {
         },
         onError: (error) => {
             toast.error(`Sync failed: ${error.message}`);
+        }
+    });
+
+    const linkMutation = useMutation({
+        mutationFn: async ({ freelancer_id, smartcat_id }) => {
+            const response = await base44.functions.invoke('smartcatApi', {
+                action: 'link_freelancer',
+                params: { freelancer_id, smartcat_id }
+            });
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['freelancers'] });
+            toast.success('Freelancer linked to Smartcat ID');
+            setShowLinkDialog(false);
+            refetchTeam();
+        },
+        onError: (error) => {
+            toast.error(`Link failed: ${error.message}`);
         }
     });
 
