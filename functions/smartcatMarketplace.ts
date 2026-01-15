@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const SMARTCAT_API_URL = 'https://smartcat.com/api/integration/v2';
+// Smartcat API base URL - correct endpoint
+const SMARTCAT_API_URL = 'https://smartcat.com/api/integration/v1';
 
 async function getSmartcatAuth() {
     const accountId = Deno.env.get('SMARTCAT_ACCOUNT_ID');
@@ -21,95 +22,100 @@ Deno.serve(async (req) => {
         const auth = await getSmartcatAuth();
 
         if (action === 'search_marketplace') {
-            // Search for freelancers in Smartcat marketplace
-            const { source_language, target_language, specialization, min_rate, max_rate } = filters || {};
-            
-            let url = `${SMARTCAT_API_URL}/freelancers/search?`;
-            const params = new URLSearchParams();
-            
-            if (source_language) params.append('sourceLanguage', source_language);
-            if (target_language) params.append('targetLanguage', target_language);
-            if (specialization) params.append('specialization', specialization);
-            
-            const response = await fetch(url + params.toString(), {
-                headers: { 'Authorization': auth }
-            });
-
-            if (!response.ok) {
-                // Try alternative endpoint
-                const altResponse = await fetch(`${SMARTCAT_API_URL}/account/searchMyTeam?${params.toString()}`, {
-                    headers: { 'Authorization': auth }
-                });
-                
-                if (!altResponse.ok) {
-                    return Response.json({ 
-                        error: 'Marketplace search not available',
-                        suggestion: 'Use manual search on Smartcat website'
-                    }, { status: 400 });
-                }
-                
-                const teamData = await altResponse.json();
-                return Response.json({ freelancers: teamData, source: 'team' });
-            }
-
-            const freelancers = await response.json();
-            
-            // Filter by rate if specified
-            let filtered = freelancers;
-            if (min_rate || max_rate) {
-                filtered = freelancers.filter(f => {
-                    const rate = f.rate || f.pricePerWord || 0;
-                    if (min_rate && rate < min_rate) return false;
-                    if (max_rate && rate > max_rate) return false;
-                    return true;
-                });
-            }
-
+            // Smartcat doesn't have public marketplace API
+            // Return suggestion to use website
             return Response.json({ 
-                freelancers: filtered,
-                total: filtered.length,
-                source: 'marketplace'
+                error: 'Marketplace search API not available',
+                suggestion: 'Use manual search on Smartcat website and invite via email',
+                freelancers: []
             });
         }
 
         if (action === 'get_my_team') {
-            // Get freelancers already in our Smartcat team
-            const response = await fetch(`${SMARTCAT_API_URL}/account/myTeam`, {
-                headers: { 'Authorization': auth }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                return Response.json({ error: 'Failed to get team', details: errorText }, { status: 400 });
+            // Get freelancers from Smartcat account
+            // Try multiple endpoints as Smartcat API varies
+            
+            // Try getting users from account
+            let team = [];
+            
+            try {
+                // Get account info first
+                const accountResponse = await fetch(`${SMARTCAT_API_URL}/account`, {
+                    headers: { 'Authorization': auth }
+                });
+                
+                if (accountResponse.ok) {
+                    const accountData = await accountResponse.json();
+                    console.log('Account data:', JSON.stringify(accountData));
+                }
+            } catch (e) {
+                console.log('Account fetch error:', e.message);
             }
 
-            const team = await response.json();
-            return Response.json({ team, total: team.length });
+            // Try to get translators from projects
+            try {
+                const projectsResponse = await fetch(`${SMARTCAT_API_URL}/project/list`, {
+                    headers: { 'Authorization': auth }
+                });
+                
+                if (projectsResponse.ok) {
+                    const projects = await projectsResponse.json();
+                    const assigneeSet = new Map();
+                    
+                    // Extract unique assignees from projects
+                    for (const project of projects.slice(0, 50)) { // Limit to recent 50
+                        if (project.assignees) {
+                            for (const assignee of project.assignees) {
+                                if (assignee.email && !assigneeSet.has(assignee.email.toLowerCase())) {
+                                    assigneeSet.set(assignee.email.toLowerCase(), {
+                                        email: assignee.email,
+                                        name: assignee.name || assignee.supplierName || assignee.email.split('@')[0],
+                                        id: assignee.id || assignee.userId
+                                    });
+                                }
+                            }
+                        }
+                        if (project.executives) {
+                            for (const exec of project.executives) {
+                                if (exec.email && !assigneeSet.has(exec.email.toLowerCase())) {
+                                    assigneeSet.set(exec.email.toLowerCase(), {
+                                        email: exec.email,
+                                        name: exec.name || exec.supplierName || exec.email.split('@')[0],
+                                        id: exec.id || exec.userId
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    
+                    team = Array.from(assigneeSet.values());
+                }
+            } catch (e) {
+                console.log('Projects fetch error:', e.message);
+            }
+
+            // If we got team members, return them
+            if (team.length > 0) {
+                return Response.json({ team, total: team.length, source: 'projects' });
+            }
+
+            // Fallback: return error with details
+            return Response.json({ 
+                error: 'Could not fetch team from Smartcat',
+                details: 'Try checking your API credentials or Smartcat API access',
+                team: [],
+                total: 0
+            });
         }
 
         if (action === 'invite_to_team') {
-            // Invite a marketplace freelancer to our team
             const { email, name, message } = filters || {};
             
             if (!email) {
                 return Response.json({ error: 'Email required' }, { status: 400 });
             }
 
-            // Send invitation via Smartcat API
-            const response = await fetch(`${SMARTCAT_API_URL}/account/inviteUser`, {
-                method: 'POST',
-                headers: { 
-                    'Authorization': auth,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    externalId: `base44_${Date.now()}`,
-                    rightsGroup: 'Freelancer'
-                })
-            });
-
-            // Also create/update in Base44
+            // Create/update in Base44
             const existingFreelancers = await base44.asServiceRole.entities.Freelancer.filter({ email });
             
             if (existingFreelancers.length === 0) {
@@ -117,15 +123,15 @@ Deno.serve(async (req) => {
                     email,
                     full_name: name || email.split('@')[0],
                     status: 'New Application',
-                    tags: ['Smartcat Marketplace', 'Invited'],
-                    notes: `Smartcat marketplace'ten davet edildi. ${new Date().toLocaleDateString('tr-TR')}`
+                    tags: ['Smartcat Invite', 'Invited'],
+                    notes: `Invited to Smartcat team on ${new Date().toISOString().split('T')[0]}`
                 });
             } else {
                 const existing = existingFreelancers[0];
                 const currentTags = existing.tags || [];
-                if (!currentTags.includes('Smartcat Marketplace')) {
+                if (!currentTags.includes('Smartcat Invite')) {
                     await base44.asServiceRole.entities.Freelancer.update(existing.id, {
-                        tags: [...currentTags, 'Smartcat Marketplace', 'Invited']
+                        tags: [...currentTags, 'Smartcat Invite', 'Invited']
                     });
                 }
             }
@@ -133,43 +139,75 @@ Deno.serve(async (req) => {
             // Send welcome email
             await base44.asServiceRole.integrations.Core.SendEmail({
                 to: email,
-                subject: 'el turco Ekibine Davet',
+                subject: 'Invitation to Join el turco Team',
                 body: `
-Merhaba${name ? ' ' + name : ''},
+Hello${name ? ' ' + name : ''},
 
-Smartcat üzerindeki profilinizi inceledik ve ekibimize katılmanızı çok isteriz.
+We've reviewed your profile and would like to invite you to join our team.
 
-el turco olarak profesyonel çeviri hizmetleri sunuyoruz ve yetenekli çevirmenlerle çalışmaktan mutluluk duyuyoruz.
+At el turco, we provide professional translation services and enjoy working with talented translators.
 
-${message || 'Ekibimize katılarak düzenli iş fırsatlarından yararlanabilir ve daha düşük komisyon oranlarıyla çalışabilirsiniz.'}
+${message || 'By joining our team, you can benefit from regular work opportunities and lower commission rates.'}
 
-Smartcat üzerinden gönderdiğimiz daveti kabul ederek ekibimize katılabilirsiniz.
+Please accept our invitation on Smartcat to join the team.
 
-Sorularınız için bu e-postayı yanıtlayabilirsiniz.
+If you have any questions, feel free to reply to this email.
 
-Saygılarımızla,
-el turco Ekibi
+Best regards,
+el turco Team
                 `.trim()
             });
 
             return Response.json({ 
                 success: true, 
-                message: 'Invitation sent',
-                smartcat_response: response.ok ? 'success' : 'pending'
+                message: 'Invitation email sent. Please also invite via Smartcat dashboard.',
+                note: 'Manual Smartcat invitation required'
             });
         }
 
         if (action === 'sync_team_to_base44') {
-            // Sync all Smartcat team members to Base44
-            const response = await fetch(`${SMARTCAT_API_URL}/account/myTeam`, {
-                headers: { 'Authorization': auth }
-            });
-
-            if (!response.ok) {
-                return Response.json({ error: 'Failed to get team' }, { status: 400 });
+            // First get team from projects
+            let team = [];
+            
+            try {
+                const projectsResponse = await fetch(`${SMARTCAT_API_URL}/project/list`, {
+                    headers: { 'Authorization': auth }
+                });
+                
+                if (projectsResponse.ok) {
+                    const projects = await projectsResponse.json();
+                    const assigneeSet = new Map();
+                    
+                    for (const project of projects) {
+                        if (project.assignees) {
+                            for (const assignee of project.assignees) {
+                                if (assignee.email && !assigneeSet.has(assignee.email.toLowerCase())) {
+                                    assigneeSet.set(assignee.email.toLowerCase(), {
+                                        email: assignee.email,
+                                        name: assignee.name || assignee.supplierName || assignee.email.split('@')[0],
+                                        id: assignee.id
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    
+                    team = Array.from(assigneeSet.values());
+                }
+            } catch (e) {
+                return Response.json({ error: 'Failed to fetch from Smartcat: ' + e.message }, { status: 400 });
             }
 
-            const team = await response.json();
+            if (team.length === 0) {
+                return Response.json({ 
+                    success: true, 
+                    team_size: 0,
+                    created: 0,
+                    updated: 0,
+                    message: 'No team members found in Smartcat projects'
+                });
+            }
+
             const existingFreelancers = await base44.asServiceRole.entities.Freelancer.list();
             const existingEmails = new Set(existingFreelancers.map(f => f.email?.toLowerCase()));
 
@@ -183,14 +221,13 @@ el turco Ekibi
                 if (!existingEmails.has(email)) {
                     await base44.asServiceRole.entities.Freelancer.create({
                         email: member.email,
-                        full_name: member.name || member.firstName + ' ' + member.lastName,
+                        full_name: member.name,
                         status: 'Approved',
                         tags: ['Smartcat Team'],
-                        notes: `Smartcat'ten senkronize edildi. ID: ${member.id || member.externalId}`
+                        notes: `Synced from Smartcat on ${new Date().toISOString().split('T')[0]}`
                     });
                     created++;
                 } else {
-                    // Update existing with Smartcat ID if not present
                     const existing = existingFreelancers.find(f => f.email?.toLowerCase() === email);
                     if (existing && !existing.tags?.includes('Smartcat Team')) {
                         await base44.asServiceRole.entities.Freelancer.update(existing.id, {

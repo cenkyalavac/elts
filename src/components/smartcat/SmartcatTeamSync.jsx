@@ -135,7 +135,7 @@ export default function SmartcatTeamSync() {
                                 </CardTitle>
                             </div>
                             <CardDescription>
-                                These people are in your Smartcat team but not registered in Base44
+                                These people are in Smartcat projects but not in your database
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -150,7 +150,7 @@ export default function SmartcatTeamSync() {
                                                 <p className="text-sm text-gray-600">{member.email}</p>
                                             </div>
                                             <Badge variant="outline" className="text-yellow-600">
-                                                Not in Base44
+                                                Missing
                                             </Badge>
                                         </div>
                                     ))}
