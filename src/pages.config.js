@@ -31,6 +31,7 @@ import UserManagement from './pages/UserManagement';
 import Announcements from './pages/Announcements';
 import SupportTickets from './pages/SupportTickets';
 import Support from './pages/Support';
+import GettingStarted from './pages/GettingStarted';
 import __Layout from './Layout.jsx';
 
 
@@ -68,6 +69,7 @@ export const PAGES = {
     "Announcements": Announcements,
     "SupportTickets": SupportTickets,
     "Support": Support,
+    "GettingStarted": GettingStarted,
 }
 
 export const pagesConfig = {

@@ -18,6 +18,7 @@ import QualityAlerts from "../components/dashboard/QualityAlerts";
 import QualityTrendChart from "../components/dashboard/QualityTrendChart";
 import TopPerformers from "../components/dashboard/TopPerformers";
 import AnnouncementsBanner from "../components/dashboard/AnnouncementsBanner";
+import OnboardingChecklist from "../components/onboarding/OnboardingChecklist";
 
 export default function Dashboard() {
     const { data: user, isLoading } = useQuery({
@@ -58,6 +59,21 @@ export default function Dashboard() {
     const { data: documentSignatures = [] } = useQuery({
         queryKey: ['documentSignatures'],
         queryFn: () => base44.entities.DocumentSignature.list(),
+    });
+
+    const { data: documents = [] } = useQuery({
+        queryKey: ['documents'],
+        queryFn: () => base44.entities.Document.list(),
+    });
+
+    const { data: positions = [] } = useQuery({
+        queryKey: ['positions'],
+        queryFn: () => base44.entities.OpenPosition.list(),
+    });
+
+    const { data: quizzes = [] } = useQuery({
+        queryKey: ['quizzes'],
+        queryFn: () => base44.entities.Quiz.list(),
     });
 
     // Pipeline stats
@@ -180,6 +196,17 @@ export default function Dashboard() {
         a.status !== 'completed' && a.deadline && isPast(new Date(a.deadline))
     ).length;
 
+    // Onboarding data
+    const onboardingData = {
+        freelancer: null,
+        availabilityCount: 0,
+        gmailConnected: true,
+        documentsCount: documents.length,
+        quizzesCount: quizzes.length,
+        positionsCount: positions.length,
+        qualityReportsCreated: qualityReports.filter(r => r.created_by === user?.email).length,
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -228,6 +255,9 @@ export default function Dashboard() {
 
                 {/* Announcements Banner */}
                 <AnnouncementsBanner />
+
+                {/* Onboarding Checklist - Compact */}
+                <OnboardingChecklist user={user} data={onboardingData} compact />
 
                 {/* Key Metrics Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

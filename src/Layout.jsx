@@ -81,6 +81,7 @@ export default function Layout({ children, currentPageName }) {
 
     // Applicant navigation
     const applicantNavItems = [
+        { name: 'GettingStarted', label: 'Getting Started', icon: Briefcase },
         { name: 'MyApplication', label: 'My Application', icon: FileText },
         { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
         { name: 'Announcements', label: 'Announcements', icon: Megaphone },
