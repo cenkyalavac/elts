@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
     Search, Filter, X, ChevronDown, ChevronUp, 
-    Globe, Briefcase, Award, Calendar, FileQuestion, Star, Building2, User
+    Globe, Briefcase, Award, Calendar, FileQuestion, Star, Building2, User, GraduationCap
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -41,7 +41,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         skills: false,
         experience: false,
         rating: false,
-        quiz: false
+        quiz: false,
+        ninja: false
     });
 
     // Load filters from localStorage on mount
@@ -156,7 +157,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
             certified: false,
             minRating: '',
             quizPassed: 'all',
-            minQuizScore: ''
+            minQuizScore: '',
+            isNinja: false
         });
     };
 
@@ -178,7 +180,8 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
         (filters.certified ? 1 : 0) +
         (filters.minRating ? 1 : 0) +
         (filters.quizPassed !== 'all' ? 1 : 0) +
-        (filters.minQuizScore ? 1 : 0);
+        (filters.minQuizScore ? 1 : 0) +
+        (filters.isNinja ? 1 : 0);
 
     return (
         <Card>
@@ -695,6 +698,44 @@ export default function AdvancedFilters({ filters, onFilterChange, freelancers }
                                         onChange={(e) => onFilterChange({ ...filters, minQuizScore: e.target.value })}
                                         className="mt-1 h-8"
                                     />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Ninja Filter */}
+                    <div className="border-t pt-4">
+                        <button
+                            onClick={() => toggleSection('ninja')}
+                            className="flex items-center justify-between w-full mb-2"
+                        >
+                            <div className="flex items-center gap-2">
+                                <GraduationCap className="w-4 h-4 text-purple-500" />
+                                <Label className="text-sm cursor-pointer">Localization Ninja</Label>
+                                {filters.isNinja && (
+                                    <Badge variant="secondary" className="text-xs bg-purple-100">
+                                        Active
+                                    </Badge>
+                                )}
+                            </div>
+                            {expandedSections.ninja ? 
+                                <ChevronUp className="w-4 h-4" /> : 
+                                <ChevronDown className="w-4 h-4" />
+                            }
+                        </button>
+                        {expandedSections.ninja && (
+                            <div className="space-y-2 pl-6">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        id="is-ninja"
+                                        checked={filters.isNinja || false}
+                                        onCheckedChange={(checked) => 
+                                            onFilterChange({ ...filters, isNinja: checked })
+                                        }
+                                    />
+                                    <label htmlFor="is-ninja" className="text-sm cursor-pointer flex items-center gap-2">
+                                        <span className="text-lg">🥷</span> Ninja Graduates Only
+                                    </label>
                                 </div>
                             </div>
                         )}

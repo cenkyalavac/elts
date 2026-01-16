@@ -67,7 +67,8 @@ export default function FreelancersPage() {
             certified: false,
             minRating: '',
             quizPassed: 'all',
-            minQuizScore: ''
+            minQuizScore: '',
+            isNinja: false
         };
         
         if (urlStatus === 'in_review') {
@@ -344,6 +345,11 @@ export default function FreelancersPage() {
             if (!freelancer.resource_rating || freelancer.resource_rating < minRatingNum) {
                 return false;
             }
+        }
+
+        // Ninja filter
+        if (filters.isNinja && !freelancer.is_ninja) {
+            return false;
         }
 
         return true;

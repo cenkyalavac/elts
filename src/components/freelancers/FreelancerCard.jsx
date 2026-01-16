@@ -6,6 +6,7 @@ import { Mail, Phone, MapPin, Globe, Award, Calendar, ExternalLink, CheckCircle,
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import { FreelancerRatesUSD } from "../utils/CurrencyConverter";
+import NinjaBadge from "../ninja/NinjaBadge";
 
 const statusColors = {
     'New': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -41,8 +42,9 @@ export default function FreelancerCard({ freelancer, onQuickView, allQuizAttempt
             <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                     <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-lg font-semibold">{freelancer.full_name}</h3>
+                            <NinjaBadge freelancer={freelancer} />
                             {freelancer.resource_type === 'Agency' && (
                                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                                     Agency
