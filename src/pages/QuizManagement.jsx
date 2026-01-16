@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, FileQuestion, BarChart, X, Eye, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, FileQuestion, BarChart, X, Eye, FileText, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import QuizForm from "../components/quiz/QuizForm";
 import EnhancedQuizAnalytics from "../components/quiz/EnhancedQuizAnalytics";
 import ImportFromGoogleDoc from "../components/quiz/ImportFromGoogleDoc";
+import AIQuizGenerator from "../components/quiz/AIQuizGenerator";
 import Leaderboard from "../components/gamification/Leaderboard";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ export default function QuizManagement() {
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [showImport, setShowImport] = useState(false);
+    const [showAIGenerator, setShowAIGenerator] = useState(false);
     const [expandedQuizId, setExpandedQuizId] = useState(null);
 
     const queryClient = useQueryClient();
@@ -81,7 +83,7 @@ export default function QuizManagement() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <FileQuestion className="w-8 h-8 text-blue-600" />
@@ -89,33 +91,54 @@ export default function QuizManagement() {
                         </h1>
                         <p className="text-gray-600 mt-1">Create and manage applicant assessment quizzes</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            onClick={() => {
+                                setShowAIGenerator(true);
+                                setShowImport(false);
+                                setShowForm(false);
+                            }}
+                            variant="outline"
+                            className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-pink-100"
+                        >
+                            <Sparkles className="w-5 h-5 mr-2" />
+                            AI Generate
+                        </Button>
                         <Button
                             onClick={() => {
                                 setShowImport(true);
                                 setShowForm(false);
+                                setShowAIGenerator(false);
                             }}
                             variant="outline"
                             className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
                         >
                             <FileText className="w-5 h-5 mr-2" />
-                            Import from Google Docs
+                            Import
                         </Button>
                         <Button
                             onClick={() => {
                                 setSelectedQuiz(null);
                                 setShowForm(true);
                                 setShowImport(false);
+                                setShowAIGenerator(false);
                             }}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             <Plus className="w-5 h-5 mr-2" />
-                            Create Quiz
+                            Create
                         </Button>
                     </div>
                 </div>
 
-                {showImport ? (
+                {showAIGenerator ? (
+                    <AIQuizGenerator
+                        onSuccess={() => {
+                            setShowAIGenerator(false);
+                            queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+                        }}
+                    />
+                ) : showImport ? (
                     <ImportFromGoogleDoc
                         onSuccess={() => {
                             setShowImport(false);
