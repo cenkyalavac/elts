@@ -32,6 +32,8 @@ import SupportTickets from './pages/SupportTickets';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
+import NinjaPrograms from './pages/NinjaPrograms';
+import NinjaApplicants from './pages/NinjaApplicants';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +72,8 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
+    "NinjaPrograms": NinjaPrograms,
+    "NinjaApplicants": NinjaApplicants,
 }
 
 export const pagesConfig = {
