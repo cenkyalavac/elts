@@ -92,13 +92,16 @@ export default function Layout({ children, currentPageName }) {
             const mainNavItems = [
                 { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
                 { name: 'Freelancers', label: 'Freelancers', icon: Users },
-                { name: 'NinjaPrograms', label: 'Ninja', icon: GraduationCap },
                 { name: 'QualityManagement', label: 'Quality', icon: Star },
+                { name: 'SmartcatIntegration', label: 'Payments', icon: DollarSign },
                 { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
                 { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
                 { name: 'Announcements', label: 'Announcements', icon: Megaphone },
                 { name: 'Support', label: 'Support', icon: HelpCircle },
             ];
+    
+    // Ninja menu item (separated)
+    const ninjaNavItem = { name: 'NinjaPrograms', label: 'Ninja', icon: GraduationCap };
 
     // Payment dropdown items
     const paymentItems = [
@@ -135,39 +138,39 @@ export default function Layout({ children, currentPageName }) {
                             
                             {/* Main navigation */}
                             <div className="hidden md:flex items-center gap-1">
-                                {navItems.map(item => {
-                                    // Regular nav item
-                                    return (
-                                        <Link key={item.name} to={createPageUrl(item.name)}>
-                                            <Button
-                                                variant="ghost"
-                                                className={`gap-2 text-white hover:bg-white/10 ${
-                                                    currentPageName === item.name ? 'bg-white/20' : ''
-                                                }`}
-                                            >
-                                                <item.icon className="w-4 h-4" />
-                                                {item.label}
-                                                {item.badge > 0 && (
-                                                    <Badge className="bg-red-500 ml-1">{item.badge}</Badge>
-                                                )}
-                                            </Button>
-                                        </Link>
-                                    );
-                                })}
-
-                                {/* Payments - Only for admin/PM */}
-                                {!isApplicant && (
-                                    <Link to={createPageUrl('SmartcatIntegration')}>
+                                {navItems.map(item => (
+                                    <Link key={item.name} to={createPageUrl(item.name)}>
                                         <Button
                                             variant="ghost"
                                             className={`gap-2 text-white hover:bg-white/10 ${
-                                                currentPageName === 'SmartcatIntegration' ? 'bg-white/20' : ''
+                                                currentPageName === item.name ? 'bg-white/20' : ''
                                             }`}
                                         >
-                                            <DollarSign className="w-4 h-4" />
-                                            Payments
+                                            <item.icon className="w-4 h-4" />
+                                            {item.label}
+                                            {item.badge > 0 && (
+                                                <Badge className="bg-red-500 ml-1">{item.badge}</Badge>
+                                            )}
                                         </Button>
                                     </Link>
+                                ))}
+
+                                {/* Ninja - Separated with divider */}
+                                {!isApplicant && (
+                                    <>
+                                        <div className="w-px h-6 bg-white/20 mx-2" />
+                                        <Link to={createPageUrl(ninjaNavItem.name)}>
+                                            <Button
+                                                variant="ghost"
+                                                className={`gap-2 text-white hover:bg-white/10 ${
+                                                    currentPageName === ninjaNavItem.name || currentPageName === 'NinjaApplicants' ? 'bg-white/20' : ''
+                                                }`}
+                                            >
+                                                <span className="text-base">🥷</span>
+                                                {ninjaNavItem.label}
+                                            </Button>
+                                        </Link>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -261,15 +264,15 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-                            {/* Mobile Payments section */}
+                            {/* Mobile Ninja section */}
                             {!isApplicant && (
                                 <>
                                     <div className="border-t border-white/10 pt-3 mt-3">
-                                        <p className="text-xs text-purple-300 px-3 mb-2">Payments</p>
-                                        <Link to={createPageUrl('SmartcatIntegration')} onClick={() => setMobileMenuOpen(false)}>
+                                        <p className="text-xs text-purple-300 px-3 mb-2">Training</p>
+                                        <Link to={createPageUrl('NinjaPrograms')} onClick={() => setMobileMenuOpen(false)}>
                                             <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-white/10">
-                                                <CreditCard className="w-5 h-5" />
-                                                Invoices
+                                                <span className="text-lg">🥷</span>
+                                                Localization Ninja
                                             </Button>
                                         </Link>
                                     </div>

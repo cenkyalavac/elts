@@ -264,7 +264,19 @@ function ApplicantDetailDialog({ applicant, onClose, programs, quizzes }) {
     }, [applicant]);
 
     const updateMutation = useMutation({
-        mutationFn: (data) => base44.entities.NinjaApplicant.update(applicant.id, data),
+        mutationFn: async (data) => {
+            await base44.entities.NinjaApplicant.update(applicant.id, data);
+            
+            // If status changed to quiz_assigned, auto-assign quizzes
+            if (data.status === 'quiz_assigned' && applicant.status !== 'quiz_assigned') {
+                try {
+                    await base44.functions.invoke('assignNinjaQuizzes', { applicant_id: applicant.id });
+                    toast.success('Quizzes auto-assigned!');
+                } catch (e) {
+                    console.error('Failed to auto-assign quizzes:', e);
+                }
+            }
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ninjaApplicants'] });
             toast.success('Applicant updated');
