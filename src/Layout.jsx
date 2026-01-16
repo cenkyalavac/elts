@@ -16,7 +16,7 @@ import {
                   Users, FileText, LogOut, Settings, Menu, X, 
                   MessageSquare, Star, ChevronDown, Mail, Shield, Award, 
                   User, DollarSign, CreditCard, Upload, Briefcase, BarChart3,
-                  Megaphone, HelpCircle
+                  Megaphone, HelpCircle, GraduationCap
               } from "lucide-react";
 
 export default function Layout({ children, currentPageName }) {
@@ -92,6 +92,7 @@ export default function Layout({ children, currentPageName }) {
             const mainNavItems = [
                 { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
                 { name: 'Freelancers', label: 'Freelancers', icon: Users },
+                { name: 'NinjaPrograms', label: 'Ninja', icon: GraduationCap },
                 { name: 'QualityManagement', label: 'Quality', icon: Star },
                 { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
                 { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
