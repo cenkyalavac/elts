@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reply, ReplyAll, Forward, Mail, ChevronDown, ChevronUp } from "lucide-react";
-import moment from "moment";
+import { format } from "date-fns";
 import EnhancedEmailComposer from "./EnhancedEmailComposer";
 
 export default function EmailViewer({ email, freelancerEmail }) {
@@ -31,7 +31,7 @@ export default function EmailViewer({ email, freelancerEmail }) {
                                 <span className="font-medium">From:</span> {email.from}
                             </div>
                             <div className="text-xs text-gray-500 mt-0.5">
-                                {moment(email.date).format('MMMM D, YYYY [at] h:mm A')}
+                                {format(new Date(email.date), 'MMMM d, yyyy \'at\' h:mm a')}
                             </div>
                         </div>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -74,7 +74,7 @@ export default function EmailViewer({ email, freelancerEmail }) {
                 onOpenChange={setShowReply}
                 defaultTo={isFromFreelancer ? freelancerEmail : email.to}
                 defaultSubject={email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`}
-                defaultBody={`\n\n---\nOn ${moment(email.date).format('MMM D, YYYY [at] h:mm A')}, ${email.from} wrote:\n${email.snippet}`}
+                defaultBody={`\n\n---\nOn ${format(new Date(email.date), 'MMM d, yyyy \'at\' h:mm a')}, ${email.from} wrote:\n${email.snippet}`}
                 threadId={email.threadId}
                 email={email}
                 freelancer={{ email: freelancerEmail }}

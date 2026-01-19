@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Mail, Send, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import moment from "moment";
+import { format } from "date-fns";
 
 export default function EmailThread({ freelancerEmail }) {
     const [showCompose, setShowCompose] = useState(false);
@@ -157,7 +157,7 @@ export default function EmailThread({ freelancerEmail }) {
                                             </div>
                                         </div>
                                         <div className="text-xs text-gray-500">
-                                            {moment(email.date).format('MMM D, YYYY h:mm A')}
+                                            {format(new Date(email.date), 'MMM d, yyyy h:mm a')}
                                         </div>
                                     </div>
                                     <div className="text-sm text-gray-700 mt-2">
