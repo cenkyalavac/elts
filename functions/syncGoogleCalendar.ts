@@ -86,10 +86,19 @@ Deno.serve(async (req) => {
             return event.transparency !== 'transparent';
         });
 
-        // Get existing availability records for this freelancer
-        const existingAvailability = await base44.asServiceRole.entities.Availability.filter({
+        // Calculate date range boundaries for filtering existing records
+        const startDateStr = now.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+
+        // Get existing availability records for this freelancer within the sync range
+        const allAvailability = await base44.asServiceRole.entities.Availability.filter({
             freelancer_id: freelancerId
         });
+        
+        // Filter to only records within our sync date range
+        const existingAvailability = allAvailability.filter(a => 
+            a.date >= startDateStr && a.date <= endDateStr
+        );
 
         // Create a map of dates with busy events
         const busyDates = new Map();
@@ -116,15 +125,17 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Update or create availability records
+        // Prepare all database operations
+        const operations = [];
         let created = 0;
         let updated = 0;
+        let cleared = 0;
 
+        // Process busy dates - create or update records
         for (const [date, data] of busyDates) {
             const existingRecord = existingAvailability.find(a => a.date === date);
             
-            // Determine availability status based on busy hours
-            // Assuming 8-hour workday
+            // Determine availability status based on busy hours (8-hour workday)
             let status = 'available';
             let hoursAvailable = 8 - data.totalBusyHours;
             
@@ -144,15 +155,43 @@ Deno.serve(async (req) => {
             };
 
             if (existingRecord) {
-                await base44.asServiceRole.entities.Availability.update(
-                    existingRecord.id, 
-                    availabilityData
+                operations.push(
+                    base44.asServiceRole.entities.Availability.update(existingRecord.id, availabilityData)
+                        .then(() => 'updated')
                 );
-                updated++;
             } else {
-                await base44.asServiceRole.entities.Availability.create(availabilityData);
-                created++;
+                operations.push(
+                    base44.asServiceRole.entities.Availability.create(availabilityData)
+                        .then(() => 'created')
+                );
             }
+        }
+
+        // Find records that were synced from calendar but no longer have events (ghost events)
+        const syncedRecordsToReset = existingAvailability.filter(a => 
+            a.notes?.includes('Synced from Google Calendar') && 
+            !busyDates.has(a.date)
+        );
+
+        // Reset these records to available
+        for (const record of syncedRecordsToReset) {
+            operations.push(
+                base44.asServiceRole.entities.Availability.update(record.id, {
+                    status: 'available',
+                    hours_available: 8,
+                    notes: 'Calendar event removed - reset to available'
+                }).then(() => 'cleared')
+            );
+        }
+
+        // Execute all operations in parallel
+        const results = await Promise.all(operations);
+        
+        // Count results
+        for (const result of results) {
+            if (result === 'created') created++;
+            else if (result === 'updated') updated++;
+            else if (result === 'cleared') cleared++;
         }
 
         return Response.json({
@@ -161,7 +200,8 @@ Deno.serve(async (req) => {
             datesAffected: busyDates.size,
             calendarId: targetCalendarId,
             created,
-            updated
+            updated,
+            cleared
         });
 
     } catch (error) {
