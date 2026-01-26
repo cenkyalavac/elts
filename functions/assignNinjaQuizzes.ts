@@ -70,26 +70,31 @@ Deno.serve(async (req) => {
             });
         }
         
-        // Create quiz assignments
-        const assignments = [];
-        for (const quizId of quizzesToAssign) {
-            // Check if already assigned
-            const existing = await base44.asServiceRole.entities.QuizAssignment.filter({
-                freelancer_id: applicant_id,
-                quiz_id: quizId
-            });
-            
-            if (existing.length === 0) {
-                const assignment = await base44.asServiceRole.entities.QuizAssignment.create({
-                    freelancer_id: applicant_id, // Using applicant_id as freelancer_id for ninja applicants
+        // Check existing assignments in parallel
+        const existingChecks = await Promise.all(
+            quizzesToAssign.map(quizId => 
+                base44.asServiceRole.entities.QuizAssignment.filter({
+                    freelancer_id: applicant_id,
+                    quiz_id: quizId
+                })
+            )
+        );
+        
+        // Filter to only quizzes not yet assigned
+        const quizzesToCreate = quizzesToAssign.filter((_, idx) => existingChecks[idx].length === 0);
+        
+        // Create assignments in parallel
+        const assignments = await Promise.all(
+            quizzesToCreate.map(quizId =>
+                base44.asServiceRole.entities.QuizAssignment.create({
+                    freelancer_id: applicant_id,
                     quiz_id: quizId,
-                    assigned_by: 'system',
+                    assigned_by: user.email,
                     status: 'pending',
                     notes: `Auto-assigned for ${program.name}`
-                });
-                assignments.push(assignment);
-            }
-        }
+                })
+            )
+        );
         
         // Update applicant quiz_scores to track assigned quizzes
         const existingScores = applicant.quiz_scores || [];
