@@ -10,23 +10,23 @@ import { Upload, CheckCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import LanguagePairRateInput from "./LanguagePairRateInput";
 
+const initialFormData = {
+    full_name: '',
+    email: '',
+    phone: '',
+    location: '',
+    cv_file_url: '',
+    availability: 'Immediate',
+    linkedin_url: '',
+    portfolio_url: '',
+    why_join: '',
+    language_pairs: [],
+    status: 'New Application'
+};
+
 export default function ApplicationForm({ position, onCancel, onSuccess }) {
     const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
-
-    const initialFormData = {
-        full_name: '',
-        email: '',
-        phone: '',
-        location: '',
-        cv_file_url: '',
-        availability: 'Immediate',
-        linkedin_url: '',
-        portfolio_url: '',
-        why_join: '',
-        language_pairs: [],
-        status: 'New Application'
-    };
 
     const createApplicationMutation = useMutation({
         mutationFn: async (data) => {
