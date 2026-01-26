@@ -63,10 +63,35 @@ Deno.serve(async (req) => {
         }
         
         if (quizzesToAssign.length === 0) {
+            // Notify admins that no quizzes were found
+            const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+            
+            for (const admin of admins) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                    to: admin.email,
+                    subject: `Action Required: No Quizzes Assigned for ${applicant.full_name}`,
+                    body: `
+Dear Admin,
+
+An applicant was processed for a Ninja program, but no matching quizzes were found in the system.
+
+Applicant: ${applicant.full_name}
+Email: ${applicant.email}
+Program: ${program.name}
+
+Please review the program configuration and ensure appropriate quizzes are available for assignment.
+
+Best regards,
+el turco System
+                    `.trim()
+                });
+            }
+            
             return Response.json({ 
                 success: true, 
-                message: 'No quizzes to assign for this program',
-                assigned_count: 0 
+                message: 'No quizzes to assign for this program. Admins have been notified.',
+                assigned_count: 0,
+                admins_notified: admins.length
             });
         }
         
