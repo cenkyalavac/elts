@@ -37,6 +37,11 @@ Deno.serve(async (req) => {
                 return Response.json({ error: 'Report cannot be disputed in current status' }, { status: 400 });
             }
 
+            // Require comments when disputing
+            if (!comments || comments.trim() === '') {
+                return Response.json({ error: 'Translator comments are required when disputing a report' }, { status: 400 });
+            }
+
             // Update report status
             await base44.asServiceRole.entities.QualityReport.update(report_id, {
                 status: 'translator_disputed',
@@ -70,7 +75,7 @@ ${report.reviewer_comments || 'Yorum yok'}
 
 Lütfen raporu inceleyip final kararınızı verin.
 
-Rapor Linki: ${Deno.env.get('APP_URL') || 'https://app.base44.io'}/QualityReportDetail?id=${report_id}
+Rapor Linki: ${Deno.env.get('APP_URL') ? `${Deno.env.get('APP_URL')}/QualityReportDetail?id=${report_id}` : '(Dashboard üzerinden erişebilirsiniz)'}
                     `.trim()
                 });
             }
@@ -124,6 +129,11 @@ Rapor kıdemli PM'ler tarafından incelenmek üzere atandı.
 
             // Notify freelancer about final decision
             if (freelancer?.email) {
+                const scoreLines = [];
+                if (report.lqa_score != null) scoreLines.push(`LQA Skoru: ${report.lqa_score}`);
+                if (report.qs_score != null) scoreLines.push(`QS Skoru: ${report.qs_score}`);
+                const scoresText = scoreLines.length > 0 ? scoreLines.join('\n') : '';
+
                 await base44.asServiceRole.integrations.Core.SendEmail({
                     to: freelancer.email,
                     subject: `[Final Karar] Kalite Raporu Sonuçlandı`,
@@ -132,9 +142,7 @@ Sayın ${freelancer.full_name},
 
 İtiraz ettiğiniz kalite raporu incelendi ve final karar verildi.
 
-Proje: ${report.project_name || 'Belirtilmemiş'}
-LQA Skoru: ${report.lqa_score || '-'}
-QS Skoru: ${report.qs_score || '-'}
+Proje: ${report.project_name || 'Belirtilmemiş'}${scoresText ? '\n' + scoresText : ''}
 
 Final Değerlendirme:
 ${comments || 'Yorum eklenmemiş'}
