@@ -4,6 +4,17 @@ Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         
+        // Authentication check
+        const user = await base44.auth.me();
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        
+        // Authorization check - only admin or project_manager can assign quizzes
+        if (user.role !== 'admin' && user.role !== 'project_manager') {
+            return Response.json({ error: 'Forbidden: Admin or Project Manager access required' }, { status: 403 });
+        }
+        
         const { applicant_id } = await req.json();
         
         if (!applicant_id) {
