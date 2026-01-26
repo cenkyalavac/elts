@@ -12,6 +12,74 @@ function isValidPhone(phone) {
     return phone && phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 7;
 }
 
+// Standardize language name to Title Case
+function standardizeLanguage(lang) {
+    if (!lang || typeof lang !== 'string') return lang;
+    
+    // Common abbreviations mapping
+    const abbreviations = {
+        'en': 'English', 'eng': 'English',
+        'es': 'Spanish', 'spa': 'Spanish',
+        'fr': 'French', 'fra': 'French',
+        'de': 'German', 'deu': 'German',
+        'it': 'Italian', 'ita': 'Italian',
+        'pt': 'Portuguese', 'por': 'Portuguese',
+        'ru': 'Russian', 'rus': 'Russian',
+        'zh': 'Chinese', 'chi': 'Chinese', 'zho': 'Chinese',
+        'ja': 'Japanese', 'jpn': 'Japanese',
+        'ko': 'Korean', 'kor': 'Korean',
+        'ar': 'Arabic', 'ara': 'Arabic',
+        'tr': 'Turkish', 'tur': 'Turkish',
+        'nl': 'Dutch', 'nld': 'Dutch',
+        'pl': 'Polish', 'pol': 'Polish',
+        'sv': 'Swedish', 'swe': 'Swedish',
+        'da': 'Danish', 'dan': 'Danish',
+        'no': 'Norwegian', 'nor': 'Norwegian',
+        'fi': 'Finnish', 'fin': 'Finnish',
+        'el': 'Greek', 'ell': 'Greek',
+        'he': 'Hebrew', 'heb': 'Hebrew',
+        'hi': 'Hindi', 'hin': 'Hindi',
+        'th': 'Thai', 'tha': 'Thai',
+        'vi': 'Vietnamese', 'vie': 'Vietnamese',
+        'uk': 'Ukrainian', 'ukr': 'Ukrainian',
+        'cs': 'Czech', 'ces': 'Czech',
+        'hu': 'Hungarian', 'hun': 'Hungarian',
+        'ro': 'Romanian', 'ron': 'Romanian',
+        'bg': 'Bulgarian', 'bul': 'Bulgarian',
+        'id': 'Indonesian', 'ind': 'Indonesian',
+        'ms': 'Malay', 'msa': 'Malay',
+    };
+    
+    const normalized = lang.trim().toLowerCase();
+    if (abbreviations[normalized]) {
+        return abbreviations[normalized];
+    }
+    
+    // Title Case conversion
+    return lang.trim().replace(/\w\S*/g, txt => 
+        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+}
+
+// Post-process language pairs: remove duplicates and standardize
+function cleanLanguagePairs(pairs) {
+    if (!Array.isArray(pairs)) return pairs;
+    
+    return pairs
+        // Standardize language names
+        .map(pair => ({
+            ...pair,
+            source_language: standardizeLanguage(pair.source_language),
+            target_language: standardizeLanguage(pair.target_language)
+        }))
+        // Filter out pairs where source equals target (case-insensitive)
+        .filter(pair => {
+            const source = (pair.source_language || '').toLowerCase();
+            const target = (pair.target_language || '').toLowerCase();
+            return source && target && source !== target;
+        });
+}
+
 // Detect inconsistencies in parsed data
 function detectInconsistencies(data) {
     const issues = [];
@@ -254,7 +322,17 @@ Deno.serve(async (req) => {
 
         const parsedData = extractedData.output;
 
-        // Detect inconsistencies
+        // Post-process: clean language pairs (remove same-source-target, standardize casing)
+        if (parsedData.language_pairs) {
+            parsedData.language_pairs = cleanLanguagePairs(parsedData.language_pairs);
+        }
+        
+        // Standardize native_language as well
+        if (parsedData.native_language) {
+            parsedData.native_language = standardizeLanguage(parsedData.native_language);
+        }
+
+        // Detect inconsistencies (after cleaning)
         const inconsistencies = detectInconsistencies(parsedData);
 
         // Calculate confidence score based on completeness
