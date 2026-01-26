@@ -170,6 +170,60 @@ Also provide in the response:
             }, { status: 409 });
         }
 
+        // Process attachments - upload to storage and identify CV
+        let cvFileUrl = null;
+        const uploadedDocuments = [];
+        
+        if (email.attachments?.length > 0) {
+            const cvKeywords = ['cv', 'resume', 'curriculum', 'lebenslauf'];
+            const supportedExtensions = ['.pdf', '.doc', '.docx'];
+            
+            for (const attachment of email.attachments) {
+                const filename = attachment.filename?.toLowerCase() || '';
+                const extension = filename.substring(filename.lastIndexOf('.'));
+                
+                // Only process supported file types
+                if (!supportedExtensions.includes(extension)) {
+                    continue;
+                }
+                
+                // Check if attachment has data (base64 content)
+                if (!attachment.data) {
+                    console.warn(`Attachment ${attachment.filename} has no data, skipping`);
+                    continue;
+                }
+                
+                try {
+                    // Convert base64 to blob for upload
+                    const binaryData = Uint8Array.from(atob(attachment.data), c => c.charCodeAt(0));
+                    const blob = new Blob([binaryData], { type: attachment.mimeType || 'application/octet-stream' });
+                    const file = new File([blob], attachment.filename, { type: attachment.mimeType || 'application/octet-stream' });
+                    
+                    const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+                    
+                    if (uploadResult?.file_url) {
+                        uploadedDocuments.push({
+                            filename: attachment.filename,
+                            url: uploadResult.file_url
+                        });
+                        
+                        // Check if this is likely a CV
+                        const isCvFile = cvKeywords.some(keyword => filename.includes(keyword));
+                        if (isCvFile && !cvFileUrl) {
+                            cvFileUrl = uploadResult.file_url;
+                        }
+                    }
+                } catch (uploadError) {
+                    console.warn(`Failed to upload attachment ${attachment.filename}:`, uploadError.message);
+                }
+            }
+            
+            // If no CV was identified by name, use the first PDF/DOC as CV
+            if (!cvFileUrl && uploadedDocuments.length > 0) {
+                cvFileUrl = uploadedDocuments[0].url;
+            }
+        }
+
         // Set default status for new applications
         const sourceNote = `Source: Email from ${email.from} on ${email.date}`;
         const freelancerData = {
@@ -177,7 +231,11 @@ Also provide in the response:
             status: 'New Application',
             resource_type: 'Freelancer',
             date_added: new Date().toISOString().split('T')[0],
-            notes: (response.notes ? response.notes + '\n\n' : '') + sourceNote
+            notes: (response.notes ? response.notes + '\n\n' : '') + sourceNote,
+            ...(cvFileUrl && { cv_file_url: cvFileUrl }),
+            ...(uploadedDocuments.length > 1 && { 
+                certification_files: uploadedDocuments.filter(d => d.url !== cvFileUrl).map(d => d.url) 
+            })
         };
 
         // Create the freelancer record
