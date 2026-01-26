@@ -44,9 +44,8 @@ Deno.serve(async (req) => {
             case 'archive': {
                 // Remove from INBOX label
                 const ids = messageIds || [messageId];
-                const results = [];
-                for (const id of ids) {
-                    const response = await fetch(
+                await Promise.all(ids.map(id =>
+                    fetch(
                         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,
                         {
                             method: 'POST',
@@ -58,9 +57,8 @@ Deno.serve(async (req) => {
                                 removeLabelIds: ['INBOX']
                             })
                         }
-                    );
-                    results.push(await response.json());
-                }
+                    )
+                ));
                 result = { success: true, archived: ids.length };
                 break;
             }
@@ -68,9 +66,8 @@ Deno.serve(async (req) => {
             case 'trash': {
                 // Move to trash
                 const ids = messageIds || [messageId];
-                const results = [];
-                for (const id of ids) {
-                    const response = await fetch(
+                await Promise.all(ids.map(id =>
+                    fetch(
                         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/trash`,
                         {
                             method: 'POST',
@@ -78,17 +75,16 @@ Deno.serve(async (req) => {
                                 'Authorization': `Bearer ${accessToken}`
                             }
                         }
-                    );
-                    results.push(await response.json());
-                }
+                    )
+                ));
                 result = { success: true, trashed: ids.length };
                 break;
             }
 
             case 'markRead': {
                 const ids = messageIds || [messageId];
-                for (const id of ids) {
-                    await fetch(
+                await Promise.all(ids.map(id =>
+                    fetch(
                         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,
                         {
                             method: 'POST',
@@ -100,16 +96,16 @@ Deno.serve(async (req) => {
                                 removeLabelIds: ['UNREAD']
                             })
                         }
-                    );
-                }
+                    )
+                ));
                 result = { success: true, markedRead: ids.length };
                 break;
             }
 
             case 'markUnread': {
                 const ids = messageIds || [messageId];
-                for (const id of ids) {
-                    await fetch(
+                await Promise.all(ids.map(id =>
+                    fetch(
                         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,
                         {
                             method: 'POST',
@@ -121,16 +117,16 @@ Deno.serve(async (req) => {
                                 addLabelIds: ['UNREAD']
                             })
                         }
-                    );
-                }
+                    )
+                ));
                 result = { success: true, markedUnread: ids.length };
                 break;
             }
 
             case 'star': {
                 const ids = messageIds || [messageId];
-                for (const id of ids) {
-                    await fetch(
+                await Promise.all(ids.map(id =>
+                    fetch(
                         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,
                         {
                             method: 'POST',
@@ -142,16 +138,16 @@ Deno.serve(async (req) => {
                                 addLabelIds: ['STARRED']
                             })
                         }
-                    );
-                }
+                    )
+                ));
                 result = { success: true, starred: ids.length };
                 break;
             }
 
             case 'unstar': {
                 const ids = messageIds || [messageId];
-                for (const id of ids) {
-                    await fetch(
+                await Promise.all(ids.map(id =>
+                    fetch(
                         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,
                         {
                             method: 'POST',
@@ -163,8 +159,8 @@ Deno.serve(async (req) => {
                                 removeLabelIds: ['STARRED']
                             })
                         }
-                    );
-                }
+                    )
+                ));
                 result = { success: true, unstarred: ids.length };
                 break;
             }
