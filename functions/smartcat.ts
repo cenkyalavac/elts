@@ -50,20 +50,51 @@ async function getAccountDetails() {
     return smartcatFetch('/account');
 }
 
-// Fetch freelancer users from account
-async function getFreelancers() {
-    // The /account/searchMyTeam endpoint allows searching for team members
-    // Alternative: use /directory/user to get users
+// Fetch freelancer users from account using searchMyTeam endpoint
+async function getFreelancers(filters = {}) {
     try {
-        // Try fetching users with freelancer role
-        const account = await getAccountDetails();
-        return { 
-            success: true, 
-            accountName: account.name,
-            accountId: account.id,
-            message: 'Smartcat API connected. Note: Direct linguist listing requires specific API endpoints based on your Smartcat plan.'
+        // Build query parameters for searchMyTeam
+        const params = new URLSearchParams();
+        if (filters.name) params.append('name', filters.name);
+        if (filters.email) params.append('email', filters.email);
+        if (filters.serviceType) params.append('serviceType', filters.serviceType);
+        if (filters.sourceLanguage) params.append('sourceLanguage', filters.sourceLanguage);
+        if (filters.targetLanguage) params.append('targetLanguage', filters.targetLanguage);
+        if (filters.limit) params.append('limit', filters.limit.toString());
+        if (filters.skip) params.append('skip', filters.skip.toString());
+        
+        const queryString = params.toString();
+        const response = await smartcatFetch(`/account/searchMyTeam${queryString ? '?' + queryString : ''}`);
+        
+        // Transform the response to match expected frontend format
+        const freelancers = (Array.isArray(response) ? response : response.items || []).map(user => ({
+            id: user.id || user.userId,
+            email: user.email,
+            name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            firstName: user.firstName,
+            lastName: user.lastName,
+            languages: user.languages || [],
+            serviceTypes: user.serviceTypes || [],
+            specializations: user.specializations || [],
+            rates: user.rates || [],
+            externalId: user.externalId,
+            created: user.created,
+            status: user.status
+        }));
+        
+        return {
+            success: true,
+            freelancers,
+            total: response.total || freelancers.length
         };
     } catch (error) {
+        // Check for specific permission errors
+        if (error.message.includes('403') || error.message.includes('Forbidden')) {
+            throw new Error('API permission denied: The searchMyTeam endpoint requires the "Manage team" permission in your Smartcat API key settings.');
+        }
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            throw new Error('API endpoint not available: The searchMyTeam endpoint may not be available on your Smartcat plan. Please contact Smartcat support to enable team management API access.');
+        }
         throw error;
     }
 }
@@ -108,7 +139,7 @@ Deno.serve(async (req) => {
             }
 
             case 'getFreelancers': {
-                const result = await getFreelancers();
+                const result = await getFreelancers(params.filters || {});
                 return Response.json({ success: true, data: result });
             }
 
