@@ -12,7 +12,9 @@ import LanguagePairRateInput from "./LanguagePairRateInput";
 
 export default function ApplicationForm({ position, onCancel, onSuccess }) {
     const [uploading, setUploading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(initialFormData);
+
+    const initialFormData = {
         full_name: '',
         email: '',
         phone: '',
@@ -24,7 +26,7 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
         why_join: '',
         language_pairs: [],
         status: 'New Application'
-    });
+    };
 
     const createApplicationMutation = useMutation({
         mutationFn: async (data) => {
@@ -32,6 +34,7 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
         },
         onSuccess: () => {
             toast.success('Application submitted successfully! We\'ll be in touch soon.');
+            setFormData(initialFormData);
             onSuccess();
         },
         onError: (error) => {
@@ -39,12 +42,19 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
         }
     });
 
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
     const handleFileUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (!file.name.match(/\.(pdf|doc|docx)$/i)) {
             toast.error('Please upload a PDF, DOC, or DOCX file');
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            toast.error('File size must be less than 5MB');
             return;
         }
 
