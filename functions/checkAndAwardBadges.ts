@@ -3,6 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
+        
+        // Authentication check
+        const user = await base44.auth.me();
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        
         const { quizAttemptId } = await req.json();
 
         if (!quizAttemptId) {
@@ -18,15 +25,26 @@ Deno.serve(async (req) => {
         const quizAttempt = attempt[0];
         const freelancerId = quizAttempt.freelancer_id;
 
-        // Get all badges
-        const allBadges = await base44.asServiceRole.entities.Badge.filter({ is_active: true });
-
-        // Get freelancer's existing badges
-        const existingBadges = await base44.asServiceRole.entities.FreelancerBadge.filter({ freelancer_id: freelancerId });
+        // Get all badges, existing badges, and all attempts in parallel
+        const [allBadges, existingBadges, allAttempts] = await Promise.all([
+            base44.asServiceRole.entities.Badge.filter({ is_active: true }),
+            base44.asServiceRole.entities.FreelancerBadge.filter({ freelancer_id: freelancerId }),
+            base44.asServiceRole.entities.QuizAttempt.filter({ freelancer_id: freelancerId })
+        ]);
+        
         const earnedBadgeIds = new Set(existingBadges.map(fb => fb.badge_id));
-
-        // Get all attempts by this freelancer
-        const allAttempts = await base44.asServiceRole.entities.QuizAttempt.filter({ freelancer_id: freelancerId });
+        
+        // Pre-fetch all quizzes for specialty badge checks (avoid N+1)
+        const uniqueQuizIds = [...new Set(allAttempts.map(a => a.quiz_id))];
+        const quizFetches = await Promise.all(
+            uniqueQuizIds.map(id => base44.asServiceRole.entities.Quiz.filter({ id }))
+        );
+        const quizMap = new Map();
+        quizFetches.forEach((result, idx) => {
+            if (result && result[0]) {
+                quizMap.set(uniqueQuizIds[idx], result[0]);
+            }
+        });
 
         const newBadges = [];
 
@@ -80,11 +98,12 @@ Deno.serve(async (req) => {
 
                 case 'specialty':
                     // Completed quizzes in specific specialty (stored in criteria_value as quiz count)
-                    const quiz = await base44.asServiceRole.entities.Quiz.filter({ id: quizAttempt.quiz_id });
-                    if (quiz && quiz[0]?.specialization) {
+                    const currentQuiz = quizMap.get(quizAttempt.quiz_id);
+                    if (currentQuiz?.specialization) {
+                        const targetSpecialization = currentQuiz.specialization;
                         const specialtyAttempts = allAttempts.filter(a => {
-                            // Would need to check quiz specialization for each, simplified here
-                            return a.passed;
+                            const attemptQuiz = quizMap.get(a.quiz_id);
+                            return a.passed && attemptQuiz?.specialization === targetSpecialization;
                         });
                         if (specialtyAttempts.length >= badge.criteria_value) {
                             shouldAward = true;
