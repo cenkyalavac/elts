@@ -57,25 +57,25 @@ Deno.serve(async (req) => {
             for (const reviewer of reviewers) {
                 await base44.asServiceRole.integrations.Core.SendEmail({
                     to: reviewer.email,
-                    subject: `[İtiraz Bildirimi] LQA Raporu İtiraz Edildi - ${freelancer?.full_name || 'Bilinmiyor'}`,
+                    subject: `[Dispute Notice] LQA Report Disputed - ${freelancer?.full_name || 'Unknown'}`,
                     body: `
-Bir kalite raporu itiraz edildi ve incelemenizi bekliyor.
+A quality report has been disputed and requires your review.
 
-Çevirmen: ${freelancer?.full_name || 'Bilinmiyor'}
-Proje: ${report.project_name || 'Belirtilmemiş'}
-Rapor Tipi: ${report.report_type}
-LQA Skoru: ${report.lqa_score || '-'}
-QS Skoru: ${report.qs_score || '-'}
+Translator: ${freelancer?.full_name || 'Unknown'}
+Project: ${report.project_name || 'Not specified'}
+Report Type: ${report.report_type}
+LQA Score: ${report.lqa_score || '-'}
+QS Score: ${report.qs_score || '-'}
 
-Çevirmen İtirazı:
-${comments || 'Yorum eklenmemiş'}
+Translator's Dispute:
+${comments || 'No comments provided'}
 
-Reviewer Yorumu:
-${report.reviewer_comments || 'Yorum yok'}
+Reviewer Comments:
+${report.reviewer_comments || 'No comments'}
 
-Lütfen raporu inceleyip final kararınızı verin.
+Please review the report and provide your final decision.
 
-Rapor Linki: ${Deno.env.get('APP_URL') ? `${Deno.env.get('APP_URL')}/QualityReportDetail?id=${report_id}` : '(Dashboard üzerinden erişebilirsiniz)'}
+Report Link: ${Deno.env.get('APP_URL') ? `${Deno.env.get('APP_URL')}/QualityReportDetail?id=${report_id}` : '(Access via Dashboard)'}
                     `.trim()
                 });
             }
@@ -88,17 +88,17 @@ Rapor Linki: ${Deno.env.get('APP_URL') ? `${Deno.env.get('APP_URL')}/QualityRepo
                 if (originalReviewer) {
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: originalReviewer.email,
-                        subject: `[Bilgilendirme] Oluşturduğunuz Rapor İtiraz Edildi`,
+                        subject: `[Notice] Your Report Has Been Disputed`,
                         body: `
-Oluşturduğunuz kalite raporu çevirmen tarafından itiraz edildi.
+Your quality report has been disputed by the translator.
 
-Çevirmen: ${freelancer?.full_name || 'Bilinmiyor'}
-Proje: ${report.project_name || 'Belirtilmemiş'}
+Translator: ${freelancer?.full_name || 'Unknown'}
+Project: ${report.project_name || 'Not specified'}
 
-Çevirmen İtirazı:
-${comments || 'Yorum eklenmemiş'}
+Translator's Dispute:
+${comments || 'No comments provided'}
 
-Rapor kıdemli PM'ler tarafından incelenmek üzere atandı.
+The report has been assigned to senior PMs for review.
                         `.trim()
                     });
                 }
@@ -130,27 +130,27 @@ Rapor kıdemli PM'ler tarafından incelenmek üzere atandı.
             // Notify freelancer about final decision
             if (freelancer?.email) {
                 const scoreLines = [];
-                if (report.lqa_score != null) scoreLines.push(`LQA Skoru: ${report.lqa_score}`);
-                if (report.qs_score != null) scoreLines.push(`QS Skoru: ${report.qs_score}`);
+                if (report.lqa_score != null) scoreLines.push(`LQA Score: ${report.lqa_score}`);
+                if (report.qs_score != null) scoreLines.push(`QS Score: ${report.qs_score}`);
                 const scoresText = scoreLines.length > 0 ? scoreLines.join('\n') : '';
 
                 await base44.asServiceRole.integrations.Core.SendEmail({
                     to: freelancer.email,
-                    subject: `[Final Karar] Kalite Raporu Sonuçlandı`,
+                    subject: `[Final Decision] Quality Report Finalized`,
                     body: `
-Sayın ${freelancer.full_name},
+Dear ${freelancer.full_name},
 
-İtiraz ettiğiniz kalite raporu incelendi ve final karar verildi.
+Your disputed quality report has been reviewed and a final decision has been made.
 
-Proje: ${report.project_name || 'Belirtilmemiş'}${scoresText ? '\n' + scoresText : ''}
+Project: ${report.project_name || 'Not specified'}${scoresText ? '\n' + scoresText : ''}
 
-Final Değerlendirme:
-${comments || 'Yorum eklenmemiş'}
+Final Assessment:
+${comments || 'No comments provided'}
 
-Sorularınız için kalite yönetimi ekibimizle iletişime geçebilirsiniz.
+If you have any questions, please contact our quality management team.
 
-Saygılarımızla,
-el turco Kalite Yönetimi
+Best regards,
+el turco Quality Management
                     `.trim()
                 });
             }
@@ -197,27 +197,27 @@ el turco Kalite Yönetimi
             if (freelancer?.email) {
                 await base44.asServiceRole.integrations.Core.SendEmail({
                     to: freelancer.email,
-                    subject: `[İncelemeniz Bekleniyor] Kalite Değerlendirme Raporu`,
+                    subject: `[Review Required] Quality Assessment Report`,
                     body: `
-Sayın ${freelancer.full_name},
+Dear ${freelancer.full_name},
 
-Size ait bir kalite değerlendirme raporu oluşturuldu ve incelemenizi bekliyor.
+A quality assessment report has been created for you and is awaiting your review.
 
-Proje: ${report.project_name || 'Belirtilmemiş'}
-Rapor Tipi: ${report.report_type}
-LQA Skoru: ${report.lqa_score || '-'}
-QS Skoru: ${report.qs_score || '-'}
+Project: ${report.project_name || 'Not specified'}
+Report Type: ${report.report_type}
+LQA Score: ${report.lqa_score || '-'}
+QS Score: ${report.qs_score || '-'}
 
-Reviewer Yorumu:
-${report.reviewer_comments || 'Yorum yok'}
+Reviewer Comments:
+${report.reviewer_comments || 'No comments'}
 
-${settings.dispute_period_days} gün içinde raporu kabul edebilir veya itiraz edebilirsiniz.
-Son tarih: ${reviewDeadline.toLocaleDateString('tr-TR')}
+You have ${settings.dispute_period_days} days to accept or dispute this report.
+Deadline: ${reviewDeadline.toLocaleDateString('en-US')}
 
-Bu süre içinde yanıt verilmezse rapor otomatik olarak kabul edilmiş sayılacaktır.
+If no response is received within this period, the report will be automatically accepted.
 
-Saygılarımızla,
-el turco Kalite Yönetimi
+Best regards,
+el turco Quality Management
                     `.trim()
                 });
             }
