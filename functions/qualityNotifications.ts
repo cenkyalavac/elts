@@ -16,18 +16,29 @@ Deno.serve(async (req) => {
         const settings = allSettings[0] || { probation_threshold: 70, lqa_weight: 4, qs_multiplier: 20 };
 
         if (action === 'check_and_notify') {
-            // Get all approved freelancers
-            const freelancers = await base44.asServiceRole.entities.Freelancer.filter({ status: 'Approved' });
-            const reports = await base44.asServiceRole.entities.QualityReport.list();
-            const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-            
+            // Require freelancer_id for targeted check
+            if (!freelancer_id) {
+                return Response.json({ error: 'freelancer_id is required' }, { status: 400 });
+            }
+
+            // Fetch only the specific freelancer and their reports in parallel
+            const [freelancerResult, allReports, admins] = await Promise.all([
+                base44.asServiceRole.entities.Freelancer.filter({ id: freelancer_id }),
+                base44.asServiceRole.entities.QualityReport.filter({ freelancer_id: freelancer_id }),
+                base44.asServiceRole.entities.User.filter({ role: 'admin' })
+            ]);
+
+            if (!freelancerResult || freelancerResult.length === 0) {
+                return Response.json({ error: 'Freelancer not found' }, { status: 404 });
+            }
+
+            const freelancer = freelancerResult[0];
             const notifications = [];
 
-            for (const freelancer of freelancers) {
-                const freelancerReports = reports.filter(r => 
-                    r.freelancer_id === freelancer.id && 
-                    (r.status === 'finalized' || r.status === 'translator_accepted')
-                );
+            // Filter to only finalized/accepted reports
+            const freelancerReports = allReports.filter(r => 
+                r.status === 'finalized' || r.status === 'translator_accepted'
+            );
 
                 if (freelancerReports.length < 3) continue;
 
