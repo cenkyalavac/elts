@@ -7,6 +7,22 @@ function replaceTemplate(template, data) {
     });
 }
 
+// Helper function to log admin actions
+async function logAdminAction(base44, { userId, userEmail, actionType, targetType, targetId, details }) {
+    try {
+        await base44.asServiceRole.entities.AdminAuditLog.create({
+            user_id: userId,
+            user_email: userEmail,
+            action_type: actionType,
+            target_type: targetType,
+            target_id: targetId,
+            details: details
+        });
+    } catch (error) {
+        console.error('Failed to log admin action:', error);
+    }
+}
+
 // Email Templates with placeholders
 const EMAIL_TEMPLATES = {
     WELCOME: `
@@ -70,6 +86,16 @@ Deno.serve(async (req) => {
                     })
                 });
             }
+
+            // Log the action
+            await logAdminAction(base44, {
+                userId: user.id,
+                userEmail: user.email,
+                actionType: 'STATUS_CHANGE',
+                targetType: 'Freelancer',
+                targetId: freelancerId,
+                details: { action: 'sendWelcomeEmail', freelancer_name: freelancer.full_name }
+            });
 
             return Response.json({ success: true });
         }

@@ -16,6 +16,22 @@ Best regards,
 el turco System
 `.trim();
 
+// Helper function to log admin actions
+async function logAdminAction(base44, { userId, userEmail, actionType, targetType, targetId, details }) {
+    try {
+        await base44.asServiceRole.entities.AdminAuditLog.create({
+            user_id: userId,
+            user_email: userEmail,
+            action_type: actionType,
+            target_type: targetType,
+            target_id: targetId,
+            details: details
+        });
+    } catch (error) {
+        console.error('Failed to log admin action:', error);
+    }
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -138,6 +154,22 @@ Deno.serve(async (req) => {
         if (newScores.length > 0) {
             await base44.asServiceRole.entities.NinjaApplicant.update(applicant_id, {
                 quiz_scores: [...existingScores, ...newScores]
+            });
+        }
+        
+        // Log the quiz assignment action
+        if (assignments.length > 0) {
+            await logAdminAction(base44, {
+                userId: user.id,
+                userEmail: user.email,
+                actionType: 'QUIZ_ASSIGNED',
+                targetType: 'NinjaApplicant',
+                targetId: applicant_id,
+                details: { 
+                    program_name: program.name,
+                    assigned_count: assignments.length,
+                    quiz_ids: quizzesToAssign
+                }
             });
         }
         
