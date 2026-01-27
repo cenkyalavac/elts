@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
@@ -16,15 +17,27 @@ import {
 import { 
     Upload, FileText, CheckCircle2, AlertTriangle, Clock,
     Download, DollarSign, ClipboardPaste, Search, Filter,
-    Calendar, User, CreditCard, ArrowUpDown, Eye
+    Calendar, User, CreditCard, ArrowUpDown, Eye, Send, Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export default function InvoiceImport() {
+    const queryClient = useQueryClient();
     const [rawInput, setRawInput] = useState('');
     const [invoices, setInvoices] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +45,8 @@ export default function InvoiceImport() {
     const [sortField, setSortField] = useState('date');
     const [sortOrder, setSortOrder] = useState('desc');
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [selectedForPayment, setSelectedForPayment] = useState(new Set());
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
@@ -111,6 +126,34 @@ export default function InvoiceImport() {
         reader.readAsText(uploadedFile);
     }, [freelancers]);
 
+    // Create Smartcat payments mutation
+    const createPaymentsMutation = useMutation({
+        mutationFn: async (payments) => {
+            const response = await base44.functions.invoke('smartcatPayments', {
+                action: 'create_payments',
+                filters: { payments }
+            });
+            return response.data;
+        },
+        onSuccess: (data) => {
+            toast.success(`Created ${data.created} payment(s) in Smartcat`);
+            queryClient.invalidateQueries({ queryKey: ['smartcat-payments'] });
+            setSelectedForPayment(new Set());
+            setConfirmDialogOpen(false);
+            
+            // Mark these invoices as "sent to Smartcat" locally
+            setInvoices(prev => prev.map(inv => {
+                if (selectedForPayment.has(inv.invoiceCode)) {
+                    return { ...inv, sentToSmartcat: true };
+                }
+                return inv;
+            }));
+        },
+        onError: (error) => {
+            toast.error(`Failed to create payments: ${error.message}`);
+        }
+    });
+
     const downloadCSV = () => {
         if (invoices.length === 0) return;
         
@@ -139,6 +182,67 @@ export default function InvoiceImport() {
         a.click();
         URL.revokeObjectURL(url);
     };
+
+    // Toggle selection for payment
+    const toggleSelection = (invoiceCode) => {
+        setSelectedForPayment(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(invoiceCode)) {
+                newSet.delete(invoiceCode);
+            } else {
+                newSet.add(invoiceCode);
+            }
+            return newSet;
+        });
+    };
+
+    // Select all pending (unpaid) invoices that have freelancer match
+    const selectAllPending = () => {
+        const pendingWithMatch = filteredInvoices.filter(inv => 
+            !inv.datePaid && inv.freelancerMatched && !inv.sentToSmartcat
+        );
+        setSelectedForPayment(new Set(pendingWithMatch.map(inv => inv.invoiceCode)));
+    };
+
+    // Get selected invoices data
+    const getSelectedInvoices = () => {
+        return invoices.filter(inv => selectedForPayment.has(inv.invoiceCode));
+    };
+
+    // Convert invoices to Smartcat payment format
+    const convertToSmartcatPayments = () => {
+        const selected = getSelectedInvoices();
+        return selected.map(inv => {
+            const freelancer = freelancers.find(f => f.id === inv.freelancerId);
+            return {
+                supplierEmail: freelancer?.email || '',
+                supplierName: inv.resource,
+                supplierType: 'freelancer',
+                serviceType: inv.service || 'Translation',
+                jobDescription: `${inv.invoiceCode} - ${inv.project || inv.description || 'Invoice payment'}`,
+                unitsType: inv.wordCount > 0 ? 'Words' : 'Document',
+                unitsAmount: inv.wordCount > 0 ? inv.wordCount : 1,
+                pricePerUnit: inv.wordCount > 0 ? (inv.totalCost / inv.wordCount) : inv.totalCost,
+                currency: inv.currency || 'USD',
+                externalNumber: inv.invoiceCode
+            };
+        });
+    };
+
+    const handleCreatePayments = () => {
+        const payments = convertToSmartcatPayments();
+        
+        // Validate all have email
+        const missingEmail = payments.filter(p => !p.supplierEmail);
+        if (missingEmail.length > 0) {
+            toast.error(`${missingEmail.length} invoice(s) missing freelancer email. Only matched freelancers can be paid.`);
+            return;
+        }
+        
+        createPaymentsMutation.mutate(payments);
+    };
+
+    const selectedTotal = getSelectedInvoices().reduce((sum, inv) => sum + inv.totalCost, 0);
 
     // Filter and sort invoices
     const filteredInvoices = invoices
@@ -319,7 +423,14 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                     <Card>
                         <CardHeader>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <CardTitle>Invoices ({filteredInvoices.length})</CardTitle>
+                                <div>
+                                    <CardTitle>Invoices ({filteredInvoices.length})</CardTitle>
+                                    {selectedForPayment.size > 0 && (
+                                        <p className="text-sm text-purple-600 mt-1">
+                                            {selectedForPayment.size} selected · ${selectedTotal.toFixed(2)} total
+                                        </p>
+                                    )}
+                                </div>
                                 <div className="flex flex-wrap gap-2">
                                     <div className="relative">
                                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -362,12 +473,37 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                     </Button>
                                 </div>
                             </div>
+
+                            {/* Payment Actions */}
+                            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t">
+                                <Button variant="outline" size="sm" onClick={selectAllPending}>
+                                    Select All Pending
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => setSelectedForPayment(new Set())}
+                                    disabled={selectedForPayment.size === 0}
+                                >
+                                    Clear Selection
+                                </Button>
+                                <div className="flex-1" />
+                                <Button 
+                                    onClick={() => setConfirmDialogOpen(true)}
+                                    disabled={selectedForPayment.size === 0}
+                                    className="bg-green-600 hover:bg-green-700 gap-2"
+                                >
+                                    <Send className="w-4 h-4" />
+                                    Send to Smartcat ({selectedForPayment.size})
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="border rounded-lg overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
+                                            <TableHead className="w-10"></TableHead>
                                             <TableHead>Invoice</TableHead>
                                             <TableHead>Resource</TableHead>
                                             <TableHead>Project</TableHead>
@@ -379,56 +515,81 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {filteredInvoices.map((invoice, idx) => (
-                                            <TableRow key={idx}>
-                                                <TableCell className="font-mono text-sm font-medium">
-                                                    {invoice.invoiceCode}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        {invoice.freelancerId ? (
-                                                            <Link 
-                                                                to={createPageUrl(`FreelancerDetail?id=${invoice.freelancerId}`)}
-                                                                className="text-blue-600 hover:underline font-medium"
-                                                            >
-                                                                {invoice.resource}
-                                                            </Link>
-                                                        ) : (
-                                                            <span className="font-medium">{invoice.resource}</span>
-                                                        )}
-                                                        {!invoice.freelancerMatched && (
-                                                            <Badge variant="outline" className="text-xs text-amber-600">
-                                                                Not in DB
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-sm text-gray-600">
-                                                    {invoice.project || '-'}
-                                                </TableCell>
-                                                <TableCell className="text-sm text-gray-600">
-                                                    {invoice.service || '-'}
-                                                </TableCell>
-                                                <TableCell className="text-right font-semibold">
-                                                    {invoice.currency} {invoice.totalCost.toFixed(2)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {getStatusBadge(invoice)}
-                                                </TableCell>
-                                                <TableCell className="text-sm text-gray-600">
-                                                    {invoice.dateSent}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="sm"
-                                                        onClick={() => setSelectedInvoice(invoice)}
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                        {filteredInvoices.map((invoice, idx) => {
+                                            const canSelect = !invoice.datePaid && invoice.freelancerMatched && !invoice.sentToSmartcat;
+                                            const isSelected = selectedForPayment.has(invoice.invoiceCode);
+                                            
+                                            return (
+                                                <TableRow 
+                                                    key={idx}
+                                                    className={isSelected ? 'bg-purple-50' : ''}
+                                                >
+                                                    <TableCell>
+                                                        {canSelect ? (
+                                                            <Checkbox 
+                                                                checked={isSelected}
+                                                                onCheckedChange={() => toggleSelection(invoice.invoiceCode)}
+                                                            />
+                                                        ) : invoice.sentToSmartcat ? (
+                                                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                        ) : null}
+                                                    </TableCell>
+                                                    <TableCell className="font-mono text-sm font-medium">
+                                                        {invoice.invoiceCode}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            {invoice.freelancerId ? (
+                                                                <Link 
+                                                                    to={createPageUrl(`FreelancerDetail?id=${invoice.freelancerId}`)}
+                                                                    className="text-blue-600 hover:underline font-medium"
+                                                                >
+                                                                    {invoice.resource}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="font-medium">{invoice.resource}</span>
+                                                            )}
+                                                            {!invoice.freelancerMatched && (
+                                                                <Badge variant="outline" className="text-xs text-amber-600">
+                                                                    Not in DB
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-gray-600">
+                                                        {invoice.project || '-'}
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-gray-600">
+                                                        {invoice.service || '-'}
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-semibold">
+                                                        {invoice.currency} {invoice.totalCost.toFixed(2)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-1">
+                                                            {getStatusBadge(invoice)}
+                                                            {invoice.sentToSmartcat && (
+                                                                <Badge className="bg-purple-100 text-purple-700 text-xs">
+                                                                    Sent
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-gray-600">
+                                                        {invoice.dateSent}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="sm"
+                                                            onClick={() => setSelectedInvoice(invoice)}
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
                                     </TableBody>
                                 </Table>
                             </div>
@@ -538,6 +699,57 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Confirm Send to Smartcat Dialog */}
+            <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+                <AlertDialogContent className="max-w-lg">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Send to Smartcat</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="space-y-3">
+                                <p>
+                                    You are about to create <strong>{selectedForPayment.size}</strong> payment(s) 
+                                    in Smartcat totaling <strong>${selectedTotal.toFixed(2)}</strong>.
+                                </p>
+                                <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto text-sm">
+                                    {getSelectedInvoices().map(inv => {
+                                        const freelancer = freelancers.find(f => f.id === inv.freelancerId);
+                                        return (
+                                            <div key={inv.invoiceCode} className="flex justify-between py-1 border-b last:border-0">
+                                                <span>{inv.resource}</span>
+                                                <span className="font-medium">{inv.currency} {inv.totalCost.toFixed(2)}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-amber-600 text-sm">
+                                    ⚠️ This will create real payment records in Smartcat. Make sure the amounts are correct.
+                                </p>
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleCreatePayments}
+                            disabled={createPaymentsMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            {createPaymentsMutation.isPending ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Send className="w-4 h-4 mr-2" />
+                                    Create Payments
+                                </>
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
