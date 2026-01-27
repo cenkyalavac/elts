@@ -41,6 +41,22 @@ function getSmartcatAuth(accountId, apiKey) {
     return 'Basic ' + btoa(`${accountId}:${apiKey}`);
 }
 
+// Helper function to log admin actions
+async function logAdminAction(base44, { userId, userEmail, actionType, targetType, targetId, details }) {
+    try {
+        await base44.asServiceRole.entities.AdminAuditLog.create({
+            user_id: userId,
+            user_email: userEmail,
+            action_type: actionType,
+            target_type: targetType,
+            target_id: targetId,
+            details: details
+        });
+    } catch (error) {
+        console.error('Failed to log admin action:', error);
+    }
+}
+
 Deno.serve(async (req) => {
     try {
         // Configuration check at the very start
@@ -251,6 +267,20 @@ Deno.serve(async (req) => {
                 jobs: p.jobs || [],
                 created_date: new Date().toISOString()
             }));
+
+            // Log the payment batch creation
+            await logAdminAction(base44, {
+                userId: user.id,
+                userEmail: user.email,
+                actionType: 'PAYMENT_PROCESSED',
+                targetType: 'PaymentBatch',
+                targetId: batchId,
+                details: { 
+                    payment_count: paymentRecords.length,
+                    total_amount: payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+                    freelancer_emails: payments.map(p => p.email)
+                }
+            });
 
             return Response.json({
                 success: true,
