@@ -36,6 +36,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
+// Service types supported by Smartcat
+const SERVICE_TYPES = [
+    'Translation', 'Editing', 'Proofreading', 'Postediting', 'Copywriting',
+    'TranslationAndEditing', 'QualityAssurance', 'Dtp', 'Testing', 'Review',
+    'Interpreting', 'Transcription', 'Subtitling', 'VoiceOver', 'Other'
+];
+
+// Unit types supported by Smartcat
+const UNIT_TYPES = ['Words', 'Characters', 'Hours', 'Pages', 'Documents'];
+
+// Currencies supported
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'TRY'];
+
 export default function InvoiceImport() {
     const queryClient = useQueryClient();
     const [rawInput, setRawInput] = useState('');
@@ -47,6 +60,13 @@ export default function InvoiceImport() {
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [selectedForPayment, setSelectedForPayment] = useState(new Set());
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    
+    // Default values for Smartcat payment creation
+    const [defaults, setDefaults] = useState({
+        serviceType: 'Translation',
+        unitsType: 'Words',
+        currency: 'USD'
+    });
 
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
@@ -91,14 +111,44 @@ export default function InvoiceImport() {
                 service: row['Service'] || row['ServiceType'] || '',
             };
             
-            // Match with freelancer
-            const matchedFreelancer = freelancers.find(f => 
-                f.full_name?.toLowerCase() === invoice.resource.toLowerCase() ||
-                f.email?.toLowerCase() === invoice.resource.toLowerCase()
-            );
+            // Match with freelancer - try multiple fields
+            const resourceLower = invoice.resource.toLowerCase().trim();
+            const matchedFreelancer = freelancers.find(f => {
+                // Match by full name
+                if (f.full_name?.toLowerCase().trim() === resourceLower) return true;
+                // Match by email
+                if (f.email?.toLowerCase().trim() === resourceLower) return true;
+                // Match by resource_code
+                if (f.resource_code?.toLowerCase().trim() === resourceLower) return true;
+                // Match by email2
+                if (f.email2?.toLowerCase().trim() === resourceLower) return true;
+                // Partial name match (first + last name)
+                const nameParts = resourceLower.split(' ');
+                if (nameParts.length >= 2) {
+                    const fullNameLower = f.full_name?.toLowerCase() || '';
+                    if (fullNameLower.includes(nameParts[0]) && fullNameLower.includes(nameParts[nameParts.length - 1])) {
+                        return true;
+                    }
+                }
+                return false;
+            });
             
             invoice.freelancerId = matchedFreelancer?.id || null;
+            invoice.freelancerEmail = matchedFreelancer?.email || null;
             invoice.freelancerMatched = !!matchedFreelancer;
+            
+            // Validate for Smartcat - check required fields
+            invoice.validationErrors = [];
+            if (!invoice.freelancerMatched) {
+                invoice.validationErrors.push('Freelancer not found in database');
+            }
+            if (!invoice.totalCost || invoice.totalCost <= 0) {
+                invoice.validationErrors.push('Invalid amount');
+            }
+            if (!invoice.invoiceCode) {
+                invoice.validationErrors.push('Missing invoice code');
+            }
+            invoice.isValidForSmartcat = invoice.validationErrors.length === 0;
             
             rows.push(invoice);
         }
@@ -196,12 +246,12 @@ export default function InvoiceImport() {
         });
     };
 
-    // Select all pending (unpaid) invoices that have freelancer match
+    // Select all pending (unpaid) invoices that are valid for Smartcat
     const selectAllPending = () => {
-        const pendingWithMatch = filteredInvoices.filter(inv => 
-            !inv.datePaid && inv.freelancerMatched && !inv.sentToSmartcat
+        const pendingValid = filteredInvoices.filter(inv => 
+            !inv.datePaid && inv.isValidForSmartcat && !inv.sentToSmartcat
         );
-        setSelectedForPayment(new Set(pendingWithMatch.map(inv => inv.invoiceCode)));
+        setSelectedForPayment(new Set(pendingValid.map(inv => inv.invoiceCode)));
     };
 
     // Get selected invoices data
@@ -214,33 +264,80 @@ export default function InvoiceImport() {
         const selected = getSelectedInvoices();
         return selected.map(inv => {
             const freelancer = freelancers.find(f => f.id === inv.freelancerId);
+            
+            // Determine service type - from CSV or default
+            const serviceType = inv.service && SERVICE_TYPES.includes(inv.service) 
+                ? inv.service 
+                : defaults.serviceType;
+            
+            // Determine units type and amount
+            let unitsType = defaults.unitsType;
+            let unitsAmount = 1;
+            let pricePerUnit = inv.totalCost;
+            
+            if (inv.wordCount > 0) {
+                unitsType = 'Words';
+                unitsAmount = inv.wordCount;
+                pricePerUnit = inv.totalCost / inv.wordCount;
+            } else if (defaults.unitsType === 'Documents') {
+                unitsType = 'Documents';
+                unitsAmount = 1;
+                pricePerUnit = inv.totalCost;
+            }
+            
+            // Currency from CSV or default
+            const currency = inv.currency && CURRENCIES.includes(inv.currency.toUpperCase())
+                ? inv.currency.toUpperCase()
+                : defaults.currency;
+            
             return {
-                supplierEmail: freelancer?.email || '',
+                supplierEmail: freelancer?.email || inv.freelancerEmail || '',
                 supplierName: inv.resource,
                 supplierType: 'freelancer',
-                serviceType: inv.service || 'Translation',
-                jobDescription: `${inv.invoiceCode} - ${inv.project || inv.description || 'Invoice payment'}`,
-                unitsType: inv.wordCount > 0 ? 'Words' : 'Document',
-                unitsAmount: inv.wordCount > 0 ? inv.wordCount : 1,
-                pricePerUnit: inv.wordCount > 0 ? (inv.totalCost / inv.wordCount) : inv.totalCost,
-                currency: inv.currency || 'USD',
+                serviceType,
+                jobDescription: `${inv.invoiceCode}${inv.project ? ' - ' + inv.project : ''}${inv.description ? ' - ' + inv.description : ''}`.trim() || 'Invoice payment',
+                unitsType,
+                unitsAmount,
+                pricePerUnit,
+                currency,
                 externalNumber: inv.invoiceCode
             };
         });
     };
 
     const handleCreatePayments = () => {
+        const selected = getSelectedInvoices();
+        
+        // Check if any selected invoice has validation errors
+        const invalidInvoices = selected.filter(inv => !inv.isValidForSmartcat);
+        if (invalidInvoices.length > 0) {
+            toast.error(`${invalidInvoices.length} invoice(s) have validation errors. Please fix them first.`);
+            return;
+        }
+        
         const payments = convertToSmartcatPayments();
         
-        // Validate all have email
+        // Final validation - check all have email
         const missingEmail = payments.filter(p => !p.supplierEmail);
         if (missingEmail.length > 0) {
-            toast.error(`${missingEmail.length} invoice(s) missing freelancer email. Only matched freelancers can be paid.`);
+            toast.error(`${missingEmail.length} invoice(s) missing freelancer email.`);
+            return;
+        }
+        
+        // Validate amounts
+        const invalidAmounts = payments.filter(p => !p.pricePerUnit || p.pricePerUnit <= 0 || !p.unitsAmount || p.unitsAmount <= 0);
+        if (invalidAmounts.length > 0) {
+            toast.error(`${invalidAmounts.length} invoice(s) have invalid amounts.`);
             return;
         }
         
         createPaymentsMutation.mutate(payments);
     };
+
+    // Count valid invoices for selection
+    const validPendingCount = filteredInvoices.filter(inv => 
+        !inv.datePaid && inv.isValidForSmartcat && !inv.sentToSmartcat
+    ).length;
 
     const selectedTotal = getSelectedInvoices().reduce((sum, inv) => sum + inv.totalCost, 0);
 
@@ -318,12 +415,59 @@ export default function InvoiceImport() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {/* Default Values Section */}
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <Label className="text-sm font-medium text-gray-700">Default Values for Smartcat</Label>
+                        <p className="text-xs text-gray-500">These will be used when CSV doesn't have these fields</p>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div>
+                                <Label className="text-xs">Service Type</Label>
+                                <Select value={defaults.serviceType} onValueChange={(v) => setDefaults({...defaults, serviceType: v})}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {SERVICE_TYPES.map(t => (
+                                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label className="text-xs">Unit Type</Label>
+                                <Select value={defaults.unitsType} onValueChange={(v) => setDefaults({...defaults, unitsType: v})}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {UNIT_TYPES.map(t => (
+                                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label className="text-xs">Currency</Label>
+                                <Select value={defaults.currency} onValueChange={(v) => setDefaults({...defaults, currency: v})}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CURRENCIES.map(c => (
+                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <Label>Paste Data (Tab or Comma separated)</Label>
                         <Textarea
-                            placeholder={`InvoiceCode\tResource\tStatus\tVAT\tTotalCost\tCurrency\tDateSent\tDatePaid
-INV06035\tJohn Smith\tDue Today\t0\t450.14\tUSD\t15/01/2026\t
-INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
+                            placeholder={`InvoiceCode\tResource\tStatus\tVAT\tTotalCost\tCurrency\tDateSent\tDatePaid\tWordCount\tService
+INV06035\tJohn Smith\tDue Today\t0\t450.14\tUSD\t15/01/2026\t\t5000\tTranslation
+INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026\t2000\tEditing`}
                             value={rawInput}
                             onChange={(e) => setRawInput(e.target.value)}
                             rows={6}
@@ -477,7 +621,7 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                             {/* Payment Actions */}
                             <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t">
                                 <Button variant="outline" size="sm" onClick={selectAllPending}>
-                                    Select All Pending
+                                    Select All Valid ({validPendingCount})
                                 </Button>
                                 <Button 
                                     variant="outline" 
@@ -516,13 +660,13 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                     </TableHeader>
                                     <TableBody>
                                         {filteredInvoices.map((invoice, idx) => {
-                                            const canSelect = !invoice.datePaid && invoice.freelancerMatched && !invoice.sentToSmartcat;
+                                            const canSelect = !invoice.datePaid && invoice.isValidForSmartcat && !invoice.sentToSmartcat;
                                             const isSelected = selectedForPayment.has(invoice.invoiceCode);
                                             
                                             return (
                                                 <TableRow 
                                                     key={idx}
-                                                    className={isSelected ? 'bg-purple-50' : ''}
+                                                    className={`${isSelected ? 'bg-purple-50' : ''} ${invoice.validationErrors?.length > 0 && !invoice.datePaid ? 'bg-amber-50/50' : ''}`}
                                                 >
                                                     <TableCell>
                                                         {canSelect ? (
@@ -532,6 +676,8 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                                             />
                                                         ) : invoice.sentToSmartcat ? (
                                                             <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                        ) : invoice.validationErrors?.length > 0 ? (
+                                                            <AlertTriangle className="w-4 h-4 text-amber-500" />
                                                         ) : null}
                                                     </TableCell>
                                                     <TableCell className="font-mono text-sm font-medium">
@@ -566,11 +712,16 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                                         {invoice.currency} {invoice.totalCost.toFixed(2)}
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="flex items-center gap-1">
+                                                        <div className="flex items-center gap-1 flex-wrap">
                                                             {getStatusBadge(invoice)}
                                                             {invoice.sentToSmartcat && (
                                                                 <Badge className="bg-purple-100 text-purple-700 text-xs">
                                                                     Sent
+                                                                </Badge>
+                                                            )}
+                                                            {invoice.validationErrors?.length > 0 && !invoice.datePaid && (
+                                                                <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                                                                    {invoice.validationErrors.length} issue{invoice.validationErrors.length > 1 ? 's' : ''}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -685,6 +836,36 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                 </div>
                             )}
 
+                            {/* Validation Errors */}
+                            {selectedInvoice.validationErrors?.length > 0 && (
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    <Label className="text-xs text-amber-700 font-medium">Validation Issues</Label>
+                                    <ul className="text-sm text-amber-600 mt-1 space-y-1">
+                                        {selectedInvoice.validationErrors.map((err, i) => (
+                                            <li key={i} className="flex items-center gap-2">
+                                                <AlertTriangle className="w-3 h-3" />
+                                                {err}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Smartcat Payment Preview */}
+                            {selectedInvoice.isValidForSmartcat && !selectedInvoice.datePaid && (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                    <Label className="text-xs text-green-700 font-medium">Smartcat Payment Preview</Label>
+                                    <div className="text-sm text-green-600 mt-1 space-y-1">
+                                        <p><strong>Service:</strong> {selectedInvoice.service || defaults.serviceType}</p>
+                                        <p><strong>Units:</strong> {selectedInvoice.wordCount > 0 ? `${selectedInvoice.wordCount} Words` : `1 ${defaults.unitsType}`}</p>
+                                        <p><strong>Rate:</strong> {selectedInvoice.wordCount > 0 
+                                            ? `${(selectedInvoice.totalCost / selectedInvoice.wordCount).toFixed(4)}/word`
+                                            : `${selectedInvoice.totalCost.toFixed(2)} total`
+                                        }</p>
+                                    </div>
+                                </div>
+                            )}
+
                             {selectedInvoice.freelancerId && (
                                 <div className="pt-4 border-t">
                                     <Link to={createPageUrl(`FreelancerDetail?id=${selectedInvoice.freelancerId}`)}>
@@ -713,14 +894,22 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026`}
                                 </p>
                                 <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto text-sm">
                                     {getSelectedInvoices().map(inv => {
-                                        const freelancer = freelancers.find(f => f.id === inv.freelancerId);
+                                        const payment = convertToSmartcatPayments().find(p => p.externalNumber === inv.invoiceCode);
                                         return (
-                                            <div key={inv.invoiceCode} className="flex justify-between py-1 border-b last:border-0">
-                                                <span>{inv.resource}</span>
-                                                <span className="font-medium">{inv.currency} {inv.totalCost.toFixed(2)}</span>
+                                            <div key={inv.invoiceCode} className="py-2 border-b last:border-0 space-y-1">
+                                                <div className="flex justify-between">
+                                                    <span className="font-medium">{inv.resource}</span>
+                                                    <span className="font-bold">{payment?.currency} {inv.totalCost.toFixed(2)}</span>
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {payment?.serviceType} · {payment?.unitsAmount} {payment?.unitsType} · {payment?.pricePerUnit?.toFixed(4)}/{payment?.unitsType?.slice(0,-1)}
+                                                </div>
                                             </div>
                                         );
                                     })}
+                                </div>
+                                <div className="text-xs text-gray-500 bg-gray-100 rounded p-2">
+                                    <strong>Defaults:</strong> {defaults.serviceType} · {defaults.unitsType} · {defaults.currency}
                                 </div>
                                 <p className="text-amber-600 text-sm">
                                     ⚠️ This will create real payment records in Smartcat. Make sure the amounts are correct.
