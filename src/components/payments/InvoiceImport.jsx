@@ -17,7 +17,7 @@ import {
 import { 
     Upload, FileText, CheckCircle2, AlertTriangle, Clock,
     Download, DollarSign, ClipboardPaste, Search, Filter,
-    Calendar, User, CreditCard, ArrowUpDown, Eye, Send, Loader2
+    Calendar, User, CreditCard, ArrowUpDown, Eye, Send, Loader2, RefreshCw
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
@@ -61,6 +61,8 @@ export default function InvoiceImport() {
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [selectedForPayment, setSelectedForPayment] = useState(new Set());
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [smartcatStatuses, setSmartcatStatuses] = useState({});
+    const [isCheckingStatus, setIsCheckingStatus] = useState(false);
     
     // Detected CSV columns for mapping
     const [detectedColumns, setDetectedColumns] = useState([]);
@@ -75,10 +77,44 @@ export default function InvoiceImport() {
         currency: 'USD'
     });
 
+    // Handle default template load
+    const handleDefaultTemplateLoad = useCallback((mapping, templateDefaults) => {
+        setColumnMapping(mapping);
+        setDefaults(templateDefaults);
+    }, []);
+
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list(),
     });
+
+    // Check Smartcat payment status for invoices
+    const checkSmartcatStatus = useCallback(async (invoiceCodes) => {
+        if (!invoiceCodes || invoiceCodes.length === 0) return;
+        
+        setIsCheckingStatus(true);
+        try {
+            const response = await base44.functions.invoke('smartcatPayments', {
+                action: 'get_payments_by_ids',
+                filters: { external_ids: invoiceCodes }
+            });
+            
+            const statusMap = {};
+            (response.data?.payments || []).forEach(p => {
+                statusMap[p.externalNumber] = {
+                    status: p.status,
+                    smartcatId: p.id,
+                    amount: p.cost || (p.unitsAmount * p.pricePerUnit),
+                    paidDate: p.paidDate
+                };
+            });
+            setSmartcatStatuses(statusMap);
+        } catch (error) {
+            console.error('Failed to check Smartcat status:', error);
+        } finally {
+            setIsCheckingStatus(false);
+        }
+    }, []);
 
     const parseCSV = (text, customMapping = null) => {
         const lines = text.split('\n').filter(line => line.trim());
@@ -192,7 +228,13 @@ export default function InvoiceImport() {
         if (!rawInput.trim()) return;
         const data = parseCSV(rawInput, columnMapping);
         setInvoices(data);
-    }, [rawInput, freelancers, columnMapping, defaults]);
+        
+        // Auto-check Smartcat status for parsed invoices
+        const invoiceCodes = data.map(inv => inv.invoiceCode).filter(Boolean);
+        if (invoiceCodes.length > 0) {
+            checkSmartcatStatus(invoiceCodes);
+        }
+    }, [rawInput, freelancers, columnMapping, defaults, checkSmartcatStatus]);
     
     // Handle mapping changes from CsvMappingManager
     const handleApplyMapping = (newMapping, newDefaults) => {
@@ -215,9 +257,15 @@ export default function InvoiceImport() {
             setRawInput(text);
             const data = parseCSV(text);
             setInvoices(data);
+            
+            // Auto-check Smartcat status
+            const invoiceCodes = data.map(inv => inv.invoiceCode).filter(Boolean);
+            if (invoiceCodes.length > 0) {
+                checkSmartcatStatus(invoiceCodes);
+            }
         };
         reader.readAsText(uploadedFile);
-    }, [freelancers]);
+    }, [freelancers, checkSmartcatStatus]);
 
     // Create Smartcat payments mutation
     const createPaymentsMutation = useMutation({
@@ -440,6 +488,25 @@ export default function InvoiceImport() {
     };
 
     const getStatusBadge = (invoice) => {
+        // Check Smartcat status first
+        const scStatus = smartcatStatuses[invoice.invoiceCode];
+        if (scStatus) {
+            const statusLower = (scStatus.status || '').toLowerCase();
+            if (statusLower === 'paid' || scStatus.paidDate) {
+                return <Badge className="bg-green-100 text-green-700">Paid (Smartcat)</Badge>;
+            }
+            if (statusLower === 'processing' || statusLower === 'pending') {
+                return <Badge className="bg-blue-100 text-blue-700">Processing</Badge>;
+            }
+            if (statusLower === 'failed' || statusLower === 'rejected') {
+                return <Badge className="bg-red-100 text-red-700">Failed</Badge>;
+            }
+            if (statusLower === 'approved') {
+                return <Badge className="bg-purple-100 text-purple-700">Approved</Badge>;
+            }
+        }
+        
+        // Fallback to CSV status
         if (invoice.datePaid) {
             return <Badge className="bg-green-100 text-green-700">Paid</Badge>;
         }
@@ -478,6 +545,7 @@ export default function InvoiceImport() {
                                 onApplyMapping={handleApplyMapping}
                                 currentMapping={columnMapping}
                                 currentDefaults={defaults}
+                                onDefaultTemplateLoad={handleDefaultTemplateLoad}
                             />
                         </div>
                         <div className="grid grid-cols-3 gap-3">
@@ -671,6 +739,14 @@ INV06034\tJane Doe\tPaid\t0\t178.48\tUSD\t14/01/2026\t14/01/2026\t2000\tEditing`
                                     </Select>
                                     <Button variant="outline" size="icon" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
                                         <ArrowUpDown className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        onClick={() => checkSmartcatStatus(invoices.map(i => i.invoiceCode).filter(Boolean))}
+                                        disabled={isCheckingStatus}
+                                    >
+                                        <RefreshCw className={`w-4 h-4 mr-2 ${isCheckingStatus ? 'animate-spin' : ''}`} />
+                                        Check Status
                                     </Button>
                                     <Button variant="outline" onClick={downloadCSV}>
                                         <Download className="w-4 h-4 mr-2" />
