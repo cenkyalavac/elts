@@ -385,11 +385,6 @@ export default function InvoiceImport() {
         createPaymentsMutation.mutate(payments);
     };
 
-    // Count valid invoices for selection
-    const validPendingCount = filteredInvoices.filter(inv => 
-        !inv.datePaid && inv.isValidForSmartcat && !inv.sentToSmartcat
-    ).length;
-
     const selectedTotal = getSelectedInvoices().reduce((sum, inv) => sum + inv.totalCost, 0);
 
     // Filter and sort invoices
@@ -426,6 +421,11 @@ export default function InvoiceImport() {
             if (sortOrder === 'asc') return aVal > bVal ? 1 : -1;
             return aVal < bVal ? 1 : -1;
         });
+
+    // Count valid invoices for selection (must be after filteredInvoices is defined)
+    const validPendingCount = filteredInvoices.filter(inv => 
+        !inv.datePaid && inv.isValidForSmartcat && !inv.sentToSmartcat
+    ).length;
 
     // Calculate summary
     const summary = {
