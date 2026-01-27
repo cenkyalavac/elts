@@ -2,6 +2,21 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const SMARTCAT_API_URL = 'https://smartcat.com/api/integration/v2';
 
+// Configuration check - validates required environment variables
+function checkRequiredConfig() {
+    const accountId = Deno.env.get('SMARTCAT_ACCOUNT_ID');
+    const apiKey = Deno.env.get('SMARTCAT_API_KEY');
+    
+    if (!accountId) {
+        throw new Error('Missing Configuration: SMARTCAT_ACCOUNT_ID');
+    }
+    if (!apiKey) {
+        throw new Error('Missing Configuration: SMARTCAT_API_KEY');
+    }
+    
+    return { accountId, apiKey };
+}
+
 // Normalize strings for matching - handles Turkish/special characters
 function normalizeString(str) {
     if (!str) return '';
@@ -22,17 +37,16 @@ function normalizeString(str) {
         .trim();
 }
 
-async function getSmartcatAuth() {
-    const accountId = Deno.env.get('SMARTCAT_ACCOUNT_ID');
-    const apiKey = Deno.env.get('SMARTCAT_API_KEY');
-    if (!accountId || !apiKey) {
-        throw new Error('Missing Smartcat Configuration');
-    }
+function getSmartcatAuth(accountId, apiKey) {
     return 'Basic ' + btoa(`${accountId}:${apiKey}`);
 }
 
 Deno.serve(async (req) => {
     try {
+        // Configuration check at the very start
+        const { accountId, apiKey } = checkRequiredConfig();
+        const auth = getSmartcatAuth(accountId, apiKey);
+        
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
         
@@ -41,7 +55,6 @@ Deno.serve(async (req) => {
         }
 
         const { action, filters, tbms_data, payment_ids } = await req.json();
-        const auth = await getSmartcatAuth();
 
         if (action === 'get_pending_payments') {
             // Get jobs with pending payments - only our projects

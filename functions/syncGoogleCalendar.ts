@@ -1,5 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Configuration check - validates Google Calendar connector is available
+async function checkGoogleCalendarConfig(base44) {
+    try {
+        const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
+        if (!accessToken) {
+            throw new Error('Missing Configuration: Google Calendar connector not authorized');
+        }
+        return accessToken;
+    } catch (error) {
+        if (error.message.includes('Missing Configuration')) {
+            throw error;
+        }
+        throw new Error('Missing Configuration: Google Calendar connector not authorized. Please connect your Google Calendar in settings.');
+    }
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -9,10 +25,10 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { freelancerId, calendarId, action, daysAhead = 30 } = await req.json();
+        // Configuration check at the very start
+        const accessToken = await checkGoogleCalendarConfig(base44);
 
-        // Get access token from Google Calendar connector
-        const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
+        const { freelancerId, calendarId, action, daysAhead = 30 } = await req.json();
 
         // Action: List available calendars
         if (action === 'listCalendars') {
