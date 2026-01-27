@@ -78,7 +78,25 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
             return;
         }
 
-        await createApplicationMutation.mutateAsync(formData);
+        // Sanitize phone number - keep only digits and leading +
+        let sanitizedPhone = formData.phone;
+        if (sanitizedPhone) {
+            const hasPlus = sanitizedPhone.startsWith('+');
+            sanitizedPhone = sanitizedPhone.replace(/[^\d]/g, '');
+            if (hasPlus) sanitizedPhone = '+' + sanitizedPhone;
+            
+            // Validate minimum length (10 digits)
+            const digitCount = sanitizedPhone.replace(/\D/g, '').length;
+            if (digitCount < 10) {
+                toast.error('Please enter a valid phone number with country code');
+                return;
+            }
+        }
+
+        await createApplicationMutation.mutateAsync({
+            ...formData,
+            phone: sanitizedPhone
+        });
     };
 
     return (
