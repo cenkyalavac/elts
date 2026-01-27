@@ -123,8 +123,8 @@ Deno.serve(async (req) => {
             const freelancersByName = new Map();
             
             for (const f of freelancers) {
-                if (f.email) freelancersByEmail.set(f.email.toLowerCase(), f);
-                if (f.full_name) freelancersByName.set(f.full_name.toLowerCase().trim(), f);
+                if (f.email) freelancersByEmail.set(normalizeString(f.email), f);
+                if (f.full_name) freelancersByName.set(normalizeString(f.full_name), f);
             }
 
             // Get Smartcat team - fail immediately if this doesn't work
