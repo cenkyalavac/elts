@@ -1,14 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * Initiates e-signature process via DocuSign
- * Requires DOCUSIGN_API_KEY and DOCUSIGN_ACCOUNT_ID secrets
- * 
- * Future integration plan:
- * 1. User will need to provide DocuSign API credentials
- * 2. This function creates a signing request/envelope
- * 3. Freelancer receives signing URL
- * 4. Status updates are tracked via webhooks
+ * Internal e-signature process
+ * Accepts a base64 encoded signature image drawn by the user
  */
 
 Deno.serve(async (req) => {
@@ -16,54 +10,95 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
 
-        if (!user || user.role !== 'admin') {
-            return Response.json({ error: 'Forbidden' }, { status: 403 });
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { document_id, freelancer_id, freelancer_email } = await req.json();
+        const { document_id, freelancer_id, signature_base64 } = await req.json();
 
-        if (!document_id || !freelancer_id || !freelancer_email) {
-            return Response.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!document_id || !freelancer_id || !signature_base64) {
+            return Response.json({ error: 'Missing required fields: document_id, freelancer_id, signature_base64' }, { status: 400 });
         }
 
-        // Check if DocuSign is configured
-        const docusignApiKey = Deno.env.get('DOCUSIGN_API_KEY');
-        const docusignAccountId = Deno.env.get('DOCUSIGN_ACCOUNT_ID');
-
-        if (!docusignApiKey || !docusignAccountId) {
-            return Response.json({
-                error: 'E-signature service not configured',
-                code: 'ESIGN_NOT_CONFIGURED',
-                setup_instructions: 'Please set DOCUSIGN_API_KEY and DOCUSIGN_ACCOUNT_ID in secrets'
-            }, { status: 503 });
+        // Validate base64 format
+        if (!signature_base64.startsWith('data:image/')) {
+            return Response.json({ error: 'Invalid signature format. Expected base64 image.' }, { status: 400 });
         }
 
         // Get document
-        const document = await base44.asServiceRole.entities.Document.read(document_id);
-        if (!document) {
+        const documents = await base44.asServiceRole.entities.Document.filter({ id: document_id });
+        if (!documents || documents.length === 0) {
             return Response.json({ error: 'Document not found' }, { status: 404 });
         }
+        const document = documents[0];
 
         // Get freelancer
-        const freelancer = await base44.asServiceRole.entities.Freelancer.read(freelancer_id);
-        if (!freelancer) {
+        const freelancers = await base44.asServiceRole.entities.Freelancer.filter({ id: freelancer_id });
+        if (!freelancers || freelancers.length === 0) {
             return Response.json({ error: 'Freelancer not found' }, { status: 404 });
         }
+        const freelancer = freelancers[0];
 
-        // TODO: Implement DocuSign API integration
-        // 1. Download document from file_url
-        // 2. Create envelope with document
-        // 3. Add recipient (freelancer)
-        // 4. Send for signing
-        // 5. Store envelope ID and signing URL in DocumentSignature
+        // Convert base64 to blob and upload
+        const base64Data = signature_base64.split(',')[1];
+        const mimeType = signature_base64.split(';')[0].split(':')[1];
+        const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        const blob = new Blob([binaryData], { type: mimeType });
+        const file = new File([blob], `signature_${freelancer_id}_${Date.now()}.png`, { type: mimeType });
+
+        // Upload signature image
+        const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+        const signatureImageUrl = uploadResult.file_url;
+
+        // Check for existing signature record
+        const existingSignatures = await base44.asServiceRole.entities.DocumentSignature.filter({
+            document_id: document_id,
+            freelancer_id: freelancer_id
+        });
+
+        const signedDate = new Date().toISOString();
+        let signatureRecord;
+
+        if (existingSignatures && existingSignatures.length > 0) {
+            // Update existing record
+            signatureRecord = await base44.asServiceRole.entities.DocumentSignature.update(
+                existingSignatures[0].id,
+                {
+                    status: 'signed',
+                    signature_type: 'esign',
+                    signed_date: signedDate,
+                    signature_file_url: signatureImageUrl,
+                    document_version: document.version || 1
+                }
+            );
+        } else {
+            // Create new signature record
+            signatureRecord = await base44.asServiceRole.entities.DocumentSignature.create({
+                document_id: document_id,
+                freelancer_id: freelancer_id,
+                freelancer_email: freelancer.email,
+                status: 'signed',
+                signature_type: 'esign',
+                signed_date: signedDate,
+                signature_file_url: signatureImageUrl,
+                document_version: document.version || 1
+            });
+        }
 
         return Response.json({
-            error: 'E-signature integration coming soon',
-            code: 'ESIGN_NOT_IMPLEMENTED',
-            message: 'DocuSign/HelloSign integration will be available in next release'
-        }, { status: 501 });
+            success: true,
+            message: 'Document signed successfully',
+            signature: {
+                id: signatureRecord.id,
+                document_id: document_id,
+                freelancer_id: freelancer_id,
+                signed_date: signedDate,
+                signature_image_url: signatureImageUrl
+            }
+        });
 
     } catch (error) {
+        console.error('E-signature error:', error);
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
