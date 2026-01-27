@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import GlobalSearch from "@/components/ui/GlobalSearch";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import CommandPalette from "@/components/ui/CommandPalette";
 import {
           DropdownMenu,
           DropdownMenuContent,
@@ -23,6 +24,22 @@ import {
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+    // Global keyboard shortcut for command palette
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setCommandPaletteOpen(prev => !prev);
+            }
+            if (e.key === 'Escape') {
+                setCommandPaletteOpen(false);
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
@@ -335,6 +352,7 @@ export default function Layout({ children, currentPageName }) {
                 </ErrorBoundary>
             </main>
             {user && <GlobalSearch />}
+            {user && <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />}
         </div>
     );
 }
