@@ -23,7 +23,8 @@ const initialFormData = {
     portfolio_url: '',
     why_join: '',
     language_pairs: [],
-    status: 'New Application'
+    status: 'New Application',
+    website_url: '' // Honeypot field
 };
 
 export default function ApplicationForm({ position, onCancel, onSuccess }) {
@@ -109,6 +110,12 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        // Honeypot check - if filled, it's a bot
+        if (formData.website_url) {
+            toast.success('Application submitted successfully! We\'ll be in touch soon.');
+            return;
+        }
+        
         if (!formData.cv_file_url) {
             toast.error('Please upload your CV');
             return;
@@ -129,8 +136,9 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
             }
         }
 
+        const { website_url, ...submitData } = formData;
         await createApplicationMutation.mutateAsync({
-            ...formData,
+            ...submitData,
             phone: sanitizedPhone
         });
     };
@@ -154,6 +162,19 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Honeypot field - hidden from real users */}
+                    <div className="hidden" aria-hidden="true">
+                        <Label htmlFor="website_url">Website URL</Label>
+                        <Input
+                            id="website_url"
+                            name="website_url"
+                            tabIndex={-1}
+                            autoComplete="off"
+                            value={formData.website_url}
+                            onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                        />
+                    </div>
+                    
                     {/* Basic Information */}
                     <div className="space-y-4">
                         <h3 className="font-semibold text-lg">Basic Information</h3>
