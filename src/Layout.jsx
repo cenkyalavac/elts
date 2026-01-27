@@ -135,8 +135,6 @@ export default function Layout({ children, currentPageName }) {
         return <>{children}</>;
     }
 
-    const navItems = isApplicant ? applicantNavItems : mainNavItems;
-
     return (
         <div className="min-h-screen bg-gray-50">
             <nav className="bg-gradient-to-r from-purple-900 via-purple-800 to-pink-700 text-white shadow-lg sticky top-0 z-40">
