@@ -107,18 +107,21 @@ Deno.serve(async (req) => {
                 if (f.full_name) freelancersByName.set(f.full_name.toLowerCase().trim(), f);
             }
 
-            // Get Smartcat team
-            let smartcatTeam = [];
-            try {
-                const teamResponse = await fetch(`${SMARTCAT_API_URL}/account/myTeam`, {
-                    headers: { 'Authorization': auth }
-                });
-                if (teamResponse.ok) {
-                    smartcatTeam = await teamResponse.json();
-                }
-            } catch (e) {
-                console.log('Could not fetch Smartcat team:', e.message);
+            // Get Smartcat team - fail immediately if this doesn't work
+            const teamResponse = await fetch(`${SMARTCAT_API_URL}/account/myTeam`, {
+                headers: { 'Authorization': auth }
+            });
+            
+            if (!teamResponse.ok) {
+                const errorText = await teamResponse.text();
+                console.error('Smartcat team fetch failed:', errorText);
+                return Response.json({ 
+                    error: 'Smartcat API connection failed. Cannot match users.',
+                    details: errorText 
+                }, { status: 500 });
             }
+            
+            const smartcatTeam = await teamResponse.json();
 
             const smartcatByEmail = new Map(smartcatTeam.map(m => [m.email?.toLowerCase(), m]));
             const smartcatByName = new Map(smartcatTeam.map(m => {
