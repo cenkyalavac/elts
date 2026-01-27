@@ -25,6 +25,13 @@ export default function PerformanceAnalyticsPage() {
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
     const [notificationType, setNotificationType] = useState(null);
 
+    const { data: user, isLoading: userLoading } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: () => base44.auth.me(),
+    });
+
+    const canAccess = user?.role === 'admin' || user?.role === 'project_manager';
+
     const { data: reports = [] } = useQuery({
         queryKey: ['qualityReports'],
         queryFn: () => base44.entities.QualityReport.list('-created_date'),
@@ -187,6 +194,28 @@ export default function PerformanceAnalyticsPage() {
         a.click();
         URL.revokeObjectURL(url);
     };
+
+    if (userLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!canAccess) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+                <div className="max-w-4xl mx-auto text-center mt-20">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+                    <p className="text-gray-600">Only administrators and project managers can access this page.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
