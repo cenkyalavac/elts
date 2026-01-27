@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const SMARTCAT_API_URL = 'https://smartcat.com/api/integration/v2';
+const SMARTCAT_API_URL = 'https://smartcat.com/api/integration';
 
 // Configuration check - validates required environment variables
 function checkRequiredConfig() {
@@ -15,6 +15,38 @@ function checkRequiredConfig() {
     }
     
     return { accountId, apiKey };
+}
+
+// Smartcat API fetch helper
+async function smartcatFetch(endpoint, options = {}) {
+    const { accountId, apiKey } = checkRequiredConfig();
+    const auth = 'Basic ' + btoa(`${accountId}:${apiKey}`);
+    const url = `${SMARTCAT_API_URL}${endpoint}`;
+    
+    console.log(`[Smartcat] ${options.method || 'GET'} ${url}`);
+    
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': auth,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+    
+    const text = await response.text();
+    
+    if (!response.ok) {
+        console.error(`[Smartcat] Error ${response.status}: ${text}`);
+        throw new Error(`Smartcat API error ${response.status}: ${text.substring(0, 300)}`);
+    }
+    
+    try {
+        return JSON.parse(text);
+    } catch {
+        return text;
+    }
 }
 
 // Normalize strings for matching - handles Turkish/special characters
@@ -72,68 +104,196 @@ Deno.serve(async (req) => {
 
         const { action, filters, tbms_data, payment_ids } = await req.json();
 
-        if (action === 'get_pending_payments') {
-            // Get jobs with pending payments - only our projects
-            const { date_from, date_to, status } = filters || {};
+        // ==================== LIST PAYMENTS FROM SMARTCAT ====================
+        if (action === 'list_payments') {
+            const { date_from, date_to, skip = 0, limit = 100 } = filters || {};
             
-            let url = `${SMARTCAT_API_URL}/job/list?`;
-            const params = new URLSearchParams();
-            
-            // Filter by date range
-            if (date_from) params.append('createdFrom', date_from);
-            if (date_to) params.append('createdTo', date_to);
-            
-            // Only get completed jobs that need payment
-            params.append('jobStatus', status || 'completed');
-            
-            const response = await fetch(url + params.toString(), {
-                headers: { 'Authorization': auth }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                return Response.json({ error: 'Failed to get jobs', details: errorText }, { status: 400 });
+            if (!date_from || !date_to) {
+                return Response.json({ error: 'date_from and date_to are required' }, { status: 400 });
             }
+            
+            // Use v2 API to list payments by creation date
+            const params = new URLSearchParams({
+                dateCreatedFrom: new Date(date_from).toISOString(),
+                dateCreatedTo: new Date(date_to + 'T23:59:59').toISOString(),
+                skip: skip.toString(),
+                limit: Math.min(limit, 500).toString()
+            });
+            
+            const payments = await smartcatFetch(`/v2/invoice/job/listByCreatedDate?${params}`);
+            
+            // Get our freelancers for matching
+            const freelancers = await base44.asServiceRole.entities.Freelancer.list();
+            const freelancersByEmail = new Map(freelancers.map(f => [f.email?.toLowerCase(), f]));
+            
+            // Enrich with our freelancer data
+            const enrichedPayments = (payments || []).map(p => ({
+                ...p,
+                matched_freelancer: freelancersByEmail.get(p.supplierEmail?.toLowerCase()) || null
+            }));
+            
+            return Response.json({
+                payments: enrichedPayments,
+                total: enrichedPayments.length,
+                date_range: { from: date_from, to: date_to }
+            });
+        }
 
-            const jobs = await response.json();
+        // ==================== LIST INVOICES FROM SMARTCAT ====================
+        if (action === 'list_invoices') {
+            const { date_from, date_to, skip = 0, limit = 10 } = filters || {};
+            
+            if (!date_from || !date_to) {
+                return Response.json({ error: 'date_from and date_to are required' }, { status: 400 });
+            }
+            
+            const params = new URLSearchParams({
+                dateCreatedFrom: new Date(date_from).toISOString(),
+                dateCreatedTo: new Date(date_to + 'T23:59:59').toISOString(),
+                skip: skip.toString(),
+                limit: Math.min(limit, 10).toString()
+            });
+            
+            const invoices = await smartcatFetch(`/v2/invoice/list?${params}`);
+            
+            return Response.json({
+                invoices: invoices || [],
+                total: (invoices || []).length,
+                date_range: { from: date_from, to: date_to }
+            });
+        }
+
+        // ==================== CREATE PAYMENTS IN SMARTCAT ====================
+        if (action === 'create_payments') {
+            const { payments } = filters || {};
+            
+            if (!payments || !Array.isArray(payments) || payments.length === 0) {
+                return Response.json({ error: 'payments array is required' }, { status: 400 });
+            }
+            
+            // Validate each payment
+            for (const p of payments) {
+                if (!p.supplierEmail) {
+                    return Response.json({ error: 'Each payment must have supplierEmail' }, { status: 400 });
+                }
+                if (!p.unitsAmount || p.unitsAmount <= 0) {
+                    return Response.json({ error: 'Each payment must have valid unitsAmount' }, { status: 400 });
+                }
+                if (!p.pricePerUnit || p.pricePerUnit <= 0) {
+                    return Response.json({ error: 'Each payment must have valid pricePerUnit' }, { status: 400 });
+                }
+            }
+            
+            // Format payments for Smartcat v2 API
+            const smartcatPayments = payments.map(p => ({
+                supplierEmail: p.supplierEmail,
+                supplierName: p.supplierName || p.supplierEmail.split('@')[0],
+                supplierType: p.supplierType || 'freelancer',
+                serviceType: p.serviceType || 'Translation',
+                jobDescription: p.jobDescription || p.description || 'Translation work',
+                unitsType: p.unitsType || 'Words',
+                unitsAmount: parseFloat(p.unitsAmount),
+                pricePerUnit: parseFloat(p.pricePerUnit),
+                currency: p.currency || 'USD',
+                externalNumber: p.externalNumber || `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                payUntilDate: p.payUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            }));
+            
+            // Send to Smartcat
+            const result = await smartcatFetch('/v2/invoice/jobs', {
+                method: 'POST',
+                body: JSON.stringify(smartcatPayments)
+            });
+            
+            // Log the action
+            await logAction(base44, {
+                actorId: user.id,
+                actorEmail: user.email,
+                actionType: 'PAYMENT_BATCH',
+                targetEntity: 'SmartcatPayment',
+                targetId: `BATCH-${Date.now()}`,
+                metadata: {
+                    payment_count: smartcatPayments.length,
+                    total_amount: smartcatPayments.reduce((sum, p) => sum + (p.unitsAmount * p.pricePerUnit), 0),
+                    supplier_emails: smartcatPayments.map(p => p.supplierEmail),
+                    smartcat_response: Array.isArray(result) ? result.map(r => ({ id: r.id, status: r.status })) : result
+                }
+            });
+            
+            return Response.json({
+                success: true,
+                created: Array.isArray(result) ? result.length : 1,
+                payments: result,
+                message: `Successfully created ${Array.isArray(result) ? result.length : 1} payment(s) in Smartcat`
+            });
+        }
+
+        // ==================== GET PAYMENTS BY EXTERNAL IDS ====================
+        if (action === 'get_payments_by_ids') {
+            const { external_ids } = filters || {};
+            
+            if (!external_ids || !Array.isArray(external_ids) || external_ids.length === 0) {
+                return Response.json({ error: 'external_ids array is required' }, { status: 400 });
+            }
+            
+            const params = new URLSearchParams();
+            external_ids.forEach(id => params.append('externalIds', id));
+            
+            const payments = await smartcatFetch(`/v2/invoice/job/listByExternalId?${params}`);
+            
+            return Response.json({
+                payments: payments || [],
+                total: (payments || []).length
+            });
+        }
+
+        // ==================== LEGACY: GET PENDING PAYMENTS ====================
+        if (action === 'get_pending_payments') {
+            // Redirect to list_payments with default date range (last 30 days)
+            const date_to = new Date().toISOString().split('T')[0];
+            const date_from = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            const payments = await smartcatFetch(`/v2/invoice/job/listByCreatedDate?dateCreatedFrom=${date_from}T00:00:00Z&dateCreatedTo=${date_to}T23:59:59Z&limit=100`);
             
             // Get our freelancers to match
             const freelancers = await base44.asServiceRole.entities.Freelancer.filter({ status: 'Approved' });
             const freelancerEmails = new Map(freelancers.map(f => [f.email?.toLowerCase(), f]));
 
-            // Process jobs and group by freelancer
+            // Group by freelancer
             const paymentsByFreelancer = {};
             
-            for (const job of jobs) {
-                const assigneeEmail = job.assignee?.email?.toLowerCase();
-                if (!assigneeEmail) continue;
+            for (const job of (payments || [])) {
+                const email = job.supplierEmail?.toLowerCase();
+                if (!email) continue;
 
-                // Only include if freelancer is in our team
-                const freelancer = freelancerEmails.get(assigneeEmail);
-                if (!freelancer) continue;
+                const freelancer = freelancerEmails.get(email);
 
-                if (!paymentsByFreelancer[assigneeEmail]) {
-                    paymentsByFreelancer[assigneeEmail] = {
-                        freelancer_id: freelancer.id,
-                        freelancer_name: freelancer.full_name,
-                        email: assigneeEmail,
+                if (!paymentsByFreelancer[email]) {
+                    paymentsByFreelancer[email] = {
+                        freelancer_id: freelancer?.id || null,
+                        freelancer_name: freelancer?.full_name || job.supplierName,
+                        email: email,
                         jobs: [],
                         total_amount: 0,
-                        currency: 'USD'
+                        currency: job.currency || 'USD',
+                        matched: !!freelancer
                     };
                 }
 
-                const amount = job.cost || job.price || 0;
-                paymentsByFreelancer[assigneeEmail].jobs.push({
+                const amount = job.cost || (job.unitsAmount * job.pricePerUnit) || 0;
+                paymentsByFreelancer[email].jobs.push({
                     job_id: job.id,
-                    project_name: job.projectName || job.documentName,
-                    source_language: job.sourceLanguage,
-                    target_language: job.targetLanguage,
-                    word_count: job.wordsCount || job.wordCount,
+                    external_number: job.externalNumber,
+                    description: job.jobDescription,
+                    service_type: job.serviceType,
+                    units: job.unitsAmount,
+                    price_per_unit: job.pricePerUnit,
                     amount: amount,
-                    completed_date: job.completedDate || job.deadline
+                    status: job.status,
+                    source_language: job.sourceLanguage,
+                    target_language: job.targetLanguage
                 });
-                paymentsByFreelancer[assigneeEmail].total_amount += amount;
+                paymentsByFreelancer[email].total_amount += amount;
             }
 
             return Response.json({ 
