@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQueryClient } from "@tanstack/react-query";
+import { createPageUrl } from "../utils";
 
 export default function ImportFreelancersPage() {
     const [file, setFile] = useState(null);
@@ -16,6 +16,43 @@ export default function ImportFreelancersPage() {
     const [isImportingFromDropbox, setIsImportingFromDropbox] = useState(false);
     
     const queryClient = useQueryClient();
+
+    // Security: Authentication and role check
+    const { data: user, isLoading: userLoading } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: async () => {
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) {
+                base44.auth.redirectToLogin(createPageUrl('ImportFreelancers'));
+                return null;
+            }
+            return base44.auth.me();
+        },
+    });
+
+    const isAdmin = user?.role === 'admin';
+
+    if (userLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isAdmin) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+                <div className="max-w-4xl mx-auto text-center mt-20">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+                    <p className="text-gray-600">Only administrators can import freelancers.</p>
+                </div>
+            </div>
+        );
+    }
 
     const importMutation = useMutation({
         mutationFn: async (csvData) => {
