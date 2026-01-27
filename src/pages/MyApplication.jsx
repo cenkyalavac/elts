@@ -25,12 +25,14 @@ export default function MyApplicationPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: applications = [] } = useQuery({
         queryKey: ['myApplication', user?.email],
         queryFn: () => base44.entities.Freelancer.filter({ email: user?.email }),
         enabled: !!user?.email,
+        staleTime: 60000,
     });
 
     const { data: activities = [] } = useQuery({
@@ -41,6 +43,7 @@ export default function MyApplicationPage() {
             new Date(b.created_date) - new Date(a.created_date)
         )),
         enabled: !!applications[0]?.id,
+        staleTime: 60000,
     });
 
     const updateFreelancerMutation = useMutation({

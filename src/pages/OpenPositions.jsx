@@ -19,11 +19,13 @@ export default function OpenPositionsPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: positions = [] } = useQuery({
         queryKey: ['openPositions'],
         queryFn: () => base44.entities.OpenPosition.list('-created_date'),
+        staleTime: 120000,
     });
 
     const createMutation = useMutation({

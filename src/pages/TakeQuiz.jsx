@@ -144,6 +144,7 @@ export default function TakeQuiz() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: quiz } = useQuery({
@@ -153,12 +154,14 @@ export default function TakeQuiz() {
             return quizzes.find(q => q.id === quizId);
         },
         enabled: !!quizId,
+        staleTime: 300000,
     });
 
     const { data: questions = [] } = useQuery({
         queryKey: ['questions', quizId],
         queryFn: () => base44.entities.Question.filter({ quiz_id: quizId }, 'order'),
         enabled: !!quizId,
+        staleTime: 300000,
     });
 
     const { data: freelancer } = useQuery({

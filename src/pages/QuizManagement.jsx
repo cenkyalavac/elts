@@ -27,16 +27,19 @@ export default function QuizManagement() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: quizzes = [], isLoading } = useQuery({
         queryKey: ['quizzes'],
         queryFn: () => base44.entities.Quiz.list('-created_date'),
+        staleTime: 120000,
     });
 
     const { data: allAttempts = [] } = useQuery({
         queryKey: ['allQuizAttempts'],
         queryFn: () => base44.entities.QuizAttempt.list('-created_date'),
+        staleTime: 60000,
     });
 
     const deleteQuizMutation = useMutation({

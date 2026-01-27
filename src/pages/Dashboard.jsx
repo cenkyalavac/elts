@@ -36,11 +36,13 @@ export default function Dashboard() {
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-created_date'),
+        staleTime: 300000,
     });
 
     const { data: qualityReports = [] } = useQuery({
         queryKey: ['qualityReports'],
         queryFn: () => base44.entities.QualityReport.list('-created_date'),
+        staleTime: 300000,
     });
 
     const { data: settings } = useQuery({
@@ -49,31 +51,37 @@ export default function Dashboard() {
             const allSettings = await base44.entities.QualitySettings.list();
             return allSettings[0] || { lqa_weight: 4, qs_multiplier: 20, probation_threshold: 70 };
         },
+        staleTime: 300000,
     });
 
     const { data: quizAssignments = [] } = useQuery({
         queryKey: ['allQuizAssignments'],
         queryFn: () => base44.entities.QuizAssignment.list(),
+        staleTime: 120000,
     });
 
     const { data: documentSignatures = [] } = useQuery({
         queryKey: ['documentSignatures'],
         queryFn: () => base44.entities.DocumentSignature.list(),
+        staleTime: 120000,
     });
 
     const { data: documents = [] } = useQuery({
         queryKey: ['documents'],
         queryFn: () => base44.entities.Document.list(),
+        staleTime: 120000,
     });
 
     const { data: positions = [] } = useQuery({
         queryKey: ['positions'],
         queryFn: () => base44.entities.OpenPosition.list(),
+        staleTime: 120000,
     });
 
     const { data: quizzes = [] } = useQuery({
         queryKey: ['quizzes'],
         queryFn: () => base44.entities.Quiz.list(),
+        staleTime: 120000,
     });
 
     // Pipeline stats

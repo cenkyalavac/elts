@@ -35,11 +35,13 @@ export default function PerformanceAnalyticsPage() {
     const { data: reports = [] } = useQuery({
         queryKey: ['qualityReports'],
         queryFn: () => base44.entities.QualityReport.list('-created_date'),
+        staleTime: 300000,
     });
 
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list(),
+        staleTime: 300000,
     });
 
     const { data: settings } = useQuery({
@@ -48,6 +50,7 @@ export default function PerformanceAnalyticsPage() {
             const allSettings = await base44.entities.QualitySettings.list();
             return allSettings[0] || { lqa_weight: 4, qs_multiplier: 20 };
         },
+        staleTime: 300000,
     });
 
     // Filter reports by time range

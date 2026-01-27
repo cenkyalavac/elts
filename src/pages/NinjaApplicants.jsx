@@ -44,21 +44,25 @@ export default function NinjaApplicantsPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: programs = [] } = useQuery({
         queryKey: ['ninjaPrograms'],
         queryFn: () => base44.entities.NinjaProgram.list(),
+        staleTime: 120000,
     });
 
     const { data: applicants = [], isLoading } = useQuery({
         queryKey: ['ninjaApplicants'],
         queryFn: () => base44.entities.NinjaApplicant.list('-created_date'),
+        staleTime: 60000,
     });
 
     const { data: quizzes = [] } = useQuery({
         queryKey: ['quizzes'],
         queryFn: () => base44.entities.Quiz.list(),
+        staleTime: 120000,
     });
 
     // Auto-select applicant if ID in URL

@@ -25,6 +25,7 @@ export default function FreelancerPreviewPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: freelancer, isLoading } = useQuery({
@@ -34,6 +35,7 @@ export default function FreelancerPreviewPage() {
             return freelancers[0];
         },
         enabled: !!freelancerId,
+        staleTime: 60000,
     });
 
     const { data: activities = [] } = useQuery({
@@ -44,6 +46,7 @@ export default function FreelancerPreviewPage() {
             new Date(b.created_date) - new Date(a.created_date)
         )),
         enabled: !!freelancerId,
+        staleTime: 60000,
     });
 
     const statusColors = {

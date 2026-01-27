@@ -21,11 +21,13 @@ export default function UserManagementPage() {
     const { data: currentUser } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: users = [] } = useQuery({
         queryKey: ['users'],
         queryFn: () => base44.entities.User.list(),
+        staleTime: 120000,
     });
 
     const updateUserMutation = useMutation({

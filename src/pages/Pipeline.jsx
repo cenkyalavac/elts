@@ -53,7 +53,8 @@ export default function PipelinePage() {
     const { data: freelancers = [], isLoading } = useQuery({
         queryKey: ['freelancers'],
         queryFn: () => base44.entities.Freelancer.list('-updated_date'),
-        staleTime: 30000, // Data stays fresh for 30 seconds
+        staleTime: 300000,
+        refetchOnMount: false,
     });
 
     const updateFreelancerMutation = useMutation({
