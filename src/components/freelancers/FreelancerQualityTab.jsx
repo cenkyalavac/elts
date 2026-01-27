@@ -6,15 +6,17 @@ import { createPageUrl } from "../../utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-import { Star, TrendingUp, TrendingDown, Eye, Filter, BarChart3 } from "lucide-react";
+import { Star, TrendingUp, TrendingDown, Eye, Filter, BarChart3, PieChart } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import QualityScorecard from "../quality/QualityScorecard";
 
 const TRANSLATION_TYPES = ["Technical", "Marketing", "Legal", "Medical", "General", "UI/UX", "Support", "Creative"];
 
@@ -111,7 +113,23 @@ export default function FreelancerQualityTab({ freelancerId }) {
     };
 
     return (
-        <div className="space-y-6">
+        <Tabs defaultValue="scorecard" className="space-y-6">
+            <TabsList>
+                <TabsTrigger value="scorecard" className="gap-2">
+                    <PieChart className="w-4 h-4" />
+                    Scorecard
+                </TabsTrigger>
+                <TabsTrigger value="reports" className="gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    Reports
+                </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="scorecard">
+                <QualityScorecard freelancerId={freelancerId} />
+            </TabsContent>
+
+            <TabsContent value="reports" className="space-y-6">
             {/* Combined Score Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className={`${
@@ -323,6 +341,7 @@ export default function FreelancerQualityTab({ freelancerId }) {
                     </Table>
                 </CardContent>
             </Card>
-        </div>
+            </TabsContent>
+        </Tabs>
     );
 }
