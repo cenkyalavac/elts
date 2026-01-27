@@ -4,10 +4,11 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
-    DollarSign, FileText, AlertTriangle, Construction
+    DollarSign, FileText
 } from "lucide-react";
 
 import InvoiceImport from "../components/payments/InvoiceImport";
+import PaymentsTab from "../components/payments/PaymentsTab";
 
 export default function SmartcatIntegrationPage() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -73,18 +74,7 @@ export default function SmartcatIntegrationPage() {
                 </TabsContent>
 
                 <TabsContent value="payments">
-                    <Card>
-                        <CardContent className="pt-12 pb-12">
-                            <div className="text-center">
-                                <Construction className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-                                <h2 className="text-xl font-bold text-gray-900 mb-2">Under Construction</h2>
-                                <p className="text-gray-600 max-w-md mx-auto">
-                                    The payment processing feature is currently being developed. 
-                                    You can use the Invoices tab to import and view your TBMS data.
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <PaymentsTab />
                 </TabsContent>
             </Tabs>
         </div>
