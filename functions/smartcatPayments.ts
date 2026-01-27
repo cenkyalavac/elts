@@ -165,8 +165,8 @@ Deno.serve(async (req) => {
 
             for (const record of tbms_data) {
                 // Try to extract key fields - handle various TBMS export formats
-                const email = (record.email || record.Email || record.translator_email || record['Translator Email'] || '').toLowerCase().trim();
-                const name = (record.name || record.Name || record.translator_name || record['Translator Name'] || record.resource || record.Resource || '').toLowerCase().trim();
+                const email = normalizeString(record.email || record.Email || record.translator_email || record['Translator Email'] || '');
+                const name = normalizeString(record.name || record.Name || record.translator_name || record['Translator Name'] || record.resource || record.Resource || '');
                 const amount = parseFloat(record.amount || record.Amount || record.total || record.Total || record.payment || record.Payment || 0);
                 const currency = record.currency || record.Currency || 'USD';
                 const projectName = record.project || record.Project || record.project_name || record['Project Name'] || '';
