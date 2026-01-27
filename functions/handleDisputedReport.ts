@@ -1,5 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Helper function to log admin actions
+async function logAction(base44, { actorId, actorEmail, actionType, targetEntity, targetId, metadata }) {
+    try {
+        await base44.asServiceRole.entities.AdminAuditLog.create({
+            actor_id: actorId,
+            actor_email: actorEmail,
+            action_type: actionType,
+            target_entity: targetEntity,
+            target_id: targetId,
+            metadata: metadata
+        });
+    } catch (error) {
+        console.error('Failed to log admin action:', error);
+    }
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -104,6 +120,22 @@ The report has been assigned to senior PMs for review.
                 }
             }
 
+            // Log the dispute action
+            await logAction(base44, {
+                actorId: user.id,
+                actorEmail: user.email,
+                actionType: 'QUALITY_REPORT_DISPUTED',
+                targetEntity: 'QualityReport',
+                targetId: report_id,
+                metadata: { 
+                    freelancer_id: report.freelancer_id,
+                    freelancer_name: freelancer?.full_name,
+                    project_name: report.project_name,
+                    lqa_score: report.lqa_score,
+                    qs_score: report.qs_score
+                }
+            });
+
             return Response.json({ 
                 success: true, 
                 message: 'Report disputed and assigned for review',
@@ -154,6 +186,23 @@ el turco Quality Management
                     `.trim()
                 });
             }
+
+            // Log the finalization action
+            await logAction(base44, {
+                actorId: user.id,
+                actorEmail: user.email,
+                actionType: 'QUALITY_REPORT_FINALIZED',
+                targetEntity: 'QualityReport',
+                targetId: report_id,
+                metadata: { 
+                    freelancer_id: report.freelancer_id,
+                    freelancer_name: freelancer?.full_name,
+                    project_name: report.project_name,
+                    final_comments: comments,
+                    old_status: report.status,
+                    new_status: 'finalized'
+                }
+            });
 
             return Response.json({ 
                 success: true, 

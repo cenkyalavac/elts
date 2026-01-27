@@ -17,15 +17,15 @@ el turco System
 `.trim();
 
 // Helper function to log admin actions
-async function logAdminAction(base44, { userId, userEmail, actionType, targetType, targetId, details }) {
+async function logAction(base44, { actorId, actorEmail, actionType, targetEntity, targetId, metadata }) {
     try {
         await base44.asServiceRole.entities.AdminAuditLog.create({
-            user_id: userId,
-            user_email: userEmail,
+            actor_id: actorId,
+            actor_email: actorEmail,
             action_type: actionType,
-            target_type: targetType,
+            target_entity: targetEntity,
             target_id: targetId,
-            details: details
+            metadata: metadata
         });
     } catch (error) {
         console.error('Failed to log admin action:', error);
@@ -159,13 +159,13 @@ Deno.serve(async (req) => {
         
         // Log the quiz assignment action
         if (assignments.length > 0) {
-            await logAdminAction(base44, {
-                userId: user.id,
-                userEmail: user.email,
-                actionType: 'QUIZ_ASSIGNED',
-                targetType: 'NinjaApplicant',
+            await logAction(base44, {
+                actorId: user.id,
+                actorEmail: user.email,
+                actionType: 'QUIZ_ASSIGN',
+                targetEntity: 'NinjaApplicant',
                 targetId: applicant_id,
-                details: { 
+                metadata: { 
                     program_name: program.name,
                     assigned_count: assignments.length,
                     quiz_ids: quizzesToAssign

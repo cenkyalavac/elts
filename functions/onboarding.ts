@@ -8,15 +8,15 @@ function replaceTemplate(template, data) {
 }
 
 // Helper function to log admin actions
-async function logAdminAction(base44, { userId, userEmail, actionType, targetType, targetId, details }) {
+async function logAction(base44, { actorId, actorEmail, actionType, targetEntity, targetId, metadata }) {
     try {
         await base44.asServiceRole.entities.AdminAuditLog.create({
-            user_id: userId,
-            user_email: userEmail,
+            actor_id: actorId,
+            actor_email: actorEmail,
             action_type: actionType,
-            target_type: targetType,
+            target_entity: targetEntity,
             target_id: targetId,
-            details: details
+            metadata: metadata
         });
     } catch (error) {
         console.error('Failed to log admin action:', error);
@@ -88,13 +88,13 @@ Deno.serve(async (req) => {
             }
 
             // Log the action
-            await logAdminAction(base44, {
-                userId: user.id,
-                userEmail: user.email,
+            await logAction(base44, {
+                actorId: user.id,
+                actorEmail: user.email,
                 actionType: 'STATUS_CHANGE',
-                targetType: 'Freelancer',
+                targetEntity: 'Freelancer',
                 targetId: freelancerId,
-                details: { action: 'sendWelcomeEmail', freelancer_name: freelancer.full_name }
+                metadata: { action: 'sendWelcomeEmail', freelancer_name: freelancer.full_name }
             });
 
             return Response.json({ success: true });
