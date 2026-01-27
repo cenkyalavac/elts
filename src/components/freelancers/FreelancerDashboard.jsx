@@ -15,6 +15,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { CheckCircle2, FileText, Briefcase, Star, Languages, TrendingUp, Eye, AlertTriangle, PenLine, ClipboardList, UserCog, CalendarIcon, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
+// Constants to avoid magic strings
+const AVAILABILITY_STATUS = {
+    AVAILABLE: 'available',
+    UNAVAILABLE: 'unavailable',
+    PARTIALLY_AVAILABLE: 'partially_available'
+};
+
+const SIGNATURE_STATUS = {
+    PENDING: 'pending',
+    ESIGN_PENDING: 'esign_pending',
+    SIGNED: 'signed'
+};
+
+const QUIZ_ASSIGNMENT_STATUS = {
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed'
+};
+
+const FREELANCER_STATUS_COLORS = {
+    'Approved': 'bg-green-100 text-green-800',
+    'Test Sent': 'bg-indigo-100 text-indigo-800',
+    'Price Negotiation': 'bg-yellow-100 text-yellow-800',
+    'Form Sent': 'bg-purple-100 text-purple-800',
+    'New Application': 'bg-blue-100 text-blue-800',
+    'On Hold': 'bg-gray-100 text-gray-800',
+    'Rejected': 'bg-red-100 text-red-800',
+};
+
 export default function FreelancerDashboard({ freelancer }) {
     const queryClient = useQueryClient();
     const [busyDialogOpen, setBusyDialogOpen] = useState(false);
@@ -60,16 +89,22 @@ export default function FreelancerDashboard({ freelancer }) {
         },
     });
 
-    const isCurrentlyAvailable = !todayAvailability || todayAvailability.status === 'available';
+    const isCurrentlyAvailable = !todayAvailability || todayAvailability.status === AVAILABILITY_STATUS.AVAILABLE;
 
     const availabilityMutation = useMutation({
-        mutationFn: async ({ status, untilDate }) => {
+        mutationFn: async ({ status, untilDate, todayOnly }) => {
             const today = new Date();
-            const endDate = untilDate || today;
             const datesToUpdate = [];
             
-            for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
-                datesToUpdate.push(format(new Date(d), 'yyyy-MM-dd'));
+            if (todayOnly) {
+                // Only update today's date (used when switching back to available)
+                datesToUpdate.push(todayStr);
+            } else {
+                // Update from today to untilDate (used when setting busy)
+                const endDate = untilDate || today;
+                for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    datesToUpdate.push(format(new Date(d), 'yyyy-MM-dd'));
+                }
             }
 
             for (const dateStr of datesToUpdate) {
@@ -100,19 +135,22 @@ export default function FreelancerDashboard({ freelancer }) {
         if (!checked) {
             setBusyDialogOpen(true);
         } else {
-            availabilityMutation.mutate({ status: 'available' });
+            // Only update today when switching back to available
+            availabilityMutation.mutate({ status: AVAILABILITY_STATUS.AVAILABLE, todayOnly: true });
         }
     };
 
     const handleConfirmBusy = () => {
-        availabilityMutation.mutate({ status: 'unavailable', untilDate: busyUntilDate });
+        availabilityMutation.mutate({ status: AVAILABILITY_STATUS.UNAVAILABLE, untilDate: busyUntilDate });
     };
 
     const actionItems = useMemo(() => {
         const items = [];
         
         // Check for pending documents
-        const pendingDocs = documentSignatures.filter(d => d.status === 'pending' || d.status === 'esign_pending');
+        const pendingDocs = documentSignatures.filter(d => 
+            d.status === SIGNATURE_STATUS.PENDING || d.status === SIGNATURE_STATUS.ESIGN_PENDING
+        );
         if (pendingDocs.length > 0) {
             items.push({
                 type: 'documents',
@@ -126,7 +164,7 @@ export default function FreelancerDashboard({ freelancer }) {
         }
 
         // Check for pending quizzes
-        const pendingQuizzes = quizAssignments.filter(q => q.status === 'pending');
+        const pendingQuizzes = quizAssignments.filter(q => q.status === QUIZ_ASSIGNMENT_STATUS.PENDING);
         if (pendingQuizzes.length > 0) {
             items.push({
                 type: 'quizzes',
@@ -192,15 +230,7 @@ export default function FreelancerDashboard({ freelancer }) {
         ? Math.max(...quizAttempts.map(q => q.percentage || 0))
         : null;
 
-    const statusColors = {
-        'Approved': 'bg-green-100 text-green-800',
-        'Test Sent': 'bg-indigo-100 text-indigo-800',
-        'Price Negotiation': 'bg-yellow-100 text-yellow-800',
-        'Form Sent': 'bg-purple-100 text-purple-800',
-        'New Application': 'bg-blue-100 text-blue-800',
-        'On Hold': 'bg-gray-100 text-gray-800',
-        'Rejected': 'bg-red-100 text-red-800',
-    };
+
 
     return (
         <div className="space-y-6">
@@ -316,7 +346,7 @@ export default function FreelancerDashboard({ freelancer }) {
                 <Card className="border-0 shadow-sm">
                     <CardContent className="pt-6">
                         <div className="text-sm text-gray-600 mb-2">Status</div>
-                        <Badge className={statusColors[freelancer.status]}>
+                        <Badge className={FREELANCER_STATUS_COLORS[freelancer.status] || 'bg-gray-100 text-gray-800'}>
                             {freelancer.status}
                         </Badge>
                     </CardContent>
