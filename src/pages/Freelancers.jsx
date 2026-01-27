@@ -3,7 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List, Download, ArrowUpDown } from "lucide-react";
+import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List, Download, ArrowUpDown, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import FreelancerCard from "../components/freelancers/FreelancerCard";
+import FreelancerMobileCard from "../components/freelancers/FreelancerMobileCard";
 import UploadCV from "../components/freelancers/UploadCV";
 import AdvancedFilters from "../components/freelancers/AdvancedFilters";
 import BulkStatusDialog from "../components/freelancers/BulkStatusDialog";
@@ -25,6 +26,8 @@ import BulkQuizAssignment from "../components/quiz/BulkQuizAssignment";
 import { Skeleton } from "@/components/ui/skeleton";
 import { normalizeLanguage } from "../components/utils/languageUtils";
 import { CurrencyProvider, ExchangeRateWidget } from "../components/utils/CurrencyConverter";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const stages = [
     { id: 'New Application', label: 'New Application', color: 'bg-blue-50 border-blue-200' },
@@ -38,6 +41,7 @@ const stages = [
 ];
 
 export default function FreelancersPage() {
+    const isMobile = useIsMobile();
     const [viewMode, setViewMode] = useState('list'); // 'list', 'board', 'table'
     const [showUpload, setShowUpload] = useState(false);
     const [selectedIds, setSelectedIds] = useState(new Set());
@@ -45,6 +49,7 @@ export default function FreelancersPage() {
     const [showSmartMatch, setShowSmartMatch] = useState(false);
     const [selectedFreelancer, setSelectedFreelancer] = useState(null);
     const [sortBy, setSortBy] = useState('created_date'); // 'created_date', 'name', 'rating', 'value_index'
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
     // Read URL params for initial filter
     const urlParams = new URLSearchParams(window.location.search);
     const urlStatus = urlParams.get('status');
@@ -461,7 +466,8 @@ export default function FreelancersPage() {
                             <ExchangeRateWidget currencies={['EUR', 'GBP', 'TRY']} />
                         </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    {/* Desktop Buttons */}
+                    <div className="hidden md:flex flex-wrap gap-2">
                         <div className="flex gap-1 border rounded-lg p-1 bg-white">
                             <Button 
                                 variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -469,7 +475,7 @@ export default function FreelancersPage() {
                                 onClick={() => setViewMode('list')}
                             >
                                 <List className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-2">List</span>
+                                <span className="ml-2">List</span>
                             </Button>
                             <Button 
                                 variant={viewMode === 'board' ? 'default' : 'ghost'}
@@ -477,7 +483,7 @@ export default function FreelancersPage() {
                                 onClick={() => setViewMode('board')}
                             >
                                 <LayoutGrid className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-2">Board</span>
+                                <span className="ml-2">Board</span>
                             </Button>
                             <Button 
                                 variant={viewMode === 'table' ? 'default' : 'ghost'}
@@ -485,7 +491,7 @@ export default function FreelancersPage() {
                                 onClick={() => setViewMode('table')}
                             >
                                 <Table className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-2">Table</span>
+                                <span className="ml-2">Table</span>
                             </Button>
                         </div>
                         <BulkQuizAssignment freelancers={filteredFreelancers} />
@@ -496,7 +502,7 @@ export default function FreelancersPage() {
                             className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100"
                         >
                             <Sparkles className="w-4 h-4 text-purple-600" />
-                            <span className="hidden sm:inline ml-2">Smart Match</span>
+                            <span className="ml-2">Smart Match</span>
                         </Button>
                         {user?.role === 'admin' && (
                             <Button
@@ -505,13 +511,13 @@ export default function FreelancersPage() {
                                 onClick={handleExportCSV}
                             >
                                 <Download className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-2">Export CSV</span>
+                                <span className="ml-2">Export CSV</span>
                             </Button>
                         )}
                         <Link to={createPageUrl('ImportFreelancers')}>
                             <Button variant="outline" size="sm">
                                 <Plus className="w-4 h-4" />
-                                <span className="hidden sm:inline ml-2">Import</span>
+                                <span className="ml-2">Import</span>
                             </Button>
                         </Link>
                         <Button
@@ -520,8 +526,44 @@ export default function FreelancersPage() {
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             <Plus className="w-4 h-4" />
-                            <span className="hidden sm:inline ml-2">Add</span>
+                            <span className="ml-2">Add</span>
                         </Button>
+                    </div>
+
+                    {/* Mobile Buttons - Stacked */}
+                    <div className="flex md:hidden flex-col gap-2 w-full">
+                        <div className="flex gap-2">
+                            <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline" size="sm" className="flex-1">
+                                        <Filter className="w-4 h-4 mr-2" />
+                                        Filters
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="w-full sm:max-w-md overflow-y-auto">
+                                    <SheetHeader>
+                                        <SheetTitle>Filters</SheetTitle>
+                                    </SheetHeader>
+                                    <div className="mt-4">
+                                        <AdvancedFilters 
+                                            filters={filters} 
+                                            onFilterChange={(newFilters) => {
+                                                setFilters(newFilters);
+                                            }}
+                                            freelancers={freelancers}
+                                        />
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                            <Button
+                                size="sm"
+                                onClick={() => window.location.href = createPageUrl('FreelancerOnboarding')}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Freelancer
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -594,8 +636,8 @@ export default function FreelancersPage() {
                 {/* Main Content */}
                 {viewMode === 'list' ? (
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        {/* Filters */}
-                        <div className="lg:col-span-1">
+                        {/* Filters - Desktop Only */}
+                        <div className="hidden lg:block lg:col-span-1">
                             <AdvancedFilters 
                                 filters={filters} 
                                 onFilterChange={setFilters}
@@ -620,10 +662,13 @@ export default function FreelancersPage() {
                                     <SelectItem value="value_index">Best Value</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <span className="text-sm text-gray-500 ml-auto">
+                                {sortedFreelancers.length} result{sortedFreelancers.length !== 1 ? 's' : ''}
+                            </span>
                         </div>
 
-                        {/* Bulk Actions Toolbar */}
-                        {selectedIds.size > 0 && (
+                        {/* Bulk Actions Toolbar - Desktop Only */}
+                        {!isMobile && selectedIds.size > 0 && (
                             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Checkbox 
@@ -655,7 +700,7 @@ export default function FreelancersPage() {
                         )}
 
                         {isLoading ? (
-                            <div className="grid gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 {Array(5).fill(0).map((_, i) => (
                                     <div key={i} className="bg-white rounded-lg shadow p-4 space-y-3">
                                         <div className="flex items-start gap-4">
@@ -694,7 +739,18 @@ export default function FreelancersPage() {
                                     </Button>
                                 )}
                             </div>
+                        ) : isMobile ? (
+                            /* Mobile Card View */
+                            <div className="grid grid-cols-1 gap-4">
+                                {sortedFreelancers.map(freelancer => (
+                                    <FreelancerMobileCard 
+                                        key={freelancer.id} 
+                                        freelancer={freelancer} 
+                                    />
+                                ))}
+                            </div>
                         ) : (
+                            /* Desktop List View */
                             <div className="grid gap-4">
                                 {sortedFreelancers.map(freelancer => (
                                     <div key={freelancer.id} className="flex gap-3 items-start">
