@@ -18,12 +18,13 @@ export default function MessagesPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const queryClient = useQueryClient();
 
-    const { data: user } = useQuery({
+    const { data: user, isLoading: userLoading } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
-    const { data: conversations = [] } = useQuery({
+    const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
         queryKey: ['conversations'],
         queryFn: async () => {
             const allConversations = await base44.entities.Conversation.list('-last_message_date');
@@ -134,12 +135,20 @@ export default function MessagesPage() {
                                     </Button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto">
-                                    <ConversationList
-                                        conversations={filteredConversations}
-                                        currentUser={user}
-                                        onSelectConversation={setSelectedConversation}
-                                        selectedConversationId={selectedConversation?.id}
-                                    />
+                                    {(userLoading || conversationsLoading) ? (
+                                        <div className="space-y-3 p-2">
+                                            {[1,2,3].map(i => (
+                                                <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <ConversationList
+                                            conversations={filteredConversations}
+                                            currentUser={user}
+                                            onSelectConversation={setSelectedConversation}
+                                            selectedConversationId={selectedConversation?.id}
+                                        />
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

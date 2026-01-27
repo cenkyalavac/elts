@@ -44,6 +44,7 @@ export default function SupportPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: tickets = [], isLoading } = useQuery({
@@ -386,7 +387,12 @@ function NewTicketDialog({ open, onOpenChange, user }) {
                                 onClick={() => createMutation.mutate(formData)}
                                 disabled={!formData.subject || !formData.message || createMutation.isPending}
                             >
-                                {createMutation.isPending ? 'Creating...' : 'Create Ticket'}
+                                {createMutation.isPending ? (
+                                    <span className="flex items-center gap-2">
+                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Creating...
+                                    </span>
+                                ) : 'Create Ticket'}
                             </Button>
                         </div>
                     </div>
@@ -547,8 +553,17 @@ function TicketDetailDialog({ ticket, onClose, user, isAdmin }) {
                                     disabled={!reply || replyMutation.isPending}
                                     className="ml-auto"
                                 >
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Send Reply
+                                    {replyMutation.isPending ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Sending...
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4 mr-2" />
+                                            Send Reply
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </div>
