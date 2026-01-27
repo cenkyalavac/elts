@@ -1,12 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // Email Templates
-const LOW_SCORE_FREELANCER_TEMPLATE = (fullName, combinedScore, threshold) => `
+const LOW_SCORE_FREELANCER_TEMPLATE = (fullName, combinedScore, threshold, statusChanged = false) => `
 Dear ${fullName},
 
 Based on your quality assessments, your Combined Score has been calculated as ${combinedScore.toFixed(1)}.
 This score is below the established threshold (${threshold}).
-
+${statusChanged ? `
+IMPORTANT: Your account status has been changed to Probation. Please contact us immediately to discuss a quality improvement plan.
+` : ''}
 To improve your quality performance:
 - Review our translation quality guidelines
 - Examine the feedback from previous LQA reports
@@ -101,24 +103,51 @@ Deno.serve(async (req) => {
 
                 // Check for low scores
                 if (combinedScore !== null && combinedScore < settings.probation_threshold) {
+                    let statusChanged = false;
+                    
+                    // Auto-change status to Probation if currently Approved
+                    if (freelancer.status === 'Approved') {
+                        const today = new Date().toISOString().split('T')[0];
+                        
+                        // Update freelancer status to Probation
+                        await base44.asServiceRole.entities.Freelancer.update(freelancer.id, {
+                            status: 'On Hold',
+                            stage_changed_date: new Date().toISOString()
+                        });
+                        
+                        // Add a note to the freelancer's profile
+                        await base44.asServiceRole.entities.FreelancerNote.create({
+                            freelancer_id: freelancer.id,
+                            note_type: 'warning',
+                            title: 'Auto-Probation: Low Quality Score',
+                            content: `Status automatically changed to Probation due to low Quality Score (Score: ${combinedScore.toFixed(1)}) on ${today}. Threshold: ${settings.probation_threshold}.`,
+                            visibility: 'team'
+                        });
+                        
+                        statusChanged = true;
+                    }
+                    
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: freelancer.email,
-                        subject: `Quality Warning - Combined Score: ${combinedScore.toFixed(1)}`,
-                        body: LOW_SCORE_FREELANCER_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold)
+                        subject: statusChanged 
+                            ? `Account Status Changed - Quality Score: ${combinedScore.toFixed(1)}`
+                            : `Quality Warning - Combined Score: ${combinedScore.toFixed(1)}`,
+                        body: LOW_SCORE_FREELANCER_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold, statusChanged)
                     });
 
                     notifications.push({
                         type: 'freelancer_warning',
                         freelancer_id: freelancer.id,
                         freelancer_name: freelancer.full_name,
-                        score: combinedScore
+                        score: combinedScore,
+                        status_changed: statusChanged
                     });
 
                     // Notify admins
                     for (const admin of admins) {
                         await base44.asServiceRole.integrations.Core.SendEmail({
                             to: admin.email,
-                            subject: `[Admin Notice] Low Quality Score: ${freelancer.full_name}`,
+                            subject: `[Admin Notice] Low Quality Score: ${freelancer.full_name}${statusChanged ? ' - STATUS CHANGED TO PROBATION' : ''}`,
                             body: LOW_SCORE_ADMIN_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold, freelancerReports.length)
                         });
                     }
