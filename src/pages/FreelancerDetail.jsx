@@ -49,6 +49,7 @@ export default function FreelancerDetailPage() {
     const { data: currentUser } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: freelancers, isLoading } = useQuery({

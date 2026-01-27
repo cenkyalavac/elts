@@ -40,16 +40,21 @@ export default function NinjaProgramsPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: programs = [], isLoading } = useQuery({
         queryKey: ['ninjaPrograms'],
         queryFn: () => base44.entities.NinjaProgram.list('-created_date'),
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const { data: applicants = [] } = useQuery({
         queryKey: ['ninjaApplicants'],
         queryFn: () => base44.entities.NinjaApplicant.list(),
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const isAdmin = user?.role === 'admin';
@@ -273,6 +278,8 @@ function NinjaApplicantsView({ programs }) {
     const { data: applicants = [], isLoading } = useQuery({
         queryKey: ['ninjaApplicants'],
         queryFn: () => base44.entities.NinjaApplicant.list('-created_date'),
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const [statusFilter, setStatusFilter] = useState('all');

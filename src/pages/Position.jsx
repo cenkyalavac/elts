@@ -21,12 +21,12 @@ export default function PositionPage() {
     const { data: existingUser } = useQuery({
         queryKey: ['checkUser'],
         queryFn: async () => {
-            try {
-                return await base44.auth.me();
-            } catch {
-                return null;
-            }
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) return null;
+            return base44.auth.me();
         },
+        staleTime: 300000,
+        retry: false,
     });
 
     const { data: position, isLoading } = useQuery({
@@ -34,6 +34,8 @@ export default function PositionPage() {
         queryFn: () => base44.entities.OpenPosition.filter({ id: positionId }),
         enabled: !!positionId,
         select: (data) => data[0],
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const benefits = [

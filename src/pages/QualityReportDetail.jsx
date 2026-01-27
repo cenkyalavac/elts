@@ -38,18 +38,23 @@ export default function QualityReportDetailPage() {
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime: 300000,
     });
 
     const { data: report, isLoading } = useQuery({
         queryKey: ['qualityReport', reportId],
         queryFn: () => base44.entities.QualityReport.filter({ id: reportId }).then(r => r[0]),
         enabled: !!reportId,
+        staleTime: 60000,
+        refetchOnMount: false,
     });
 
     const { data: freelancer } = useQuery({
         queryKey: ['freelancer', report?.freelancer_id],
         queryFn: () => base44.entities.Freelancer.filter({ id: report.freelancer_id }).then(r => r[0]),
         enabled: !!report?.freelancer_id,
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const { data: settings } = useQuery({
@@ -58,6 +63,8 @@ export default function QualityReportDetailPage() {
             const allSettings = await base44.entities.QualitySettings.list();
             return allSettings[0] || { lqa_weight: 4, qs_multiplier: 20, dispute_period_days: 7 };
         },
+        staleTime: 600000,
+        refetchOnMount: false,
     });
 
     const updateMutation = useMutation({
