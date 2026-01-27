@@ -329,6 +329,7 @@ export default function Layout({ children, currentPageName }) {
             </nav>
 
             <main>{children}</main>
+            {user && <GlobalSearch />}
         </div>
     );
 }
