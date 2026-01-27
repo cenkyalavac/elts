@@ -98,8 +98,9 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
         
-        if (!user || (user.role !== 'admin' && user.role !== 'project_manager')) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        // SECURITY: Only admins can access payment operations
+        if (!user || user.role !== 'admin') {
+            return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
         }
 
         const { action, filters, tbms_data, payment_ids } = await req.json();

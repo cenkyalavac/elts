@@ -104,7 +104,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'OpenPositions', label: 'Positions', icon: Briefcase, roles: ['admin', 'project_manager'] },
         { name: 'Freelancers', label: 'Freelancers', icon: Users, roles: ['admin', 'project_manager'] },
         { name: 'QualityManagement', label: 'Quality', icon: Star, roles: ['admin', 'project_manager'] },
-        { name: 'SmartcatIntegration', label: 'Payments', icon: DollarSign, roles: ['admin', 'project_manager'] },
+        { name: 'SmartcatIntegration', label: 'Payments', icon: DollarSign, roles: ['admin'] },
         { name: 'DocumentCompliance', label: 'Documents', icon: FileText, roles: ['admin', 'project_manager'] },
 
         // Shared items

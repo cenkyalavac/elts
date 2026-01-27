@@ -26,7 +26,8 @@ export default function SmartcatIntegrationPage() {
         queryFn: () => base44.auth.me(),
     });
 
-    const canAccess = user?.role === 'admin' || user?.role === 'project_manager';
+    // SECURITY: Only admins can access payment management
+    const canAccess = user?.role === 'admin';
 
     if (userLoading) {
         return (
