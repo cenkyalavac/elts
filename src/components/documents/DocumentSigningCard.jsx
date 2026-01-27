@@ -2,24 +2,45 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Download, Upload, CheckCircle, Clock } from 'lucide-react';
+import { FileText, Download, Upload, CheckCircle, Clock, Pen } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
+import SignaturePad from './SignaturePad';
 
 export default function DocumentSigningCard({ document, signature, freelancerId, onSigned }) {
     const [showUploadForm, setShowUploadForm] = useState(false);
+    const [showSignaturePad, setShowSignaturePad] = useState(false);
     const [file, setFile] = useState(null);
 
-    const signMutation = useMutation({
+    // E-signature mutation (draw signature)
+    const eSignMutation = useMutation({
+        mutationFn: async (signatureBase64) => {
+            const response = await base44.functions.invoke('initiateEsignature', {
+                document_id: document.id,
+                freelancer_id: freelancerId,
+                signature_base64: signatureBase64
+            });
+            return response.data;
+        },
+        onSuccess: () => {
+            toast.success(`${document.title} signed successfully`);
+            setShowSignaturePad(false);
+            onSigned?.();
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to sign document');
+        }
+    });
+
+    // Manual upload mutation
+    const uploadMutation = useMutation({
         mutationFn: async () => {
             if (!file) throw new Error('Please select a file');
 
-            // Upload signed document
             const uploadResponse = await base44.functions.invoke('uploadFile', { file });
 
-            // Create signature record
             const signResponse = await base44.functions.invoke('signDocument', {
                 document_id: document.id,
                 freelancer_id: freelancerId,
@@ -28,7 +49,7 @@ export default function DocumentSigningCard({ document, signature, freelancerId,
 
             return signResponse.data;
         },
-        onSuccess: (data) => {
+        onSuccess: () => {
             toast.success(`${document.title} signed successfully`);
             setFile(null);
             setShowUploadForm(false);
@@ -48,6 +69,10 @@ export default function DocumentSigningCard({ document, signature, freelancerId,
             }
             setFile(selectedFile);
         }
+    };
+
+    const handleSignatureSubmit = (base64) => {
+        eSignMutation.mutate(base64);
     };
 
     const isSigned = signature?.status === 'signed';
