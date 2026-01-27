@@ -140,51 +140,68 @@ export default function GettingStartedPage() {
     const [showTour, setShowTour] = useState(false);
     const [tourCompleted, setTourCompleted] = useState(false);
 
+    const staleTime = 300000; // 5 minutes for all queries
+
     const { data: user, isLoading: userLoading } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
+        staleTime,
     });
 
     const { data: freelancers = [] } = useQuery({
         queryKey: ['myFreelancerProfile'],
         queryFn: () => base44.entities.Freelancer.list(),
         enabled: !!user,
+        staleTime,
+        refetchOnMount: false,
     });
 
     const { data: availability = [] } = useQuery({
         queryKey: ['myAvailability'],
         queryFn: () => base44.entities.Availability.list(),
         enabled: !!user,
+        staleTime,
+        refetchOnMount: false,
     });
 
     const { data: documents = [] } = useQuery({
         queryKey: ['documents'],
         queryFn: () => base44.entities.Document.list(),
         enabled: !!user && user.role === 'admin',
+        staleTime,
+        refetchOnMount: false,
     });
 
     const { data: quizzes = [] } = useQuery({
         queryKey: ['quizzes'],
         queryFn: () => base44.entities.Quiz.list(),
         enabled: !!user,
+        staleTime,
+        refetchOnMount: false,
     });
 
     const { data: positions = [] } = useQuery({
         queryKey: ['positions'],
         queryFn: () => base44.entities.OpenPosition.list(),
         enabled: !!user && user.role === 'admin',
+        staleTime,
+        refetchOnMount: false,
     });
 
     const { data: quizAssignments = [] } = useQuery({
         queryKey: ['myQuizAssignments'],
         queryFn: () => base44.entities.QuizAssignment.list(),
         enabled: !!user,
+        staleTime,
+        refetchOnMount: false,
     });
 
     const { data: qualityReports = [] } = useQuery({
         queryKey: ['qualityReports'],
         queryFn: () => base44.entities.QualityReport.list(),
         enabled: !!user && (user.role === 'admin' || user.role === 'project_manager'),
+        staleTime,
+        refetchOnMount: false,
     });
 
     if (userLoading) {

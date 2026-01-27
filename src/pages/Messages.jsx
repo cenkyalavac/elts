@@ -32,12 +32,16 @@ export default function MessagesPage() {
             );
         },
         enabled: !!user,
+        staleTime: 60000,
+        refetchOnMount: false,
     });
 
     const { data: freelancers = [] } = useQuery({
         queryKey: ['freelancers-for-messaging'],
         queryFn: () => base44.entities.Freelancer.list(),
         enabled: user?.role === 'admin' || user?.role === 'project_manager',
+        staleTime: 300000,
+        refetchOnMount: false,
     });
 
     // Real-time subscription for conversations

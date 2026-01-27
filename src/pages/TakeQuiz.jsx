@@ -224,8 +224,8 @@ export default function TakeQuiz() {
             // Check for badge awards
             try {
                 await base44.functions.invoke('checkAndAwardBadges', { quizAttemptId: attempt.id });
-            } catch (e) {
-                console.warn('Badge check failed:', e);
+            } catch {
+                // Badge check failed silently
             }
 
             return attempt;

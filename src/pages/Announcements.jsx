@@ -37,6 +37,8 @@ export default function AnnouncementsPage() {
     const { data: announcements = [], isLoading } = useQuery({
         queryKey: ['announcements'],
         queryFn: () => base44.entities.Announcement.list('-created_date'),
+        staleTime: 120000,
+        refetchOnMount: false,
     });
 
     const isAdmin = user?.role === 'admin';

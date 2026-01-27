@@ -15,12 +15,12 @@ export default function ApplyPage() {
     const { data: existingUser } = useQuery({
         queryKey: ['checkUser'],
         queryFn: async () => {
-            try {
-                return await base44.auth.me();
-            } catch {
-                return null;
-            }
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) return null;
+            return base44.auth.me();
         },
+        staleTime: 300000,
+        retry: false,
     });
 
     const urlParams = new URLSearchParams(window.location.search);

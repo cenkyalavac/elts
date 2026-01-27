@@ -49,6 +49,8 @@ export default function SupportPage() {
     const { data: tickets = [], isLoading } = useQuery({
         queryKey: ['supportTickets'],
         queryFn: () => base44.entities.SupportTicket.list('-created_date'),
+        staleTime: 60000,
+        refetchOnMount: false,
     });
 
     const isAdmin = user?.role === 'admin';
