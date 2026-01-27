@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import { 
     Megaphone, Pin, ExternalLink, ChevronRight,
-    Sparkles, Share2, Settings, AlertTriangle
+    Sparkles, Share2, Settings, AlertTriangle, X
 } from "lucide-react";
 
 const typeConfig = {
@@ -18,6 +19,36 @@ const typeConfig = {
 };
 
 export default function AnnouncementsBanner() {
+    const [dismissedIds, setDismissedIds] = useState([]);
+
+    // Load dismissed announcements from localStorage on mount
+    useEffect(() => {
+        const stored = localStorage.getItem('dismissedAnnouncements');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                // Clean up old dismissed items (older than 7 days)
+                const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                const valid = parsed.filter(item => item.timestamp > weekAgo);
+                setDismissedIds(valid.map(item => item.id));
+                localStorage.setItem('dismissedAnnouncements', JSON.stringify(valid));
+            } catch {
+                setDismissedIds([]);
+            }
+        }
+    }, []);
+
+    const handleDismiss = (announcementId) => {
+        const newDismissed = [...dismissedIds, announcementId];
+        setDismissedIds(newDismissed);
+        
+        // Save to localStorage with timestamp
+        const stored = localStorage.getItem('dismissedAnnouncements');
+        const parsed = stored ? JSON.parse(stored) : [];
+        parsed.push({ id: announcementId, timestamp: Date.now() });
+        localStorage.setItem('dismissedAnnouncements', JSON.stringify(parsed));
+    };
+
     const { data: user } = useQuery({
         queryKey: ['currentUser'],
         queryFn: () => base44.auth.me(),
@@ -29,10 +60,11 @@ export default function AnnouncementsBanner() {
         staleTime: 60000,
     });
 
-    // Filter visible announcements
+    // Filter visible announcements (excluding dismissed ones)
     const visibleAnnouncements = announcements.filter(a => {
         if (!a.is_active) return false;
         if (a.expires_at && new Date(a.expires_at) < new Date()) return false;
+        if (dismissedIds.includes(a.id)) return false;
         if (a.target_roles?.includes('all')) return true;
         return a.target_roles?.includes(user?.role);
     });
@@ -54,13 +86,21 @@ export default function AnnouncementsBanner() {
                 return (
                     <div 
                         key={announcement.id}
-                        className={`rounded-lg p-4 border ${
+                        className={`rounded-lg p-4 border relative ${
                             announcement.type === 'urgent' 
                                 ? 'bg-red-50 border-red-200' 
                                 : 'bg-blue-50 border-blue-200'
                         }`}
                     >
-                        <div className="flex items-start gap-3">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 text-gray-400 hover:text-gray-600"
+                            onClick={() => handleDismiss(announcement.id)}
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                        <div className="flex items-start gap-3 pr-6">
                             <div className={`p-2 rounded-full ${
                                 announcement.type === 'urgent' ? 'bg-red-100' : 'bg-blue-100'
                             }`}>

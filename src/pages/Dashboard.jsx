@@ -354,8 +354,8 @@ export default function Dashboard() {
                     </Link>
                 </div>
 
-                {/* Action Items */}
-                {(pipelineStats.newApplications > 0 || qualityStats.disputedCount > 0 || pendingDocuments > 0 || overdueQuizzes > 0) && (
+                {/* Action Items - Only show critical items that need immediate attention */}
+                {(qualityStats.disputedCount > 0 || pendingDocuments > 0 || overdueQuizzes > 0) && (
                     <Card className="border-l-4 border-l-amber-500 bg-amber-50">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
@@ -365,14 +365,6 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-wrap gap-3">
-                                {pipelineStats.newApplications > 0 && (
-                                    <Link to={createPageUrl('Freelancers')}>
-                                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer px-3 py-1.5">
-                                            <UserPlus className="w-3 h-3 mr-1" />
-                                            {pipelineStats.newApplications} new applications to review
-                                        </Badge>
-                                    </Link>
-                                )}
                                 {qualityStats.disputedCount > 0 && (
                                     <Link to={createPageUrl('QualityManagement')}>
                                         <Badge className="bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer px-3 py-1.5">
