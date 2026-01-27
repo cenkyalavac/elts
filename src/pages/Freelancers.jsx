@@ -3,7 +3,8 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List, Download } from "lucide-react";
+import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List, Download, ArrowUpDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ export default function FreelancersPage() {
     const [showBulkDialog, setShowBulkDialog] = useState(false);
     const [showSmartMatch, setShowSmartMatch] = useState(false);
     const [selectedFreelancer, setSelectedFreelancer] = useState(null);
+    const [sortBy, setSortBy] = useState('created_date'); // 'created_date', 'name', 'rating', 'value_index'
     // Read URL params for initial filter
     const urlParams = new URLSearchParams(window.location.search);
     const urlStatus = urlParams.get('status');
@@ -180,10 +182,10 @@ export default function FreelancersPage() {
     };
 
     const toggleSelectAll = () => {
-        if (selectedIds.size === filteredFreelancers.length) {
+        if (selectedIds.size === sortedFreelancers.length) {
             setSelectedIds(new Set());
         } else {
-            setSelectedIds(new Set(filteredFreelancers.map(f => f.id)));
+            setSelectedIds(new Set(sortedFreelancers.map(f => f.id)));
         }
     };
 
@@ -355,13 +357,29 @@ export default function FreelancersPage() {
         return true;
     }), [freelancers, filters, allQuizAttempts]);
 
+    // Sort filtered freelancers
+    const sortedFreelancers = useMemo(() => {
+        const sorted = [...filteredFreelancers];
+        switch (sortBy) {
+            case 'name':
+                return sorted.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+            case 'rating':
+                return sorted.sort((a, b) => (b.combined_quality_score || 0) - (a.combined_quality_score || 0));
+            case 'value_index':
+                return sorted.sort((a, b) => (b.value_index || 0) - (a.value_index || 0));
+            case 'created_date':
+            default:
+                return sorted.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+        }
+    }, [filteredFreelancers, sortBy]);
+
     const freelancersByStage = useMemo(() => {
         const result = {};
         stages.forEach(stage => {
-            result[stage.id] = filteredFreelancers.filter(f => f.status === stage.id);
+            result[stage.id] = sortedFreelancers.filter(f => f.status === stage.id);
         });
         return result;
-    }, [filteredFreelancers]);
+    }, [sortedFreelancers]);
 
     const handleExportCSV = () => {
         const headers = ['Full Name', 'Email', 'Phone', 'Native Language', 'Status', 'Rating', 'Hourly Rate (USD)'];
@@ -587,12 +605,29 @@ export default function FreelancersPage() {
 
                         {/* Freelancer List */}
                         <div className="lg:col-span-3">
+                        {/* Sort Controls */}
+                        <div className="mb-4 flex items-center gap-2">
+                            <ArrowUpDown className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">Sort by:</span>
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="created_date">Newest First</SelectItem>
+                                    <SelectItem value="name">Name (A-Z)</SelectItem>
+                                    <SelectItem value="rating">Quality Score</SelectItem>
+                                    <SelectItem value="value_index">Best Value</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
                         {/* Bulk Actions Toolbar */}
                         {selectedIds.size > 0 && (
                             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Checkbox 
-                                        checked={selectedIds.size === filteredFreelancers.length && filteredFreelancers.length > 0}
+                                        checked={selectedIds.size === sortedFreelancers.length && sortedFreelancers.length > 0}
                                         onCheckedChange={toggleSelectAll}
                                     />
                                     <span className="text-sm font-medium text-blue-900">
@@ -640,7 +675,7 @@ export default function FreelancersPage() {
                                     </div>
                                 ))}
                             </div>
-                        ) : filteredFreelancers.length === 0 ? (
+                        ) : sortedFreelancers.length === 0 ? (
                             <div className="bg-white rounded-lg shadow p-12 text-center">
                                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-gray-900 mb-1">No records found</h3>
@@ -661,7 +696,7 @@ export default function FreelancersPage() {
                             </div>
                         ) : (
                             <div className="grid gap-4">
-                                {filteredFreelancers.map(freelancer => (
+                                {sortedFreelancers.map(freelancer => (
                                     <div key={freelancer.id} className="flex gap-3 items-start">
                                         <div className="pt-5">
                                             <Checkbox 
