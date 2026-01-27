@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { 
     Users, FileText, Star, ArrowRight,
     Clock, AlertTriangle, CheckCircle2, TrendingUp, DollarSign,
-    UserPlus, FileCheck, Award
+    UserPlus, FileCheck, Award, Megaphone, ClipboardList, Zap
 } from "lucide-react";
 import { formatDistanceToNow, isPast } from "date-fns";
 
@@ -245,6 +245,41 @@ export default function Dashboard() {
 
                 {/* Announcements Banner */}
                 <AnnouncementsBanner />
+
+                {/* Quick Actions */}
+                <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-purple-600" />
+                            Quick Actions
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-3">
+                            <Link to={createPageUrl('QuizManagement')}>
+                                <Button size="sm" variant="outline" className="bg-white gap-2">
+                                    <ClipboardList className="w-4 h-4 text-purple-600" />
+                                    Assign Quiz
+                                </Button>
+                            </Link>
+                            <Link to={createPageUrl('Announcements')}>
+                                <Button size="sm" variant="outline" className="bg-white gap-2">
+                                    <Megaphone className="w-4 h-4 text-blue-600" />
+                                    New Announcement
+                                </Button>
+                            </Link>
+                            <Link to={`${createPageUrl('Freelancers')}?status=New Application`}>
+                                <Button size="sm" variant="outline" className="bg-white gap-2">
+                                    <UserPlus className="w-4 h-4 text-green-600" />
+                                    Review Pending Applications
+                                    {pipelineStats.newApplications > 0 && (
+                                        <Badge className="bg-blue-500 ml-1">{pipelineStats.newApplications}</Badge>
+                                    )}
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Onboarding Checklist - Compact */}
                 <OnboardingChecklist user={user} data={onboardingData} compact />
