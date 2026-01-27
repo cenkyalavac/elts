@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, FileText, Briefcase, Star, Languages, TrendingUp, Eye } from "lucide-react";
+import { CheckCircle2, FileText, Briefcase, Star, Languages, TrendingUp, Eye, AlertTriangle, PenLine, ClipboardList, UserCog } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function FreelancerDashboard({ freelancer }) {
@@ -28,6 +28,66 @@ export default function FreelancerDashboard({ freelancer }) {
             status: 'finalized' 
         }),
     });
+
+    const { data: documentSignatures = [] } = useQuery({
+        queryKey: ['documentSignatures', freelancer.id],
+        queryFn: () => base44.entities.DocumentSignature.filter({ freelancer_id: freelancer.id }),
+    });
+
+    const { data: quizAssignments = [] } = useQuery({
+        queryKey: ['quizAssignments', freelancer.id],
+        queryFn: () => base44.entities.QuizAssignment.filter({ freelancer_id: freelancer.id }),
+    });
+
+    const actionItems = useMemo(() => {
+        const items = [];
+        
+        // Check for pending documents
+        const pendingDocs = documentSignatures.filter(d => d.status === 'pending' || d.status === 'esign_pending');
+        if (pendingDocs.length > 0) {
+            items.push({
+                type: 'documents',
+                icon: PenLine,
+                title: 'Documents Awaiting Signature',
+                description: `${pendingDocs.length} document${pendingDocs.length > 1 ? 's' : ''} need${pendingDocs.length === 1 ? 's' : ''} your signature`,
+                buttonText: 'Sign Now',
+                link: createPageUrl('MyApplication') + '?tab=documents',
+                color: 'text-orange-600 bg-orange-50 border-orange-200'
+            });
+        }
+
+        // Check for pending quizzes
+        const pendingQuizzes = quizAssignments.filter(q => q.status === 'pending');
+        if (pendingQuizzes.length > 0) {
+            items.push({
+                type: 'quizzes',
+                icon: ClipboardList,
+                title: 'Pending Quizzes',
+                description: `${pendingQuizzes.length} quiz${pendingQuizzes.length > 1 ? 'zes' : ''} assigned to you`,
+                buttonText: 'Take Quiz',
+                link: createPageUrl('MyApplication') + '?tab=quizzes',
+                color: 'text-blue-600 bg-blue-50 border-blue-200'
+            });
+        }
+
+        // Check for profile update needed (older than 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const lastUpdate = new Date(freelancer.updated_date || freelancer.created_date);
+        if (lastUpdate < sixMonthsAgo) {
+            items.push({
+                type: 'profile',
+                icon: UserCog,
+                title: 'Profile Update Needed',
+                description: 'Please review and update your CV, rates, and availability',
+                buttonText: 'Update Profile',
+                link: createPageUrl('MyApplication') + '?tab=profile',
+                color: 'text-purple-600 bg-purple-50 border-purple-200'
+            });
+        }
+
+        return items;
+    }, [documentSignatures, quizAssignments, freelancer]);
 
     const performanceStats = useMemo(() => {
         const lqaScores = qualityReports.filter(r => r.lqa_score != null).map(r => r.lqa_score);
@@ -75,6 +135,39 @@ export default function FreelancerDashboard({ freelancer }) {
 
     return (
         <div className="space-y-6">
+            {/* Action Required */}
+            {actionItems.length > 0 && (
+                <Card className="border-2 border-amber-300 bg-amber-50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-amber-800">
+                            <AlertTriangle className="w-5 h-5" />
+                            Action Required
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {actionItems.map((item) => (
+                            <div 
+                                key={item.type} 
+                                className={`flex items-center justify-between p-3 rounded-lg border ${item.color}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <item.icon className="w-5 h-5" />
+                                    <div>
+                                        <div className="font-medium">{item.title}</div>
+                                        <div className="text-sm opacity-80">{item.description}</div>
+                                    </div>
+                                </div>
+                                <Link to={item.link}>
+                                    <Button size="sm" variant="outline" className="shrink-0">
+                                        {item.buttonText}
+                                    </Button>
+                                </Link>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Key Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="border-0 shadow-sm">
