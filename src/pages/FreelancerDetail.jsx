@@ -504,7 +504,12 @@ export default function FreelancerDetailPage() {
                                     )}
 
                                     {/* Smartcat Profile */}
-                                    <SmartcatProfileSection freelancerEmail={freelancer.email} />
+                                    <SmartcatProfileSection 
+                                        freelancerEmail={freelancer.email}
+                                        freelancerId={freelancer.id}
+                                        smartcatSupplierId={freelancer.smartcat_supplier_id}
+                                        onUpdate={() => queryClient.invalidateQueries({ queryKey: ['freelancer', freelancerId] })}
+                                    />
 
                                     {/* Internal Notes */}
                                     {freelancer.notes && canManage && (
