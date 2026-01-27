@@ -8,7 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
+import {
+    Tooltip, TooltipContent, TooltipProvider, TooltipTrigger
+} from "@/components/ui/tooltip";
 import { Star, Plus, Trash2, AlertCircle, FileText, Info } from "lucide-react";
+
+// Reusable tooltip component for form labels
+const SmartTooltip = ({ content }) => (
+    <Tooltip>
+        <TooltipTrigger asChild>
+            <Info className="w-4 h-4 text-gray-400 cursor-help inline-block ml-1" />
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+            <p className="text-sm">{content}</p>
+        </TooltipContent>
+    </Tooltip>
+);
 
 const CONTENT_TYPES = [
     "Marketing", "Legal", "Medical", "Technical", "Financial", 
@@ -157,6 +172,7 @@ export default function QualityReportForm({
     const isLqaReport = formData.report_type === 'LQA' || formData.report_type === 'Random_QA';
 
     return (
+        <TooltipProvider>
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* Freelancer & Report Type */}
             <div className="grid grid-cols-2 gap-4">
@@ -322,7 +338,10 @@ export default function QualityReportForm({
                                 />
                             </div>
                             <div>
-                                <Label>LQA Score (Manual Override)</Label>
+                                <Label>
+                                    LQA Score (Manual Override)
+                                    <SmartTooltip content="Language Quality Assurance score (0-100). Scores below 80 may trigger a warning." />
+                                </Label>
                                 <Input
                                     type="number"
                                     min="0"
@@ -354,9 +373,12 @@ export default function QualityReportForm({
 
                         {/* Error Categories Info */}
                         <div className="flex items-start gap-2 p-3 bg-blue-100 rounded-lg">
-                            <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                            <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <div className="text-xs text-blue-800">
-                                <p className="font-medium">Error Weights (per 1000 words):</p>
+                                <p className="font-medium">
+                                    Error Weights (per 1000 words)
+                                    <SmartTooltip content="Critical: objectively wrong, changes meaning. Major: significant impact on understanding. Minor: style/grammar issues. Preferential: subjective choices." />
+                                </p>
                                 <p>Critical: -{errorWeights.Critical} pts | Major: -{errorWeights.Major} pts | Minor: -{errorWeights.Minor} pts | Preferential: -{errorWeights.Preferential} pts</p>
                             </div>
                         </div>
@@ -483,6 +505,7 @@ export default function QualityReportForm({
                     <CardTitle className="text-sm flex items-center gap-2">
                         <Star className="w-4 h-4 text-yellow-600" />
                         Quality Score (QS) - 1 to 5
+                        <SmartTooltip content="General Quality Score (1-5). Used for quick assessments of overall translation quality." />
                         {isLqaReport && <span className="text-xs text-gray-500">(Optional)</span>}
                     </CardTitle>
                 </CardHeader>
@@ -556,7 +579,10 @@ export default function QualityReportForm({
                 <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Combined Score Preview</p>
+                            <p className="text-sm text-gray-600">
+                                Combined Score Preview
+                                <SmartTooltip content={`Calculated automatically: (LQA × ${lqaWeight} + QS × ${qsMultiplier}) / ${lqaWeight + 1}. This weighted formula balances detailed LQA analysis with quick QS assessments.`} />
+                            </p>
                             <p className="text-xs text-gray-500">
                                 Formula: (LQA × {lqaWeight} + QS × {qsMultiplier}) / {lqaWeight + 1}
                             </p>
@@ -586,5 +612,6 @@ export default function QualityReportForm({
                 </Button>
             </div>
         </form>
+        </TooltipProvider>
     );
 }
