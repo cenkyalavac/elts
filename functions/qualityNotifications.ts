@@ -96,15 +96,15 @@ el turco Quality Management
                     for (const admin of admins) {
                         await base44.asServiceRole.integrations.Core.SendEmail({
                             to: admin.email,
-                            subject: `[Yönetici Bildirimi] Düşük Kalite Skoru: ${freelancer.full_name}`,
+                            subject: `[Admin Notice] Low Quality Score: ${freelancer.full_name}`,
                             body: `
-${freelancer.full_name} için kalite uyarısı:
+Quality warning for ${freelancer.full_name}:
 
 Combined Score: ${combinedScore.toFixed(1)}
 Probation Threshold: ${settings.probation_threshold}
-Toplam Değerlendirme: ${freelancerReports.length}
+Total Assessments: ${freelancerReports.length}
 
-Lütfen ilgili freelancer ile iletişime geçin ve kalite iyileştirme planı oluşturun.
+Please contact the freelancer and create a quality improvement plan.
                             `.trim()
                         });
                     }
