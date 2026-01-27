@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../../utils";
@@ -8,20 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle2, FileText, Briefcase, Star, Languages, TrendingUp, Eye, AlertTriangle, PenLine, ClipboardList, UserCog, CalendarIcon, Loader2 } from "lucide-react";
+import { CheckCircle2, Briefcase, Star, Languages, TrendingUp, Eye, AlertTriangle, PenLine, ClipboardList, UserCog } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import QuickAvailabilityToggle from "@/components/availability/QuickAvailabilityToggle";
 
 // Constants to avoid magic strings
-const AVAILABILITY_STATUS = {
-    AVAILABLE: 'available',
-    UNAVAILABLE: 'unavailable',
-    PARTIALLY_AVAILABLE: 'partially_available'
-};
-
 const SIGNATURE_STATUS = {
     PENDING: 'pending',
     ESIGN_PENDING: 'esign_pending',
@@ -45,10 +36,6 @@ const FREELANCER_STATUS_COLORS = {
 };
 
 export default function FreelancerDashboard({ freelancer }) {
-    const queryClient = useQueryClient();
-    const [busyDialogOpen, setBusyDialogOpen] = useState(false);
-    const [busyUntilDate, setBusyUntilDate] = useState(null);
-
     const { data: quizAttempts = [] } = useQuery({
         queryKey: ['quizAttempts', freelancer.id],
         queryFn: () => base44.entities.QuizAttempt.filter({ freelancer_id: freelancer.id }),
@@ -88,61 +75,6 @@ export default function FreelancerDashboard({ freelancer }) {
             return records[0] || null;
         },
     });
-
-    const isCurrentlyAvailable = !todayAvailability || todayAvailability.status === AVAILABILITY_STATUS.AVAILABLE;
-
-    const availabilityMutation = useMutation({
-        mutationFn: async ({ status, untilDate, todayOnly }) => {
-            const today = new Date();
-            const datesToUpdate = [];
-            
-            if (todayOnly) {
-                // Only update today's date (used when switching back to available)
-                datesToUpdate.push(todayStr);
-            } else {
-                // Update from today to untilDate (used when setting busy)
-                const endDate = untilDate || today;
-                for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
-                    datesToUpdate.push(format(new Date(d), 'yyyy-MM-dd'));
-                }
-            }
-
-            for (const dateStr of datesToUpdate) {
-                const existing = await base44.entities.Availability.filter({
-                    freelancer_id: freelancer.id,
-                    date: dateStr
-                });
-                
-                if (existing.length > 0) {
-                    await base44.entities.Availability.update(existing[0].id, { status });
-                } else {
-                    await base44.entities.Availability.create({
-                        freelancer_id: freelancer.id,
-                        date: dateStr,
-                        status
-                    });
-                }
-            }
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['availability', freelancer.id] });
-            setBusyDialogOpen(false);
-            setBusyUntilDate(null);
-        }
-    });
-
-    const handleAvailabilityToggle = (checked) => {
-        if (!checked) {
-            setBusyDialogOpen(true);
-        } else {
-            // Only update today when switching back to available
-            availabilityMutation.mutate({ status: AVAILABILITY_STATUS.AVAILABLE, todayOnly: true });
-        }
-    };
-
-    const handleConfirmBusy = () => {
-        availabilityMutation.mutate({ status: AVAILABILITY_STATUS.UNAVAILABLE, untilDate: busyUntilDate });
-    };
 
     const actionItems = useMemo(() => {
         const items = [];
@@ -235,78 +167,11 @@ export default function FreelancerDashboard({ freelancer }) {
     return (
         <div className="space-y-6">
             {/* Quick Availability Toggle */}
-            <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${isCurrentlyAvailable ? 'bg-green-500' : 'bg-red-500'}`} />
-                            <div>
-                                <div className="font-medium">Current Status</div>
-                                <div className="text-sm text-gray-500">
-                                    {isCurrentlyAvailable ? 'Available for work' : 'Marked as busy'}
-                                    {todayAvailability?.notes && ` - ${todayAvailability.notes}`}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className={`text-sm font-medium ${isCurrentlyAvailable ? 'text-green-600' : 'text-red-600'}`}>
-                                {isCurrentlyAvailable ? 'Available' : 'Busy'}
-                            </span>
-                            <Switch 
-                                checked={isCurrentlyAvailable}
-                                onCheckedChange={handleAvailabilityToggle}
-                                disabled={availabilityMutation.isPending}
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Busy Until Dialog */}
-            <Dialog open={busyDialogOpen} onOpenChange={setBusyDialogOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Set Unavailability Period</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="text-sm text-gray-600">
-                            Until when will you be unavailable?
-                        </div>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {busyUntilDate ? format(busyUntilDate, 'PPP') : 'Select end date'}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={busyUntilDate}
-                                    onSelect={setBusyUntilDate}
-                                    disabled={(date) => date < new Date()}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <p className="text-xs text-gray-500">
-                            Times are in your local timezone ({Intl.DateTimeFormat().resolvedOptions().timeZone})
-                        </p>
-                    </div>
-                    <DialogFooter className="gap-2">
-                        <Button variant="outline" onClick={() => setBusyDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button 
-                            onClick={handleConfirmBusy}
-                            disabled={availabilityMutation.isPending}
-                        >
-                            {availabilityMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            {busyUntilDate ? 'Set as Busy' : 'Mark Busy Today Only'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <QuickAvailabilityToggle 
+                freelancerId={freelancer.id}
+                todayAvailability={todayAvailability}
+                todayStr={todayStr}
+            />
 
             {/* Action Required */}
             {actionItems.length > 0 && (
