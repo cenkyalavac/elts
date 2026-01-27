@@ -121,16 +121,47 @@ export default function DocumentSigningCard({ document, signature, freelancerId,
                     </Button>
 
                     {!isSigned && (
-                        <Button
-                            size="sm"
-                            onClick={() => setShowUploadForm(!showUploadForm)}
-                            variant={showUploadForm ? 'default' : 'outline'}
-                        >
-                            {showUploadForm ? 'Cancel' : 'Sign'}
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    setShowSignaturePad(!showSignaturePad);
+                                    setShowUploadForm(false);
+                                }}
+                                variant={showSignaturePad ? 'default' : 'outline'}
+                                className="gap-1"
+                            >
+                                <Pen className="w-4 h-4" />
+                                {showSignaturePad ? 'Cancel' : 'Sign'}
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    setShowUploadForm(!showUploadForm);
+                                    setShowSignaturePad(false);
+                                }}
+                                variant={showUploadForm ? 'default' : 'outline'}
+                                className="gap-1"
+                            >
+                                <Upload className="w-4 h-4" />
+                                Upload
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>
+
+            {showSignaturePad && !isSigned && (
+                <div className="mt-4 pt-4 border-t border-yellow-200">
+                    <SignaturePad
+                        onSave={handleSignatureSubmit}
+                        onCancel={() => setShowSignaturePad(false)}
+                    />
+                    {eSignMutation.isPending && (
+                        <p className="text-sm text-blue-600 mt-2">Submitting signature...</p>
+                    )}
+                </div>
+            )}
 
             {showUploadForm && !isSigned && (
                 <div className="mt-4 pt-4 border-t border-yellow-200">
@@ -150,12 +181,12 @@ export default function DocumentSigningCard({ document, signature, freelancerId,
                             </p>
                         )}
                         <Button
-                            onClick={() => signMutation.mutate()}
-                            disabled={!file || signMutation.isPending}
+                            onClick={() => uploadMutation.mutate()}
+                            disabled={!file || uploadMutation.isPending}
                             className="w-full"
                         >
                             <Upload className="w-4 h-4 mr-2" />
-                            {signMutation.isPending ? 'Uploading...' : 'Upload Signed Document'}
+                            {uploadMutation.isPending ? 'Uploading...' : 'Upload Signed Document'}
                         </Button>
                     </div>
                 </div>
