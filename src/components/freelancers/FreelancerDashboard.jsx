@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../../utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, FileText, Briefcase, Star, Languages } from "lucide-react";
+import { CheckCircle2, FileText, Briefcase, Star, Languages, TrendingUp, Eye } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function FreelancerDashboard({ freelancer }) {
     const { data: quizAttempts = [] } = useQuery({
@@ -16,6 +20,37 @@ export default function FreelancerDashboard({ freelancer }) {
         queryKey: ['jobOffers'],
         queryFn: () => base44.entities.Job.list(),
     });
+
+    const { data: qualityReports = [] } = useQuery({
+        queryKey: ['qualityReports', freelancer.id],
+        queryFn: () => base44.entities.QualityReport.filter({ 
+            freelancer_id: freelancer.id, 
+            status: 'finalized' 
+        }),
+    });
+
+    const performanceStats = useMemo(() => {
+        const lqaScores = qualityReports.filter(r => r.lqa_score != null).map(r => r.lqa_score);
+        const qsScores = qualityReports.filter(r => r.qs_score != null).map(r => r.qs_score);
+        
+        const avgLqa = lqaScores.length > 0 
+            ? (lqaScores.reduce((a, b) => a + b, 0) / lqaScores.length).toFixed(1)
+            : null;
+        const avgQs = qsScores.length > 0 
+            ? (qsScores.reduce((a, b) => a + b, 0) / qsScores.length).toFixed(1)
+            : null;
+
+        const trendData = qualityReports
+            .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+            .slice(-5)
+            .map((r, idx) => ({
+                name: `Job ${idx + 1}`,
+                lqa: r.lqa_score,
+                qs: r.qs_score ? r.qs_score * 20 : null,
+            }));
+
+        return { avgLqa, avgQs, trendData, totalReports: qualityReports.length };
+    }, [qualityReports]);
 
     const completionPercentage = Math.round(
         ((freelancer.cv_file_url ? 1 : 0) + 
@@ -122,6 +157,80 @@ export default function FreelancerDashboard({ freelancer }) {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* My Performance */}
+            {performanceStats.totalReports > 0 && (
+                <Card className="border-0 shadow-sm">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5 text-green-600" />
+                                My Performance
+                            </CardTitle>
+                            <Link to={createPageUrl('QualityManagement') + `?freelancer_id=${freelancer.id}`}>
+                                <Button variant="outline" size="sm" className="gap-2">
+                                    <Eye className="w-4 h-4" />
+                                    View My Reports
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center p-4 bg-blue-50 rounded-lg">
+                                <div className="text-sm text-gray-600 mb-1">Avg LQA Score</div>
+                                <div className={`text-3xl font-bold ${
+                                    performanceStats.avgLqa >= 90 ? 'text-green-600' :
+                                    performanceStats.avgLqa >= 70 ? 'text-yellow-600' :
+                                    'text-red-600'
+                                }`}>
+                                    {performanceStats.avgLqa || '-'}
+                                </div>
+                            </div>
+                            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                                <div className="text-sm text-gray-600 mb-1">Avg QS Score</div>
+                                <div className="text-3xl font-bold text-yellow-600 flex items-center justify-center gap-1">
+                                    <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
+                                    {performanceStats.avgQs || '-'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {performanceStats.trendData.length >= 2 && (
+                            <div>
+                                <div className="text-sm font-medium text-gray-600 mb-2">Last {performanceStats.trendData.length} Jobs Trend</div>
+                                <ResponsiveContainer width="100%" height={120}>
+                                    <LineChart data={performanceStats.trendData}>
+                                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                                        <Tooltip />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="lqa" 
+                                            stroke="#3b82f6" 
+                                            strokeWidth={2}
+                                            dot={{ fill: '#3b82f6' }}
+                                            name="LQA"
+                                        />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="qs" 
+                                            stroke="#eab308" 
+                                            strokeWidth={2}
+                                            dot={{ fill: '#eab308' }}
+                                            name="QS (scaled)"
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+
+                        <div className="text-xs text-gray-500 text-center">
+                            Based on {performanceStats.totalReports} finalized report{performanceStats.totalReports !== 1 ? 's' : ''}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Quiz Performance */}
             {quizAttempts.length > 0 && (
