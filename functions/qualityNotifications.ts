@@ -128,18 +128,18 @@ Please contact the freelancer and create a quality improvement plan.
 
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: freelancer.email,
-                        subject: `Acil Kalite Uyarısı - Üst Üste Düşük LQA Skorları`,
+                        subject: `Urgent Quality Warning - Consecutive Low LQA Scores`,
                         body: `
-Sayın ${freelancer.full_name},
+Dear ${freelancer.full_name},
 
-Son 3 LQA değerlendirmenizde düşük skorlar aldınız:
+You have received low scores in your last 3 LQA assessments:
 ${recentLqaReports.map((r, i) => `${i + 1}. LQA: ${r.lqa_score}`).join('\n')}
 
-Bu durum kalite standartlarımız açısından ciddi bir uyarıdır. 
-Lütfen en kısa sürede kalite yönetimi ekibimizle iletişime geçin.
+This is a serious warning regarding our quality standards.
+Please contact our quality management team as soon as possible.
 
-Saygılarımızla,
-el turco Kalite Yönetimi
+Best regards,
+el turco Quality Management
                         `.trim()
                     });
                 }
