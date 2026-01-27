@@ -2,6 +2,26 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const SMARTCAT_API_URL = 'https://smartcat.com/api/integration/v2';
 
+// Normalize strings for matching - handles Turkish/special characters
+function normalizeString(str) {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .replace(/ş/g, 's')
+        .replace(/ğ/g, 'g')
+        .replace(/ı/g, 'i')
+        .replace(/ö/g, 'o')
+        .replace(/ü/g, 'u')
+        .replace(/ç/g, 'c')
+        .replace(/İ/g, 'i')
+        .replace(/Ş/g, 's')
+        .replace(/Ğ/g, 'g')
+        .replace(/Ö/g, 'o')
+        .replace(/Ü/g, 'u')
+        .replace(/Ç/g, 'c')
+        .trim();
+}
+
 async function getSmartcatAuth() {
     const accountId = Deno.env.get('SMARTCAT_ACCOUNT_ID');
     const apiKey = Deno.env.get('SMARTCAT_API_KEY');
