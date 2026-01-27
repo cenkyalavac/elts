@@ -22,6 +22,7 @@ import SendEmailDialog from "../components/freelancers/SendEmailDialog";
 import QuizAssignmentDialog from "../components/quiz/QuizAssignmentDialog";
 import SmartcatProfileSection from "../components/smartcat/SmartcatProfileSection";
 import FreelancerQualityTab from "../components/freelancers/FreelancerQualityTab";
+import ActivityTimeline from "../components/freelancers/ActivityTimeline";
 
 const statusConfig = {
     'New Application': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: User },
@@ -264,7 +265,7 @@ export default function FreelancerDetailPage() {
                             <TabsTrigger value="notes" className="text-xs sm:text-sm">Notes</TabsTrigger>
                             <TabsTrigger value="emails" className="text-xs sm:text-sm">Emails</TabsTrigger>
                             <TabsTrigger value="quizzes" className="text-xs sm:text-sm">Quizzes</TabsTrigger>
-                            <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
+                            <TabsTrigger value="history" className="text-xs sm:text-sm">History</TabsTrigger>
                         </TabsList>
 
                         {/* Overview Tab */}
@@ -569,38 +570,17 @@ export default function FreelancerDetailPage() {
                             </Card>
                         </TabsContent>
 
-                        {/* Activity Tab */}
-                        <TabsContent value="activity">
+                        {/* History Tab */}
+                        <TabsContent value="history">
                             <Card>
-                                <CardContent className="pt-6">
-                                    <h3 className="font-semibold text-lg mb-4">Activity Log</h3>
-                                    {activities.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-500">
-                                            <Activity className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                                            <p>No activity recorded yet</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {activities.map(activity => (
-                                                <div key={activity.id} className="border-l-2 border-blue-500 pl-4 pb-4">
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
-                                                            <div className="font-medium text-sm">{activity.activity_type}</div>
-                                                            <div className="text-sm text-gray-600 mt-1">{activity.description}</div>
-                                                            {activity.performed_by && (
-                                                                <div className="text-xs text-gray-500 mt-1">
-                                                                    by {activity.performed_by.split('@')[0]}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500">
-                                                            {new Date(activity.created_date).toLocaleDateString()}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Activity className="w-5 h-5" />
+                                        Activity Timeline
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ActivityTimeline activities={activities} />
                                 </CardContent>
                             </Card>
                         </TabsContent>
