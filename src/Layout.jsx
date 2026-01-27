@@ -98,42 +98,38 @@ export default function Layout({ children, currentPageName }) {
         return <>{children}</>;
     }
 
-    // Applicant navigation
-    const applicantNavItems = [
-        { name: 'GettingStarted', label: 'Getting Started', icon: Briefcase },
-        { name: 'MyApplication', label: 'My Application', icon: FileText },
-        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-        { name: 'Announcements', label: 'Announcements', icon: Megaphone },
-        { name: 'Support', label: 'Support', icon: HelpCircle },
+    // All navigation items with role-based access
+    const allNavItems = [
+        // Applicant-only items
+        { name: 'GettingStarted', label: 'Getting Started', icon: Briefcase, roles: ['applicant'] },
+        { name: 'MyApplication', label: 'My Application', icon: FileText, roles: ['applicant'] },
+
+        // Admin/PM items
+        { name: 'OpenPositions', label: 'Positions', icon: Briefcase, roles: ['admin', 'project_manager'] },
+        { name: 'Freelancers', label: 'Freelancers', icon: Users, roles: ['admin', 'project_manager'] },
+        { name: 'QualityManagement', label: 'Quality', icon: Star, roles: ['admin', 'project_manager'] },
+        { name: 'SmartcatIntegration', label: 'Payments', icon: DollarSign, roles: ['admin', 'project_manager'] },
+        { name: 'DocumentCompliance', label: 'Documents', icon: FileText, roles: ['admin', 'project_manager'] },
+
+        // Shared items
+        { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount, roles: ['admin', 'project_manager', 'applicant'] },
+        { name: 'Announcements', label: 'Announcements', icon: Megaphone, roles: ['admin', 'project_manager', 'applicant'] },
+        { name: 'Support', label: 'Support', icon: HelpCircle, roles: ['admin', 'project_manager', 'applicant'] },
     ];
 
-    // Admin/PM navigation - main items
-            const mainNavItems = [
-                { name: 'OpenPositions', label: 'Positions', icon: Briefcase },
-                { name: 'Freelancers', label: 'Freelancers', icon: Users },
-                { name: 'QualityManagement', label: 'Quality', icon: Star },
-                { name: 'SmartcatIntegration', label: 'Payments', icon: DollarSign },
-                { name: 'DocumentCompliance', label: 'Documents', icon: FileText },
-                { name: 'Messages', label: 'Messages', icon: MessageSquare, badge: unreadCount },
-                { name: 'Announcements', label: 'Announcements', icon: Megaphone },
-                { name: 'Support', label: 'Support', icon: HelpCircle },
-            ];
-    
-    // Ninja menu item (separated)
-    const ninjaNavItem = { name: 'NinjaPrograms', label: 'Ninja', icon: GraduationCap };
+    // Filter nav items based on user role
+    const navItems = allNavItems.filter(item => item.roles.includes(user?.role));
 
-    // Payment dropdown items
-    const paymentItems = [
-        { name: 'SmartcatIntegration', label: 'Payment Dashboard', icon: DollarSign },
-        { name: 'SmartcatIntegration', label: 'TBMS Import', icon: Upload, tab: 'tbms' },
-    ];
+    // Ninja menu item (admin/PM only)
+    const ninjaNavItem = { name: 'NinjaPrograms', label: 'Ninja', icon: GraduationCap, roles: ['admin', 'project_manager'] };
+    const showNinja = ninjaNavItem.roles.includes(user?.role);
 
     // Settings dropdown items (admin only)
-    const settingsItems = isAdmin ? [
-        { name: 'Inbox', label: 'Gmail Inbox', icon: Mail },
-        { name: 'UserManagement', label: 'User Management', icon: Shield },
-        { name: 'Settings', label: 'Settings', icon: Settings },
-    ] : [];
+    const settingsItems = [
+        { name: 'Inbox', label: 'Gmail Inbox', icon: Mail, roles: ['admin'] },
+        { name: 'UserManagement', label: 'User Management', icon: Shield, roles: ['admin'] },
+        { name: 'Settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+    ].filter(item => item.roles.includes(user?.role));
 
     if (isPublicPage) {
         return <>{children}</>;
@@ -175,7 +171,7 @@ export default function Layout({ children, currentPageName }) {
                                 ))}
 
                                 {/* Ninja - Separated with divider */}
-                                {!isApplicant && (
+                                {showNinja && (
                                     <>
                                         <div className="w-px h-6 bg-white/20 mx-2" />
                                         <Link to={createPageUrl(ninjaNavItem.name)}>
@@ -284,7 +280,7 @@ export default function Layout({ children, currentPageName }) {
 
 
                             {/* Mobile Ninja section */}
-                            {!isApplicant && (
+                            {showNinja && (
                                 <>
                                     <div className="border-t border-white/10 pt-3 mt-3">
                                         <p className="text-xs text-purple-300 px-3 mb-2">Training</p>
