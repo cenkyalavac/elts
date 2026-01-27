@@ -1,16 +1,39 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Email Templates
+const WELCOME_EMAIL_TEMPLATE = (fullName) => `
+<h1>Welcome, ${fullName}!</h1>
+<p>Thank you for applying to join our freelancer network. We have received your application and our team will review it shortly.</p>
+<p>You can track your application status and complete your onboarding checklist by logging into your dashboard.</p>
+<br>
+<p>Best regards,</p>
+<p>The El Turco Team</p>
+`.trim();
+
+const NEW_APPLICATION_ADMIN_TEMPLATE = (fullName, email, serviceTypes) => `
+<h2>New Application Received</h2>
+<p><strong>Name:</strong> ${fullName}</p>
+<p><strong>Email:</strong> ${email}</p>
+<p><strong>Services:</strong> ${serviceTypes}</p>
+<p>Please review their application in the dashboard.</p>
+`.trim();
+
+const PROFILE_UPDATE_ADMIN_TEMPLATE = (fullName, updateType) => `
+<h2>Freelancer Profile Updated</h2>
+<p><strong>Name:</strong> ${fullName}</p>
+<p><strong>Update:</strong> ${updateType}</p>
+<p>Please review the uploaded documents or changes in the dashboard.</p>
+`.trim();
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         
-        // Authentication check
         const user = await base44.auth.me();
         if (!user) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
         
-        // Authorization check - only admin or project_manager can trigger onboarding actions
         if (user.role !== 'admin' && user.role !== 'project_manager' && user.role !== 'applicant') {
             return Response.json({ error: 'Forbidden: Access denied' }, { status: 403 });
         }
@@ -20,35 +43,22 @@ Deno.serve(async (req) => {
         if (action === 'sendWelcomeEmail') {
             const freelancer = await base44.entities.Freelancer.get(freelancerId);
             
-            // Send welcome email to freelancer
             await base44.integrations.Core.SendEmail({
                 to: freelancer.email,
                 subject: "Welcome to El Turco - Application Received",
-                body: `
-                    <h1>Welcome, ${freelancer.full_name}!</h1>
-                    <p>Thank you for applying to join our freelancer network. We have received your application and our team will review it shortly.</p>
-                    <p>You can track your application status and complete your onboarding checklist by logging into your dashboard.</p>
-                    <br>
-                    <p>Best regards,</p>
-                    <p>The El Turco Team</p>
-                `
+                body: WELCOME_EMAIL_TEMPLATE(freelancer.full_name)
             });
             
-            // Notify admins of new application
-            // Ideally we'd loop through admin users, but for now sending to a generic admin email or first admin
             const admins = await base44.entities.User.filter({ role: 'admin' });
             if (admins.length > 0) {
-                // Send to the first admin found, or a shared inbox if configured
                 await base44.integrations.Core.SendEmail({
                     to: admins[0].email,
                     subject: "New Freelancer Application",
-                    body: `
-                        <h2>New Application Received</h2>
-                        <p><strong>Name:</strong> ${freelancer.full_name}</p>
-                        <p><strong>Email:</strong> ${freelancer.email}</p>
-                        <p><strong>Services:</strong> ${freelancer.service_types?.join(', ')}</p>
-                        <p>Please review their application in the dashboard.</p>
-                    `
+                    body: NEW_APPLICATION_ADMIN_TEMPLATE(
+                        freelancer.full_name,
+                        freelancer.email,
+                        freelancer.service_types?.join(', ') || 'Not specified'
+                    )
                 });
             }
 
@@ -60,15 +70,10 @@ Deno.serve(async (req) => {
             const admins = await base44.entities.User.filter({ role: 'admin' });
             
             if (admins.length > 0) {
-                 await base44.integrations.Core.SendEmail({
+                await base44.integrations.Core.SendEmail({
                     to: admins[0].email,
                     subject: `Freelancer Update: ${freelancer.full_name}`,
-                    body: `
-                        <h2>Freelancer Profile Updated</h2>
-                        <p><strong>Name:</strong> ${freelancer.full_name}</p>
-                        <p><strong>Update:</strong> ${updateType}</p>
-                        <p>Please review the uploaded documents or changes in the dashboard.</p>
-                    `
+                    body: PROFILE_UPDATE_ADMIN_TEMPLATE(freelancer.full_name, updateType)
                 });
             }
             return Response.json({ success: true });

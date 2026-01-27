@@ -1,5 +1,46 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Email Templates
+const LOW_SCORE_FREELANCER_TEMPLATE = (fullName, combinedScore, threshold) => `
+Dear ${fullName},
+
+Based on your quality assessments, your Combined Score has been calculated as ${combinedScore.toFixed(1)}.
+This score is below the established threshold (${threshold}).
+
+To improve your quality performance:
+- Review our translation quality guidelines
+- Examine the feedback from previous LQA reports
+- Ensure compliance with terminology and style guides
+
+If you have any questions, please contact our quality management team.
+
+Best regards,
+el turco Quality Management
+`.trim();
+
+const LOW_SCORE_ADMIN_TEMPLATE = (fullName, combinedScore, threshold, totalAssessments) => `
+Quality warning for ${fullName}:
+
+Combined Score: ${combinedScore.toFixed(1)}
+Probation Threshold: ${threshold}
+Total Assessments: ${totalAssessments}
+
+Please contact the freelancer and create a quality improvement plan.
+`.trim();
+
+const CONSECUTIVE_LOW_LQA_TEMPLATE = (fullName, scoresText) => `
+Dear ${fullName},
+
+You have received low scores in your last 3 LQA assessments:
+${scoresText}
+
+This is a serious warning regarding our quality standards.
+Please contact our quality management team as soon as possible.
+
+Best regards,
+el turco Quality Management
+`.trim();
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);

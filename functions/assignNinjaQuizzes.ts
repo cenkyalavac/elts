@@ -1,5 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Email Templates
+const NO_QUIZZES_ADMIN_TEMPLATE = (fullName, email, programName) => `
+Dear Admin,
+
+An applicant was processed for a Ninja program, but no matching quizzes were found in the system.
+
+Applicant: ${fullName}
+Email: ${email}
+Program: ${programName}
+
+Please review the program configuration and ensure appropriate quizzes are available for assignment.
+
+Best regards,
+el turco System
+`.trim();
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
