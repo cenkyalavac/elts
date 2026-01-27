@@ -153,6 +153,7 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     placeholder="+1 234 567 8900"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Include country code (e.g., +1 234 567 8900)</p>
                             </div>
                             <div>
                                 <Label htmlFor="location">Location</Label>
