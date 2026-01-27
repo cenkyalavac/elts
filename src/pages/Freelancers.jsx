@@ -3,7 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List } from "lucide-react";
+import { Plus, Users, LayoutGrid, X, Sparkles, Calendar as CalendarIcon, TrendingUp, Table, List, Download } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -363,6 +363,46 @@ export default function FreelancersPage() {
         return result;
     }, [filteredFreelancers]);
 
+    const handleExportCSV = () => {
+        const headers = ['Full Name', 'Email', 'Phone', 'Native Language', 'Status', 'Rating', 'Hourly Rate (USD)'];
+        
+        const rows = filteredFreelancers.map(f => {
+            const hourlyRate = f.rates?.find(r => r.rate_type === 'per_hour')?.rate_value || '';
+            return [
+                f.full_name || '',
+                f.email || '',
+                f.phone || '',
+                f.native_language || '',
+                f.status || '',
+                f.resource_rating || '',
+                hourlyRate
+            ];
+        });
+
+        const escapeCSV = (val) => {
+            const str = String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const csvContent = [
+            headers.map(escapeCSV).join(','),
+            ...rows.map(row => row.map(escapeCSV).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `freelancers_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     if (userLoading || !user) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -440,6 +480,16 @@ export default function FreelancersPage() {
                             <Sparkles className="w-4 h-4 text-purple-600" />
                             <span className="hidden sm:inline ml-2">Smart Match</span>
                         </Button>
+                        {user?.role === 'admin' && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleExportCSV}
+                            >
+                                <Download className="w-4 h-4" />
+                                <span className="hidden sm:inline ml-2">Export CSV</span>
+                            </Button>
+                        )}
                         <Link to={createPageUrl('ImportFreelancers')}>
                             <Button variant="outline" size="sm">
                                 <Plus className="w-4 h-4" />
