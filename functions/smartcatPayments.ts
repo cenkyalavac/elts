@@ -143,10 +143,10 @@ Deno.serve(async (req) => {
             
             const smartcatTeam = await teamResponse.json();
 
-            const smartcatByEmail = new Map(smartcatTeam.map(m => [m.email?.toLowerCase(), m]));
+            const smartcatByEmail = new Map(smartcatTeam.map(m => [normalizeString(m.email), m]));
             const smartcatByName = new Map(smartcatTeam.map(m => {
                 const name = m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim();
-                return [name.toLowerCase(), m];
+                return [normalizeString(name), m];
             }));
 
             // Process each TBMS record
