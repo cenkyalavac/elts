@@ -1,13 +1,37 @@
-import React from 'react';
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, User, Mail, Globe, Star, Languages, CheckCircle2, XCircle } from "lucide-react";
+import { ExternalLink, User, Mail, Globe, Star, Languages, CheckCircle2, XCircle, Edit2, Save, X } from "lucide-react";
+import { toast } from "sonner";
 
-export default function SmartcatProfileSection({ freelancerEmail }) {
+export default function SmartcatProfileSection({ freelancerEmail, freelancerId, smartcatSupplierId, onUpdate }) {
+    const queryClient = useQueryClient();
+    const [isEditingId, setIsEditingId] = useState(false);
+    const [editedSupplierId, setEditedSupplierId] = useState(smartcatSupplierId || '');
+    
+    // Mutation to update freelancer's smartcat_supplier_id
+    const updateSupplierIdMutation = useMutation({
+        mutationFn: async (newId) => {
+            return base44.entities.Freelancer.update(freelancerId, {
+                smartcat_supplier_id: newId || null
+            });
+        },
+        onSuccess: () => {
+            toast.success('Smartcat Supplier ID updated');
+            queryClient.invalidateQueries({ queryKey: ['freelancer', freelancerId] });
+            setIsEditingId(false);
+            if (onUpdate) onUpdate();
+        },
+        onError: (error) => {
+            toast.error(`Failed to update: ${error.message}`);
+        }
+    });
     const { data: smartcatProfile, isLoading, error } = useQuery({
         queryKey: ['smartcatProfile', freelancerEmail],
         queryFn: async () => {
@@ -96,8 +120,10 @@ export default function SmartcatProfileSection({ freelancerEmail }) {
                             <Mail className="w-4 h-4" />
                             {smartcatProfile.email}
                         </p>
-                        {smartcatProfile.id && (
-                            <p className="text-gray-400 text-xs mt-1">ID: {smartcatProfile.id}</p>
+                        {(smartcatProfile.id || smartcatSupplierId) && (
+                            <p className="text-gray-400 text-xs mt-1">
+                                ID: {smartcatSupplierId || smartcatProfile.id}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -141,6 +167,53 @@ export default function SmartcatProfileSection({ freelancerEmail }) {
                         <span className="text-gray-500 text-sm">
                             ({smartcatProfile.jobsCompleted || 0} jobs completed)
                         </span>
+                    </div>
+                )}
+
+                {/* Smartcat Supplier ID */}
+                {freelancerId && (
+                    <div className="pt-3 border-t">
+                        <div className="flex items-center justify-between mb-2">
+                            <Label className="text-xs text-gray-500">Smartcat Supplier ID</Label>
+                            {!isEditingId && (
+                                <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => setIsEditingId(true)}>
+                                    <Edit2 className="w-3 h-3" />
+                                </Button>
+                            )}
+                        </div>
+                        {isEditingId ? (
+                            <div className="flex gap-2">
+                                <Input 
+                                    value={editedSupplierId}
+                                    onChange={(e) => setEditedSupplierId(e.target.value)}
+                                    placeholder="Enter Smartcat ID..."
+                                    className="h-8 text-sm"
+                                />
+                                <Button 
+                                    size="sm" 
+                                    className="h-8"
+                                    onClick={() => updateSupplierIdMutation.mutate(editedSupplierId)}
+                                    disabled={updateSupplierIdMutation.isPending}
+                                >
+                                    <Save className="w-3 h-3" />
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    className="h-8"
+                                    onClick={() => {
+                                        setIsEditingId(false);
+                                        setEditedSupplierId(smartcatSupplierId || '');
+                                    }}
+                                >
+                                    <X className="w-3 h-3" />
+                                </Button>
+                            </div>
+                        ) : (
+                            <p className="text-sm font-mono">
+                                {smartcatSupplierId || <span className="text-gray-400 italic">Not set</span>}
+                            </p>
+                        )}
                     </div>
                 )}
 

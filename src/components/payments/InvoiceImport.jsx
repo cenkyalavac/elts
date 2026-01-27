@@ -35,6 +35,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import CsvMappingManager from "./CsvMappingManager";
 
 // Service types supported by Smartcat
 const SERVICE_TYPES = [
@@ -61,6 +62,12 @@ export default function InvoiceImport() {
     const [selectedForPayment, setSelectedForPayment] = useState(new Set());
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     
+    // Detected CSV columns for mapping
+    const [detectedColumns, setDetectedColumns] = useState([]);
+    
+    // Column mapping configuration
+    const [columnMapping, setColumnMapping] = useState({});
+    
     // Default values for Smartcat payment creation
     const [defaults, setDefaults] = useState({
         serviceType: 'Translation',
@@ -73,7 +80,7 @@ export default function InvoiceImport() {
         queryFn: () => base44.entities.Freelancer.list(),
     });
 
-    const parseCSV = (text) => {
+    const parseCSV = (text, customMapping = null) => {
         const lines = text.split('\n').filter(line => line.trim());
         if (lines.length < 2) return [];
         
@@ -83,6 +90,13 @@ export default function InvoiceImport() {
         
         const headers = headerLine.split(delimiter).map(h => h.trim().replace(/"/g, ''));
         
+        // Update detected columns for mapping UI
+        setDetectedColumns(headers);
+        
+        // Use custom mapping if provided, otherwise use default mapping logic
+        const mapping = customMapping || columnMapping;
+        const hasCustomMapping = Object.values(mapping).some(v => v);
+        
         const rows = [];
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(delimiter).map(v => v.trim().replace(/"/g, ''));
@@ -91,24 +105,39 @@ export default function InvoiceImport() {
                 row[header] = values[idx] || '';
             });
             
-            // Normalize field names
+            // Get value from row using mapping or fallback to default column names
+            const getValue = (field, fallbacks = []) => {
+                // First check custom mapping
+                if (hasCustomMapping && mapping[field]) {
+                    return row[mapping[field]] || '';
+                }
+                // Fallback to default column detection
+                for (const fb of fallbacks) {
+                    if (row[fb] !== undefined && row[fb] !== '') {
+                        return row[fb];
+                    }
+                }
+                return '';
+            };
+            
+            // Normalize field names using mapping or fallbacks
             const invoice = {
-                invoiceCode: row['InvoiceCode'] || row['Invoice'] || row['Code'] || '',
-                resource: row['Resource'] || row['Freelancer'] || row['Name'] || '',
-                status: row['Status'] || 'Pending',
-                vat: parseFloat(row['VAT'] || row['Tax'] || 0),
-                totalCost: parseFloat(row['TotalCost'] || row['Total'] || row['Amount'] || 0),
-                currency: row['Currency'] || 'USD',
-                dateSent: row['DateSent'] || row['InvoiceDate'] || row['Date'] || '',
-                datePaid: row['DatePaid'] || row['PaidDate'] || '',
+                invoiceCode: getValue('invoiceCode', ['InvoiceCode', 'Invoice', 'Code', 'InvoiceNumber', 'Ref']),
+                resource: getValue('resource', ['Resource', 'Freelancer', 'Name', 'Translator', 'Vendor', 'Supplier']),
+                status: getValue('status', ['Status']) || 'Pending',
+                vat: parseFloat(getValue('vat', ['VAT', 'Tax']) || 0),
+                totalCost: parseFloat(getValue('totalCost', ['TotalCost', 'Total', 'Amount', 'Cost', 'Payment', 'Sum']) || 0),
+                currency: getValue('currency', ['Currency']) || defaults.currency,
+                dateSent: getValue('dateSent', ['DateSent', 'InvoiceDate', 'Date', 'Created']),
+                datePaid: getValue('datePaid', ['DatePaid', 'PaidDate', 'PaymentDate']),
                 // Additional fields if available
-                description: row['Description'] || row['JobDescription'] || '',
-                project: row['Project'] || row['ProjectCode'] || '',
-                sourceLanguage: row['SourceLanguage'] || row['Source'] || '',
-                targetLanguage: row['TargetLanguage'] || row['Target'] || '',
-                wordCount: parseInt(row['WordCount'] || row['Words'] || 0),
-                rate: parseFloat(row['Rate'] || 0),
-                service: row['Service'] || row['ServiceType'] || '',
+                description: getValue('description', ['Description', 'JobDescription', 'Details']),
+                project: getValue('project', ['Project', 'ProjectCode', 'ProjectName']),
+                sourceLanguage: getValue('sourceLanguage', ['SourceLanguage', 'Source', 'From']),
+                targetLanguage: getValue('targetLanguage', ['TargetLanguage', 'Target', 'To']),
+                wordCount: parseInt(getValue('wordCount', ['WordCount', 'Words', 'Volume', 'Units']) || 0),
+                rate: parseFloat(getValue('rate', ['Rate', 'PricePerWord', 'UnitPrice']) || 0),
+                service: getValue('service', ['Service', 'ServiceType', 'Type']),
             };
             
             // Match with freelancer - try multiple fields
@@ -122,6 +151,8 @@ export default function InvoiceImport() {
                 if (f.resource_code?.toLowerCase().trim() === resourceLower) return true;
                 // Match by email2
                 if (f.email2?.toLowerCase().trim() === resourceLower) return true;
+                // Match by smartcat_supplier_id
+                if (f.smartcat_supplier_id?.toLowerCase().trim() === resourceLower) return true;
                 // Partial name match (first + last name)
                 const nameParts = resourceLower.split(' ');
                 if (nameParts.length >= 2) {
@@ -136,6 +167,7 @@ export default function InvoiceImport() {
             invoice.freelancerId = matchedFreelancer?.id || null;
             invoice.freelancerEmail = matchedFreelancer?.email || null;
             invoice.freelancerMatched = !!matchedFreelancer;
+            invoice.smartcatSupplierId = matchedFreelancer?.smartcat_supplier_id || null;
             
             // Validate for Smartcat - check required fields
             invoice.validationErrors = [];
@@ -158,9 +190,20 @@ export default function InvoiceImport() {
 
     const handleParse = useCallback(() => {
         if (!rawInput.trim()) return;
-        const data = parseCSV(rawInput);
+        const data = parseCSV(rawInput, columnMapping);
         setInvoices(data);
-    }, [rawInput, freelancers]);
+    }, [rawInput, freelancers, columnMapping, defaults]);
+    
+    // Handle mapping changes from CsvMappingManager
+    const handleApplyMapping = (newMapping, newDefaults) => {
+        setColumnMapping(newMapping);
+        setDefaults(newDefaults);
+        // Re-parse with new mapping if we have data
+        if (rawInput.trim()) {
+            const data = parseCSV(rawInput, newMapping);
+            setInvoices(data);
+        }
+    };
 
     const handleFileUpload = useCallback((e) => {
         const uploadedFile = e.target.files?.[0];
@@ -290,7 +333,8 @@ export default function InvoiceImport() {
                 ? inv.currency.toUpperCase()
                 : defaults.currency;
             
-            return {
+            // Build payment object - use smartcat_supplier_id if available
+            const payment = {
                 supplierEmail: freelancer?.email || inv.freelancerEmail || '',
                 supplierName: inv.resource,
                 supplierType: 'freelancer',
@@ -302,6 +346,13 @@ export default function InvoiceImport() {
                 currency,
                 externalNumber: inv.invoiceCode
             };
+            
+            // Add smartcat_supplier_id if freelancer has one (for future API support)
+            if (freelancer?.smartcat_supplier_id) {
+                payment.freelancerId = freelancer.smartcat_supplier_id;
+            }
+            
+            return payment;
         });
     };
 
@@ -415,10 +466,20 @@ export default function InvoiceImport() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {/* Default Values Section */}
+                    {/* Default Values & Column Mapping Section */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                        <Label className="text-sm font-medium text-gray-700">Default Values for Smartcat</Label>
-                        <p className="text-xs text-gray-500">These will be used when CSV doesn't have these fields</p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <Label className="text-sm font-medium text-gray-700">Default Values for Smartcat</Label>
+                                <p className="text-xs text-gray-500">These will be used when CSV doesn't have these fields</p>
+                            </div>
+                            <CsvMappingManager 
+                                detectedColumns={detectedColumns}
+                                onApplyMapping={handleApplyMapping}
+                                currentMapping={columnMapping}
+                                currentDefaults={defaults}
+                            />
+                        </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div>
                                 <Label className="text-xs">Service Type</Label>
