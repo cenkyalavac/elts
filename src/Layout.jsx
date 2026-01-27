@@ -6,6 +6,7 @@ import { createPageUrl } from "./utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import GlobalSearch from "@/components/ui/GlobalSearch";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import {
           DropdownMenu,
           DropdownMenuContent,
@@ -328,7 +329,11 @@ export default function Layout({ children, currentPageName }) {
                 )}
             </nav>
 
-            <main>{children}</main>
+            <main>
+                <ErrorBoundary fallbackMessage="Something went wrong loading this page. Please try refreshing.">
+                    {children}
+                </ErrorBoundary>
+            </main>
             {user && <GlobalSearch />}
         </div>
     );
