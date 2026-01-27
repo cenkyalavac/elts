@@ -10,6 +10,11 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
         
+        // Authorization check - only admin or project_manager can trigger onboarding actions
+        if (user.role !== 'admin' && user.role !== 'project_manager' && user.role !== 'applicant') {
+            return Response.json({ error: 'Forbidden: Access denied' }, { status: 403 });
+        }
+        
         const { action, freelancerId, updateType } = await req.json();
 
         if (action === 'sendWelcomeEmail') {
