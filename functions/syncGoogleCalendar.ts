@@ -194,6 +194,8 @@ Deno.serve(async (req) => {
             else if (result === 'cleared') cleared++;
         }
 
+        console.log('Calendar Sync Summary:', { freelancerId, calendarId: targetCalendarId, created, updated, cleared, dateRange: { start: startDateStr, end: endDateStr } });
+
         return Response.json({
             success: true,
             eventsProcessed: busyEvents.length,
