@@ -22,11 +22,18 @@ const JOB_TYPES = [
     "Localization", "LQA", "QA Check", "Editing", "Copywriting"
 ];
 
-const ERROR_TYPES = [
+const DEFAULT_ERROR_TYPES = [
     "Accuracy", "Fluency", "Terminology", "Style", "Locale", "Verity", 
     "Grammar", "Punctuation", "Spelling", "Consistency", "Formatting", 
     "Omission", "Addition", "Mistranslation"
 ];
+
+const DEFAULT_SEVERITY_WEIGHTS = {
+    Critical: 10,
+    Major: 5,
+    Minor: 2,
+    Preferential: 0.5
+};
 
 const SEVERITY_LEVELS = ["Critical", "Major", "Minor", "Preferential"];
 
@@ -38,6 +45,10 @@ export default function QualityReportForm({
     initialData,
     defaultReportType = "LQA"
 }) {
+    // Dynamic error types from settings or fallback to defaults
+    const errorTypes = (settings?.lqa_error_types?.length > 0) 
+        ? settings.lqa_error_types 
+        : DEFAULT_ERROR_TYPES;
     const [formData, setFormData] = useState(initialData || {
         freelancer_id: "",
         report_type: defaultReportType,
@@ -68,11 +79,10 @@ export default function QualityReportForm({
     const lqaWeight = settings?.lqa_weight || 4;
     const qsMultiplier = settings?.qs_multiplier || 20;
 
-    const errorWeights = settings?.lqa_error_weights || {
-        Critical: 10,
-        Major: 5,
-        Minor: 2,
-        Preferential: 0.5
+    // Dynamic error weights from settings or fallback to defaults
+    const errorWeights = {
+        ...DEFAULT_SEVERITY_WEIGHTS,
+        ...(settings?.lqa_error_weights || {})
     };
 
     const calculateLqaFromErrors = () => {
@@ -380,7 +390,7 @@ export default function QualityReportForm({
                                                 <SelectValue placeholder="Type" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {ERROR_TYPES.map(type => (
+                                                {errorTypes.map(type => (
                                                     <SelectItem key={type} value={type}>{type}</SelectItem>
                                                 ))}
                                             </SelectContent>
