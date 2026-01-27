@@ -110,26 +110,26 @@ Lütfen ilgili freelancer ile iletişime geçin ve kalite iyileştirme planı ol
                     }
                 }
 
-                // Check for 3 consecutive low LQA scores
-                const recentLqaReports = freelancerReports
-                    .filter(r => r.lqa_score != null)
-                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-                    .slice(0, 3);
+            // Check for 3 consecutive low LQA scores
+            const recentLqaReports = freelancerReports
+                .filter(r => r.lqa_score != null)
+                .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                .slice(0, 3);
 
-                if (recentLqaReports.length >= 3) {
-                    const allLow = recentLqaReports.every(r => r.lqa_score < 70);
-                    if (allLow) {
-                        notifications.push({
-                            type: 'consecutive_low_lqa',
-                            freelancer_id: freelancer.id,
-                            freelancer_name: freelancer.full_name,
-                            scores: recentLqaReports.map(r => r.lqa_score)
-                        });
+            if (recentLqaReports.length >= 3) {
+                const allLow = recentLqaReports.every(r => r.lqa_score < 70);
+                if (allLow) {
+                    notifications.push({
+                        type: 'consecutive_low_lqa',
+                        freelancer_id: freelancer.id,
+                        freelancer_name: freelancer.full_name,
+                        scores: recentLqaReports.map(r => r.lqa_score)
+                    });
 
-                        await base44.asServiceRole.integrations.Core.SendEmail({
-                            to: freelancer.email,
-                            subject: `Acil Kalite Uyarısı - Üst Üste Düşük LQA Skorları`,
-                            body: `
+                    await base44.asServiceRole.integrations.Core.SendEmail({
+                        to: freelancer.email,
+                        subject: `Acil Kalite Uyarısı - Üst Üste Düşük LQA Skorları`,
+                        body: `
 Sayın ${freelancer.full_name},
 
 Son 3 LQA değerlendirmenizde düşük skorlar aldınız:
@@ -140,9 +140,8 @@ Lütfen en kısa sürede kalite yönetimi ekibimizle iletişime geçin.
 
 Saygılarımızla,
 el turco Kalite Yönetimi
-                            `.trim()
-                        });
-                    }
+                        `.trim()
+                    });
                 }
             }
 
