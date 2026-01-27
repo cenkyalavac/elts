@@ -101,29 +101,10 @@ Deno.serve(async (req) => {
 
                 // Check for low scores
                 if (combinedScore !== null && combinedScore < settings.probation_threshold) {
-                    // Send notification to freelancer
-                    const freelancerEmail = freelancer.email;
-                    const emailBody = `
-Dear ${freelancer.full_name},
-
-Based on your quality assessments, your Combined Score has been calculated as ${combinedScore.toFixed(1)}.
-This score is below the established threshold (${settings.probation_threshold}).
-
-To improve your quality performance:
-- Review our translation quality guidelines
-- Examine the feedback from previous LQA reports
-- Ensure compliance with terminology and style guides
-
-If you have any questions, please contact our quality management team.
-
-Best regards,
-el turco Quality Management
-                    `.trim();
-
                     await base44.asServiceRole.integrations.Core.SendEmail({
-                        to: freelancerEmail,
+                        to: freelancer.email,
                         subject: `Quality Warning - Combined Score: ${combinedScore.toFixed(1)}`,
-                        body: emailBody
+                        body: LOW_SCORE_FREELANCER_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold)
                     });
 
                     notifications.push({
@@ -138,15 +119,7 @@ el turco Quality Management
                         await base44.asServiceRole.integrations.Core.SendEmail({
                             to: admin.email,
                             subject: `[Admin Notice] Low Quality Score: ${freelancer.full_name}`,
-                            body: `
-Quality warning for ${freelancer.full_name}:
-
-Combined Score: ${combinedScore.toFixed(1)}
-Probation Threshold: ${settings.probation_threshold}
-Total Assessments: ${freelancerReports.length}
-
-Please contact the freelancer and create a quality improvement plan.
-                            `.trim()
+                            body: LOW_SCORE_ADMIN_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold, freelancerReports.length)
                         });
                     }
                 }
@@ -167,21 +140,11 @@ Please contact the freelancer and create a quality improvement plan.
                         scores: recentLqaReports.map(r => r.lqa_score)
                     });
 
+                    const scoresText = recentLqaReports.map((r, i) => `${i + 1}. LQA: ${r.lqa_score}`).join('\n');
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: freelancer.email,
                         subject: `Urgent Quality Warning - Consecutive Low LQA Scores`,
-                        body: `
-Dear ${freelancer.full_name},
-
-You have received low scores in your last 3 LQA assessments:
-${recentLqaReports.map((r, i) => `${i + 1}. LQA: ${r.lqa_score}`).join('\n')}
-
-This is a serious warning regarding our quality standards.
-Please contact our quality management team as soon as possible.
-
-Best regards,
-el turco Quality Management
-                        `.trim()
+                        body: CONSECUTIVE_LOW_LQA_TEMPLATE(freelancer.full_name, scoresText)
                     });
                 }
             }

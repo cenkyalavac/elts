@@ -86,20 +86,7 @@ Deno.serve(async (req) => {
                 await base44.asServiceRole.integrations.Core.SendEmail({
                     to: admin.email,
                     subject: `Action Required: No Quizzes Assigned for ${applicant.full_name}`,
-                    body: `
-Dear Admin,
-
-An applicant was processed for a Ninja program, but no matching quizzes were found in the system.
-
-Applicant: ${applicant.full_name}
-Email: ${applicant.email}
-Program: ${program.name}
-
-Please review the program configuration and ensure appropriate quizzes are available for assignment.
-
-Best regards,
-el turco System
-                    `.trim()
+                    body: NO_QUIZZES_ADMIN_TEMPLATE(applicant.full_name, applicant.email, program.name)
                 });
             }
             
