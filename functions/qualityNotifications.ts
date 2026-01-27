@@ -63,25 +63,25 @@ Deno.serve(async (req) => {
                     // Send notification to freelancer
                     const freelancerEmail = freelancer.email;
                     const emailBody = `
-Sayın ${freelancer.full_name},
+Dear ${freelancer.full_name},
 
-Kalite değerlendirmelerinizin sonucunda Combined Score'unuz ${combinedScore.toFixed(1)} olarak hesaplanmıştır. 
-Bu skor belirlenen eşik değerin (${settings.probation_threshold}) altındadır.
+Based on your quality assessments, your Combined Score has been calculated as ${combinedScore.toFixed(1)}.
+This score is below the established threshold (${settings.probation_threshold}).
 
-Kalite performansınızı iyileştirmek için:
-- Çeviri kalitesi rehberlerimizi gözden geçirin
-- Geçmiş LQA raporlarındaki geri bildirimleri inceleyin
-- Terminoloji ve stil kılavuzlarına uygun çalışın
+To improve your quality performance:
+- Review our translation quality guidelines
+- Examine the feedback from previous LQA reports
+- Ensure compliance with terminology and style guides
 
-Sorularınız için kalite yönetimi ekibimizle iletişime geçebilirsiniz.
+If you have any questions, please contact our quality management team.
 
-Saygılarımızla,
-el turco Kalite Yönetimi
+Best regards,
+el turco Quality Management
                     `.trim();
 
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: freelancerEmail,
-                        subject: `Kalite Uyarısı - Combined Score: ${combinedScore.toFixed(1)}`,
+                        subject: `Quality Warning - Combined Score: ${combinedScore.toFixed(1)}`,
                         body: emailBody
                     });
 
