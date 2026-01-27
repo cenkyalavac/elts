@@ -25,6 +25,9 @@ function normalizeString(str) {
 async function getSmartcatAuth() {
     const accountId = Deno.env.get('SMARTCAT_ACCOUNT_ID');
     const apiKey = Deno.env.get('SMARTCAT_API_KEY');
+    if (!accountId || !apiKey) {
+        throw new Error('Missing Smartcat Configuration');
+    }
     return 'Basic ' + btoa(`${accountId}:${apiKey}`);
 }
 
