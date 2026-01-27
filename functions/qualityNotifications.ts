@@ -1,14 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Email Templates
-const LOW_SCORE_FREELANCER_TEMPLATE = (fullName, combinedScore, threshold, statusChanged = false) => `
-Dear ${fullName},
+// Helper function to replace template placeholders
+function replaceTemplate(template, data) {
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+        return data[key] !== undefined ? data[key] : match;
+    });
+}
 
-Based on your quality assessments, your Combined Score has been calculated as ${combinedScore.toFixed(1)}.
-This score is below the established threshold (${threshold}).
-${statusChanged ? `
-IMPORTANT: Your account status has been changed to Probation. Please contact us immediately to discuss a quality improvement plan.
-` : ''}
+// Email Templates with placeholders
+const EMAIL_TEMPLATES = {
+    LOW_SCORE_FREELANCER: `
+Dear {{fullName}},
+
+Based on your quality assessments, your Combined Score has been calculated as {{score}}.
+This score is below the established threshold ({{threshold}}).
+{{statusMessage}}
 To improve your quality performance:
 - Review our translation quality guidelines
 - Examine the feedback from previous LQA reports
@@ -18,30 +24,31 @@ If you have any questions, please contact our quality management team.
 
 Best regards,
 el turco Quality Management
-`.trim();
+`.trim(),
 
-const LOW_SCORE_ADMIN_TEMPLATE = (fullName, combinedScore, threshold, totalAssessments) => `
-Quality warning for ${fullName}:
+    LOW_SCORE_ADMIN: `
+Quality warning for {{fullName}}:
 
-Combined Score: ${combinedScore.toFixed(1)}
-Probation Threshold: ${threshold}
-Total Assessments: ${totalAssessments}
+Combined Score: {{score}}
+Probation Threshold: {{threshold}}
+Total Assessments: {{totalAssessments}}
 
 Please contact the freelancer and create a quality improvement plan.
-`.trim();
+`.trim(),
 
-const CONSECUTIVE_LOW_LQA_TEMPLATE = (fullName, scoresText) => `
-Dear ${fullName},
+    CONSECUTIVE_LOW_LQA: `
+Dear {{fullName}},
 
 You have received low scores in your last 3 LQA assessments:
-${scoresText}
+{{scoresText}}
 
 This is a serious warning regarding our quality standards.
 Please contact our quality management team as soon as possible.
 
 Best regards,
 el turco Quality Management
-`.trim();
+`.trim()
+};
 
 Deno.serve(async (req) => {
     try {
@@ -127,12 +134,21 @@ Deno.serve(async (req) => {
                         statusChanged = true;
                     }
                     
+                    const statusMessage = statusChanged 
+                        ? '\nIMPORTANT: Your account status has been changed to Probation. Please contact us immediately to discuss a quality improvement plan.\n'
+                        : '';
+                    
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: freelancer.email,
                         subject: statusChanged 
                             ? `Account Status Changed - Quality Score: ${combinedScore.toFixed(1)}`
                             : `Quality Warning - Combined Score: ${combinedScore.toFixed(1)}`,
-                        body: LOW_SCORE_FREELANCER_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold, statusChanged)
+                        body: replaceTemplate(EMAIL_TEMPLATES.LOW_SCORE_FREELANCER, {
+                            fullName: freelancer.full_name,
+                            score: combinedScore.toFixed(1),
+                            threshold: settings.probation_threshold,
+                            statusMessage: statusMessage
+                        })
                     });
 
                     notifications.push({
@@ -148,7 +164,12 @@ Deno.serve(async (req) => {
                         await base44.asServiceRole.integrations.Core.SendEmail({
                             to: admin.email,
                             subject: `[Admin Notice] Low Quality Score: ${freelancer.full_name}${statusChanged ? ' - STATUS CHANGED TO PROBATION' : ''}`,
-                            body: LOW_SCORE_ADMIN_TEMPLATE(freelancer.full_name, combinedScore, settings.probation_threshold, freelancerReports.length)
+                            body: replaceTemplate(EMAIL_TEMPLATES.LOW_SCORE_ADMIN, {
+                                fullName: freelancer.full_name,
+                                score: combinedScore.toFixed(1),
+                                threshold: settings.probation_threshold,
+                                totalAssessments: freelancerReports.length
+                            })
                         });
                     }
                 }
@@ -173,7 +194,10 @@ Deno.serve(async (req) => {
                     await base44.asServiceRole.integrations.Core.SendEmail({
                         to: freelancer.email,
                         subject: `Urgent Quality Warning - Consecutive Low LQA Scores`,
-                        body: CONSECUTIVE_LOW_LQA_TEMPLATE(freelancer.full_name, scoresText)
+                        body: replaceTemplate(EMAIL_TEMPLATES.CONSECUTIVE_LOW_LQA, {
+                            fullName: freelancer.full_name,
+                            scoresText: scoresText
+                        })
                     });
                 }
             }

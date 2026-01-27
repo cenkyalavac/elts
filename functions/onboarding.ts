@@ -1,29 +1,38 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Email Templates
-const WELCOME_EMAIL_TEMPLATE = (fullName) => `
-<h1>Welcome, ${fullName}!</h1>
+// Helper function to replace template placeholders
+function replaceTemplate(template, data) {
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+        return data[key] !== undefined ? data[key] : match;
+    });
+}
+
+// Email Templates with placeholders
+const EMAIL_TEMPLATES = {
+    WELCOME: `
+<h1>Welcome, {{fullName}}!</h1>
 <p>Thank you for applying to join our freelancer network. We have received your application and our team will review it shortly.</p>
 <p>You can track your application status and complete your onboarding checklist by logging into your dashboard.</p>
 <br>
 <p>Best regards,</p>
 <p>The El Turco Team</p>
-`.trim();
+`.trim(),
 
-const NEW_APPLICATION_ADMIN_TEMPLATE = (fullName, email, serviceTypes) => `
+    NEW_APPLICATION_ADMIN: `
 <h2>New Application Received</h2>
-<p><strong>Name:</strong> ${fullName}</p>
-<p><strong>Email:</strong> ${email}</p>
-<p><strong>Services:</strong> ${serviceTypes}</p>
+<p><strong>Name:</strong> {{fullName}}</p>
+<p><strong>Email:</strong> {{email}}</p>
+<p><strong>Services:</strong> {{serviceTypes}}</p>
 <p>Please review their application in the dashboard.</p>
-`.trim();
+`.trim(),
 
-const PROFILE_UPDATE_ADMIN_TEMPLATE = (fullName, updateType) => `
+    PROFILE_UPDATE_ADMIN: `
 <h2>Freelancer Profile Updated</h2>
-<p><strong>Name:</strong> ${fullName}</p>
-<p><strong>Update:</strong> ${updateType}</p>
+<p><strong>Name:</strong> {{fullName}}</p>
+<p><strong>Update:</strong> {{updateType}}</p>
 <p>Please review the uploaded documents or changes in the dashboard.</p>
-`.trim();
+`.trim()
+};
 
 Deno.serve(async (req) => {
     try {
@@ -46,7 +55,7 @@ Deno.serve(async (req) => {
             await base44.integrations.Core.SendEmail({
                 to: freelancer.email,
                 subject: "Welcome to El Turco - Application Received",
-                body: WELCOME_EMAIL_TEMPLATE(freelancer.full_name)
+                body: replaceTemplate(EMAIL_TEMPLATES.WELCOME, { fullName: freelancer.full_name })
             });
             
             const admins = await base44.entities.User.filter({ role: 'admin' });
@@ -54,11 +63,11 @@ Deno.serve(async (req) => {
                 await base44.integrations.Core.SendEmail({
                     to: admins[0].email,
                     subject: "New Freelancer Application",
-                    body: NEW_APPLICATION_ADMIN_TEMPLATE(
-                        freelancer.full_name,
-                        freelancer.email,
-                        freelancer.service_types?.join(', ') || 'Not specified'
-                    )
+                    body: replaceTemplate(EMAIL_TEMPLATES.NEW_APPLICATION_ADMIN, {
+                        fullName: freelancer.full_name,
+                        email: freelancer.email,
+                        serviceTypes: freelancer.service_types?.join(', ') || 'Not specified'
+                    })
                 });
             }
 
@@ -73,7 +82,10 @@ Deno.serve(async (req) => {
                 await base44.integrations.Core.SendEmail({
                     to: admins[0].email,
                     subject: `Freelancer Update: ${freelancer.full_name}`,
-                    body: PROFILE_UPDATE_ADMIN_TEMPLATE(freelancer.full_name, updateType)
+                    body: replaceTemplate(EMAIL_TEMPLATES.PROFILE_UPDATE_ADMIN, {
+                        fullName: freelancer.full_name,
+                        updateType: updateType
+                    })
                 });
             }
             return Response.json({ success: true });
