@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, CheckCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import LanguagePairRateInput from "./LanguagePairRateInput";
+
+const STORAGE_KEY = 'application_form_draft';
 
 const initialFormData = {
     full_name: '',
@@ -26,7 +28,40 @@ const initialFormData = {
 
 export default function ApplicationForm({ position, onCancel, onSuccess }) {
     const [uploading, setUploading] = useState(false);
-    const [formData, setFormData] = useState(initialFormData);
+    const [formData, setFormData] = useState(() => {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch {
+                return initialFormData;
+            }
+        }
+        return initialFormData;
+    });
+    const isInitialMount = useRef(true);
+
+    // Show toast on mount if draft was restored
+    useEffect(() => {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            toast.success('Draft restored');
+        }
+    }, []);
+
+    // Auto-save with debounce
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    }, [formData]);
 
     const createApplicationMutation = useMutation({
         mutationFn: async (data) => {
