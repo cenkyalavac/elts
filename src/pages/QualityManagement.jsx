@@ -19,8 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { 
     Search, Plus, Star, AlertTriangle, 
-    CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText, Share2
+    CheckCircle2, Clock, Eye, BarChart3, Users, Award, Upload, FileText, Share2, ClipboardList
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import ShareReportDialog from "@/components/quality/ShareReportDialog";
 import QualityReportForm from "@/components/quality/QualityReportForm";
 import QualityScoreCard from "@/components/quality/QualityScoreCard";
@@ -326,85 +327,113 @@ export default function QualityManagementPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredReports.map(report => {
-                                        const freelancer = freelancers.find(f => f.id === report.freelancer_id);
-                                        const statusConfig = getStatusBadge(report.status);
-                                        return (
-                                            <TableRow key={report.id}>
-                                                <TableCell className="font-medium">
-                                                    {freelancer?.full_name || "Unknown"}
-                                                </TableCell>
-                                                <TableCell>{report.project_name || "-"}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">
-                                                        {report.report_type}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {report.source_language && report.target_language 
-                                                        ? `${report.source_language} → ${report.target_language}`
-                                                        : "-"
-                                                    }
-                                                </TableCell>
-                                                <TableCell>
-                                                    {report.content_type || report.translation_type || "-"}
-                                                </TableCell>
-                                                <TableCell>{report.job_type || "-"}</TableCell>
-                                                <TableCell>
-                                                    {report.lqa_score != null ? (
-                                                        <span className={`font-medium ${
-                                                            report.lqa_score >= 90 ? 'text-green-600' :
-                                                            report.lqa_score >= 70 ? 'text-yellow-600' :
-                                                            'text-red-600'
-                                                        }`}>
-                                                            {report.lqa_score}
-                                                        </span>
-                                                    ) : "-"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {report.qs_score != null ? (
-                                                        <div className="flex items-center gap-1">
-                                                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                                            <span>{report.qs_score}</span>
-                                                        </div>
-                                                    ) : "-"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={statusConfig.color}>
-                                                        {statusConfig.label}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-gray-500 text-sm">
-                                                    {new Date(report.report_date || report.created_date).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex gap-1">
-                                                        {(report.status === 'finalized' || report.status === 'translator_accepted') && (
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="sm"
-                                                                onClick={() => setShareDialogReport(report)}
-                                                                title="Share with freelancer"
-                                                            >
-                                                                <Share2 className="w-4 h-4" />
-                                                            </Button>
-                                                        )}
-                                                        <Link to={createPageUrl(`QualityReportDetail?id=${report.id}`)}>
-                                                            <Button variant="ghost" size="sm">
-                                                                <Eye className="w-4 h-4" />
-                                                            </Button>
-                                                        </Link>
-                                                    </div>
-                                                </TableCell>
+                                    {reportsLoading ? (
+                                        Array(5).fill(0).map((_, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                                <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                                                <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                                <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                                             </TableRow>
-                                        );
-                                    })}
-                                    {filteredReports.length === 0 && (
+                                        ))
+                                    ) : filteredReports.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={11} className="text-center py-8 text-gray-500">
-                                                {reportsLoading ? "Loading..." : "No reports found"}
+                                            <TableCell colSpan={11}>
+                                                <div className="flex flex-col items-center justify-center py-12">
+                                                    <ClipboardList className="w-12 h-12 text-gray-300 mb-4" />
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">No records found</h3>
+                                                    <p className="text-gray-500 mb-4">Get started by creating a new report.</p>
+                                                    <Button 
+                                                        onClick={() => setShowCreateDialog(true)}
+                                                        className="bg-purple-600 hover:bg-purple-700"
+                                                    >
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        New Report
+                                                    </Button>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
+                                    ) : (
+                                        filteredReports.map(report => {
+                                            const freelancer = freelancers.find(f => f.id === report.freelancer_id);
+                                            const statusConfig = getStatusBadge(report.status);
+                                            return (
+                                                <TableRow key={report.id}>
+                                                    <TableCell className="font-medium">
+                                                        {freelancer?.full_name || "Unknown"}
+                                                    </TableCell>
+                                                    <TableCell>{report.project_name || "-"}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline">
+                                                            {report.report_type}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {report.source_language && report.target_language 
+                                                            ? `${report.source_language} → ${report.target_language}`
+                                                            : "-"
+                                                        }
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {report.content_type || report.translation_type || "-"}
+                                                    </TableCell>
+                                                    <TableCell>{report.job_type || "-"}</TableCell>
+                                                    <TableCell>
+                                                        {report.lqa_score != null ? (
+                                                            <span className={`font-medium ${
+                                                                report.lqa_score >= 90 ? 'text-green-600' :
+                                                                report.lqa_score >= 70 ? 'text-yellow-600' :
+                                                                'text-red-600'
+                                                            }`}>
+                                                                {report.lqa_score}
+                                                            </span>
+                                                        ) : "-"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {report.qs_score != null ? (
+                                                            <div className="flex items-center gap-1">
+                                                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                                                <span>{report.qs_score}</span>
+                                                            </div>
+                                                        ) : "-"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className={statusConfig.color}>
+                                                            {statusConfig.label}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-gray-500 text-sm">
+                                                        {new Date(report.report_date || report.created_date).toLocaleDateString()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex gap-1">
+                                                            {(report.status === 'finalized' || report.status === 'translator_accepted') && (
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm"
+                                                                    onClick={() => setShareDialogReport(report)}
+                                                                    title="Share with freelancer"
+                                                                >
+                                                                    <Share2 className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
+                                                            <Link to={createPageUrl(`QualityReportDetail?id=${report.id}`)}>
+                                                                <Button variant="ghost" size="sm">
+                                                                    <Eye className="w-4 h-4" />
+                                                                </Button>
+                                                            </Link>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
                                     )}
                                 </TableBody>
                             </Table>

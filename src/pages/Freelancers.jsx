@@ -621,21 +621,43 @@ export default function FreelancersPage() {
 
                         {isLoading ? (
                             <div className="grid gap-4">
-                                {Array(6).fill(0).map((_, i) => (
-                                    <Skeleton key={i} className="h-64 w-full" />
+                                {Array(5).fill(0).map((_, i) => (
+                                    <div key={i} className="bg-white rounded-lg shadow p-4 space-y-3">
+                                        <div className="flex items-start gap-4">
+                                            <Skeleton className="h-12 w-12 rounded-full" />
+                                            <div className="flex-1 space-y-2">
+                                                <Skeleton className="h-5 w-48" />
+                                                <Skeleton className="h-4 w-32" />
+                                            </div>
+                                            <Skeleton className="h-6 w-20" />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Skeleton className="h-5 w-24" />
+                                            <Skeleton className="h-5 w-24" />
+                                            <Skeleton className="h-5 w-24" />
+                                        </div>
+                                        <Skeleton className="h-4 w-full" />
+                                    </div>
                                 ))}
                             </div>
                         ) : filteredFreelancers.length === 0 ? (
                             <div className="bg-white rounded-lg shadow p-12 text-center">
-                                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                    No applications found
-                                </h3>
-                                <p className="text-gray-600 mb-4">
+                                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1">No records found</h3>
+                                <p className="text-gray-500 mb-4">
                                     {filters.search || filters.status !== 'all' 
                                         ? 'Try adjusting your filters' 
-                                        : 'Upload a CV to get started'}
+                                        : 'Get started by creating a new record.'}
                                 </p>
+                                {canManage && (
+                                    <Button
+                                        onClick={() => window.location.href = createPageUrl('FreelancerOnboarding')}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Freelancer
+                                    </Button>
+                                )}
                             </div>
                         ) : (
                             <div className="grid gap-4">
