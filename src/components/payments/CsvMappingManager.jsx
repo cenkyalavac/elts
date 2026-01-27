@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
-    Settings2, Save, Trash2, FileSpreadsheet, Plus, Check, Loader2, ArrowRight
+    Settings2, Save, Trash2, FileSpreadsheet, Plus, Check, Loader2, ArrowRight, Star
 } from "lucide-react";
 
 // Smartcat field definitions
@@ -48,13 +48,15 @@ export default function CsvMappingManager({
     detectedColumns = [], 
     onApplyMapping, 
     currentMapping = {},
-    currentDefaults = {}
+    currentDefaults = {},
+    onDefaultTemplateLoad
 }) {
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
     const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
     const [newTemplateName, setNewTemplateName] = useState('');
     const [newTemplateDescription, setNewTemplateDescription] = useState('');
+    const [defaultTemplateLoaded, setDefaultTemplateLoaded] = useState(false);
     
     // Local mapping state
     const [mapping, setMapping] = useState(() => {
@@ -77,6 +79,27 @@ export default function CsvMappingManager({
         queryKey: ['csvMappingTemplates'],
         queryFn: () => base44.entities.CsvMappingTemplate.list(),
     });
+
+    // Auto-load default template on mount
+    React.useEffect(() => {
+        if (!defaultTemplateLoaded && templates.length > 0) {
+            const defaultTemplate = templates.find(t => t.is_default);
+            if (defaultTemplate && onDefaultTemplateLoad) {
+                onDefaultTemplateLoad(defaultTemplate.column_mappings || {}, {
+                    serviceType: defaultTemplate.default_service_type || 'Translation',
+                    unitsType: defaultTemplate.default_units_type || 'Words',
+                    currency: defaultTemplate.default_currency || 'USD'
+                });
+                setMapping(defaultTemplate.column_mappings || {});
+                setDefaults({
+                    serviceType: defaultTemplate.default_service_type || 'Translation',
+                    unitsType: defaultTemplate.default_units_type || 'Words',
+                    currency: defaultTemplate.default_currency || 'USD'
+                });
+            }
+            setDefaultTemplateLoaded(true);
+        }
+    }, [templates, defaultTemplateLoaded, onDefaultTemplateLoad]);
 
     // Save template mutation
     const saveTemplateMutation = useMutation({
@@ -103,6 +126,33 @@ export default function CsvMappingManager({
         onError: (error) => {
             toast.error(`Failed to delete template: ${error.message}`);
         }
+    });
+
+    // Set as default mutation
+    const setDefaultMutation = useMutation({
+        mutationFn: async (templateId) => {
+            // First, unset all other defaults
+            const currentDefaults = templates.filter(t => t.is_default && t.id !== templateId);
+            for (const t of currentDefaults) {
+                await base44.entities.CsvMappingTemplate.update(t.id, { is_default: false });
+            }
+            // Set the new default
+            await base44.entities.CsvMappingTemplate.update(templateId, { is_default: true });
+        },
+        onSuccess: () => {
+            toast.success('Default template updated');
+            queryClient.invalidateQueries({ queryKey: ['csvMappingTemplates'] });
+        },
+        onError: (error) => {
+            toast.error(`Failed to set default: ${error.message}`);
+        }
+    });
+
+    // Update last used mutation
+    const updateLastUsedMutation = useMutation({
+        mutationFn: (templateId) => base44.entities.CsvMappingTemplate.update(templateId, { 
+            last_used_date: new Date().toISOString() 
+        }),
     });
 
     // Auto-detect mapping based on column names
@@ -181,6 +231,8 @@ export default function CsvMappingManager({
             unitsType: template.default_units_type || 'Words',
             currency: template.default_currency || 'USD'
         });
+        // Update last used
+        updateLastUsedMutation.mutate(template.id);
         toast.success(`Loaded template: ${template.name}`);
     };
 
@@ -251,13 +303,23 @@ export default function CsvMappingManager({
                                     {templates.map(template => (
                                         <div key={template.id} className="flex items-center gap-1">
                                             <Button
-                                                variant="outline"
+                                                variant={template.is_default ? "default" : "outline"}
                                                 size="sm"
                                                 onClick={() => loadTemplate(template)}
                                                 className="gap-2"
                                             >
+                                                {template.is_default && <Star className="w-3 h-3 fill-current" />}
                                                 <FileSpreadsheet className="w-3 h-3" />
                                                 {template.name}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className={`h-8 w-8 ${template.is_default ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'}`}
+                                                onClick={() => setDefaultMutation.mutate(template.id)}
+                                                title="Set as default"
+                                            >
+                                                <Star className={`w-3 h-3 ${template.is_default ? 'fill-current' : ''}`} />
                                             </Button>
                                             <Button
                                                 variant="ghost"
