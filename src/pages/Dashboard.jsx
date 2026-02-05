@@ -422,52 +422,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Quick Navigation */}
-                <Card>
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">Quick Access</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                            <Link to={createPageUrl('Freelancers')}>
-                                <Button variant="outline" className="w-full justify-start h-auto py-4">
-                                    <div className="flex flex-col items-start">
-                                        <Users className="w-5 h-5 mb-1 text-blue-600" />
-                                        <span className="font-medium">Freelancers</span>
-                                        <span className="text-xs text-gray-500">Pipeline & profiles</span>
-                                    </div>
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('QualityManagement')}>
-                                <Button variant="outline" className="w-full justify-start h-auto py-4">
-                                    <div className="flex flex-col items-start">
-                                        <Star className="w-5 h-5 mb-1 text-purple-600" />
-                                        <span className="font-medium">Quality</span>
-                                        <span className="text-xs text-gray-500">Reports & scores</span>
-                                    </div>
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('SmartcatIntegration')}>
-                                <Button variant="outline" className="w-full justify-start h-auto py-4">
-                                    <div className="flex flex-col items-start">
-                                        <DollarSign className="w-5 h-5 mb-1 text-green-600" />
-                                        <span className="font-medium">Payments</span>
-                                        <span className="text-xs text-gray-500">Invoices & payments</span>
-                                    </div>
-                                </Button>
-                            </Link>
-                            <Link to={createPageUrl('DocumentCompliance')}>
-                                <Button variant="outline" className="w-full justify-start h-auto py-4">
-                                    <div className="flex flex-col items-start">
-                                        <FileText className="w-5 h-5 mb-1 text-orange-600" />
-                                        <span className="font-medium">Documents</span>
-                                        <span className="text-xs text-gray-500">NDAs & contracts</span>
-                                    </div>
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
+
             </div>
         </div>
     );
