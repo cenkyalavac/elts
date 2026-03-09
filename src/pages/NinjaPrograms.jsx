@@ -17,6 +17,7 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
 import { toast } from "sonner";
+import NinjaInterestList from "../components/ninja/NinjaInterestList";
 
 const programTypeConfig = {
     bootcamp: { label: 'Bootcamp', color: 'bg-purple-100 text-purple-800', icon: GraduationCap },
@@ -53,6 +54,13 @@ export default function NinjaProgramsPage() {
     const { data: applicants = [] } = useQuery({
         queryKey: ['ninjaApplicants'],
         queryFn: () => base44.entities.NinjaApplicant.list(),
+        staleTime: 120000,
+        refetchOnMount: false,
+    });
+
+    const { data: interests = [] } = useQuery({
+        queryKey: ['ninjaInterests'],
+        queryFn: () => base44.entities.NinjaInterest.list(),
         staleTime: 120000,
         refetchOnMount: false,
     });
@@ -122,10 +130,8 @@ export default function NinjaProgramsPage() {
                     </Card>
                     <Card>
                         <CardContent className="pt-4">
-                            <div className="text-2xl font-bold text-amber-600">
-                                {applicants.filter(a => a.status === 'graduated').length}
-                            </div>
-                            <div className="text-sm text-gray-600">Graduates</div>
+                            <div className="text-2xl font-bold text-pink-600">{interests.length}</div>
+                            <div className="text-sm text-gray-600">Interest List</div>
                         </CardContent>
                     </Card>
                 </div>
@@ -134,6 +140,7 @@ export default function NinjaProgramsPage() {
                     <TabsList className="flex flex-wrap gap-1 h-auto p-1">
                         <TabsTrigger value="active">Active Programs</TabsTrigger>
                         <TabsTrigger value="all">All Programs</TabsTrigger>
+                        {canManage && <TabsTrigger value="interest">Interest List ({interests.length})</TabsTrigger>}
                         {canManage && <TabsTrigger value="applicants">Applicants</TabsTrigger>}
                     </TabsList>
 
@@ -186,6 +193,12 @@ export default function NinjaProgramsPage() {
                             )}
                         </div>
                     </TabsContent>
+
+                    {canManage && (
+                        <TabsContent value="interest">
+                            <NinjaInterestList />
+                        </TabsContent>
+                    )}
 
                     {canManage && (
                         <TabsContent value="applicants">
