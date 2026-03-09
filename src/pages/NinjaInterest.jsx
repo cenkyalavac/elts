@@ -63,6 +63,8 @@ export default function NinjaInterestPage() {
         how_heard: '',
         notes: '',
     });
+    const [honeypot, setHoneypot] = useState('');
+    const [formLoadedAt] = useState(Date.now());
     const [langPair, setLangPair] = useState({ source_language: '', target_language: '' });
 
     const submitMutation = useMutation({
@@ -95,10 +97,32 @@ export default function NinjaInterestPage() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Honeypot check
+        if (honeypot) {
+            toast.success('Your interest has been registered!');
+            setSubmitted(true);
+            return;
+        }
+
+        // Time-based check - form filled in less than 3 seconds = bot
+        if (Date.now() - formLoadedAt < 3000) {
+            toast.success('Your interest has been registered!');
+            setSubmitted(true);
+            return;
+        }
+
         if (!form.full_name || !form.email) {
             toast.error("Please fill in your name and email");
             return;
         }
+
+        // Basic email format check
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            toast.error("Please enter a valid email address");
+            return;
+        }
+
         submitMutation.mutate(form);
     };
 
@@ -213,6 +237,17 @@ export default function NinjaInterestPage() {
                     <Card>
                         <CardContent className="pt-6">
                             <form onSubmit={handleSubmit} className="space-y-5">
+                                {/* Honeypot - hidden from real users */}
+                                <div className="hidden" aria-hidden="true">
+                                    <input
+                                        type="text"
+                                        name="company_website"
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                        value={honeypot}
+                                        onChange={(e) => setHoneypot(e.target.value)}
+                                    />
+                                </div>
                                 {/* Name & Email */}
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div>
