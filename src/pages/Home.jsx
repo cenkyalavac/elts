@@ -93,15 +93,16 @@ export default function HomePage() {
                                     Check Application Status
                                 </Button>
                             </div>
-                            <div className="mt-4">
-                                <Button
-                                    variant="link"
-                                    className="text-purple-200 hover:text-white px-0 text-base"
+                            <div className="mt-6">
+                                <button
                                     onClick={() => window.location.href = createPageUrl('NinjaInterest')}
+                                    className="group inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-white/40 transition-all duration-300"
                                 >
-                                    🥷 Localization Ninja Program — Register Interest
-                                    <ArrowRight className="w-4 h-4 ml-1" />
-                                </Button>
+                                    <span className="text-xl">🥷</span>
+                                    <span className="text-white font-medium">Localization Ninja Program</span>
+                                    <span className="text-purple-200 text-sm">— Register Interest</span>
+                                    <ArrowRight className="w-4 h-4 text-purple-200 group-hover:translate-x-1 transition-transform" />
+                                </button>
                             </div>
                         </div>
 

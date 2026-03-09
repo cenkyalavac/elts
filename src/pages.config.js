@@ -66,6 +66,7 @@ import Messages from './pages/Messages';
 import MyApplication from './pages/MyApplication';
 import MyAvailability from './pages/MyAvailability';
 import NinjaApplicants from './pages/NinjaApplicants';
+import NinjaInterest from './pages/NinjaInterest';
 import NinjaPrograms from './pages/NinjaPrograms';
 import NormalizeLanguages from './pages/NormalizeLanguages';
 import OpenPositions from './pages/OpenPositions';
@@ -83,7 +84,6 @@ import SupportTickets from './pages/SupportTickets';
 import TakeQuiz from './pages/TakeQuiz';
 import TeamAvailability from './pages/TeamAvailability';
 import UserManagement from './pages/UserManagement';
-import NinjaInterest from './pages/NinjaInterest';
 import __Layout from './Layout.jsx';
 
 
@@ -107,6 +107,7 @@ export const PAGES = {
     "MyApplication": MyApplication,
     "MyAvailability": MyAvailability,
     "NinjaApplicants": NinjaApplicants,
+    "NinjaInterest": NinjaInterest,
     "NinjaPrograms": NinjaPrograms,
     "NormalizeLanguages": NormalizeLanguages,
     "OpenPositions": OpenPositions,
@@ -124,7 +125,6 @@ export const PAGES = {
     "TakeQuiz": TakeQuiz,
     "TeamAvailability": TeamAvailability,
     "UserManagement": UserManagement,
-    "NinjaInterest": NinjaInterest,
 }
 
 export const pagesConfig = {
