@@ -169,6 +169,60 @@ export default function HomePage() {
                 </div>
             </div>
 
+            {/* Ninja Program Interest Section */}
+            <div className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-8">
+                        <div className="flex-1">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 rounded-full text-sm text-purple-700 font-medium mb-4">
+                                <span className="text-base">🥷</span>
+                                Coming Soon
+                            </div>
+                            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                                Localization Ninja Program
+                            </h2>
+                            <p className="text-gray-600 leading-relaxed mb-6">
+                                An intensive training program for aspiring linguists. Get hands-on experience, learn industry tools, and launch your career in localization.
+                            </p>
+                            <Button
+                                size="lg"
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-8"
+                                onClick={() => window.location.href = createPageUrl('NinjaInterest')}
+                            >
+                                Register Your Interest
+                                <ArrowRight className="w-5 h-5 ml-2" />
+                            </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 w-full lg:w-auto">
+                            <Card className="bg-white/80 border-0 shadow-sm">
+                                <CardContent className="pt-5 text-center">
+                                    <div className="text-2xl font-bold text-purple-600">Free</div>
+                                    <div className="text-xs text-gray-600">Training</div>
+                                </CardContent>
+                            </Card>
+                            <Card className="bg-white/80 border-0 shadow-sm">
+                                <CardContent className="pt-5 text-center">
+                                    <div className="text-2xl font-bold text-purple-600">Online</div>
+                                    <div className="text-xs text-gray-600">Format</div>
+                                </CardContent>
+                            </Card>
+                            <Card className="bg-white/80 border-0 shadow-sm">
+                                <CardContent className="pt-5 text-center">
+                                    <div className="text-2xl font-bold text-purple-600">Expert</div>
+                                    <div className="text-xs text-gray-600">Mentors</div>
+                                </CardContent>
+                            </Card>
+                            <Card className="bg-white/80 border-0 shadow-sm">
+                                <CardContent className="pt-5 text-center">
+                                    <div className="text-2xl font-bold text-purple-600">Job</div>
+                                    <div className="text-xs text-gray-600">Placement</div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* CTA Section */}
             <div className="bg-gradient-to-r from-purple-900 to-pink-700 text-white py-20">
                 <div className="max-w-4xl mx-auto px-6 text-center">
