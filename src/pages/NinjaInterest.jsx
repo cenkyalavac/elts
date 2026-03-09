@@ -15,8 +15,8 @@ import { createPageUrl } from "../utils";
 import { toast } from "sonner";
 
 const INTEREST_AREAS = [
-    "Translation", "MTPE", "Project Management", "Localization",
-    "Proofreading", "Subtitling", "Transcreation", "LQA", "Review"
+    "Translation", "MTPE", "Project Management", "Vendor Management",
+    "Localization", "Proofreading", "Subtitling", "Transcreation", "LQA", "Review"
 ];
 
 const EXPERIENCE_LABELS = {
@@ -27,6 +27,24 @@ const EXPERIENCE_LABELS = {
     "3_plus_years": "3+ Years",
 };
 
+const EDUCATION_STATUS_LABELS = {
+    "1st_year": "1st Year",
+    "2nd_year": "2nd Year",
+    "3rd_year": "3rd Year",
+    "4th_year": "4th Year",
+    masters: "Master's",
+    phd: "PhD",
+    graduated: "Graduated",
+    other: "Other",
+};
+
+const CAREER_PATH_LABELS = {
+    linguist: "Linguist (Translator / Interpreter)",
+    project_management: "Project Management",
+    vendor_management: "Vendor Management",
+    undecided: "Not sure yet",
+};
+
 export default function NinjaInterestPage() {
     const [submitted, setSubmitted] = useState(false);
     const [form, setForm] = useState({
@@ -34,6 +52,11 @@ export default function NinjaInterestPage() {
         email: '',
         phone: '',
         location: '',
+        university: '',
+        department: '',
+        education_status: '',
+        graduation_date: '',
+        career_path: '',
         experience_level: '',
         interests: [],
         language_pairs: [],
@@ -233,9 +256,69 @@ export default function NinjaInterestPage() {
                                     </div>
                                 </div>
 
+                                {/* University & Department */}
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">University</label>
+                                        <Input
+                                            value={form.university}
+                                            onChange={(e) => setForm({ ...form, university: e.target.value })}
+                                            placeholder="e.g. Boğaziçi University"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Department</label>
+                                        <Input
+                                            value={form.department}
+                                            onChange={(e) => setForm({ ...form, department: e.target.value })}
+                                            placeholder="e.g. Translation & Interpreting"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Education Status & Graduation */}
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Education Status</label>
+                                        <Select value={form.education_status} onValueChange={(v) => setForm({ ...form, education_status: v })}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.entries(EDUCATION_STATUS_LABELS).map(([key, label]) => (
+                                                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Graduation Date (or Expected)</label>
+                                        <Input
+                                            value={form.graduation_date}
+                                            onChange={(e) => setForm({ ...form, graduation_date: e.target.value })}
+                                            placeholder="e.g. June 2026"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Career Path */}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700">Which career path interests you most?</label>
+                                    <Select value={form.career_path} onValueChange={(v) => setForm({ ...form, career_path: v })}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a career path" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(CAREER_PATH_LABELS).map(([key, label]) => (
+                                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
                                 {/* Experience Level */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700">Experience Level</label>
+                                    <label className="text-sm font-medium text-gray-700">Experience in Localization</label>
                                     <Select value={form.experience_level} onValueChange={(v) => setForm({ ...form, experience_level: v })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select your experience level" />
