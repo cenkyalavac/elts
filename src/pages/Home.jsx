@@ -93,6 +93,16 @@ export default function HomePage() {
                                     Check Application Status
                                 </Button>
                             </div>
+                            <div className="mt-4">
+                                <Button
+                                    variant="link"
+                                    className="text-purple-200 hover:text-white px-0 text-base"
+                                    onClick={() => window.location.href = createPageUrl('NinjaInterest')}
+                                >
+                                    🥷 Localization Ninja Program — Register Interest
+                                    <ArrowRight className="w-4 h-4 ml-1" />
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Stats Grid */}
