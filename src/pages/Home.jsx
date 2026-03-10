@@ -126,6 +126,15 @@ export default function HomePage() {
                                 </Button>
                             </div>
 
+                            <button
+                                onClick={() => window.location.href = createPageUrl('NinjaInterest')}
+                                className="group inline-flex items-center gap-3 px-5 py-2.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:border-purple-500/30 hover:bg-white/10 transition-all duration-300 text-sm text-gray-400 hover:text-purple-300"
+                            >
+                                <span className="text-lg">🥷</span>
+                                <span>Localization Ninja Program</span>
+                                <ArrowRight className="w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                            </button>
+
                             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500">
                                 <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-purple-400" /> ISO 17100 Compliant</span>
                                 <span className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-cyan-400" /> AI-Enhanced Workflows</span>
