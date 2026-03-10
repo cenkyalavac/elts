@@ -160,18 +160,19 @@ export default function NinjaInterestPage() {
         );
     }
 
+    const LOGO_LIGHT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
+
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-[#0f1629]">
             {/* Nav */}
-            <nav className="bg-gradient-to-r from-purple-900 via-purple-800 to-pink-700 text-white">
+            <nav className="bg-[#0f1629]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <a href={createPageUrl('Home')} className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold">et</div>
-                        <span className="text-xl font-bold">el turco</span>
+                    <a href={createPageUrl('Home')}>
+                        <img src={LOGO_LIGHT} alt="elturco" className="h-9" />
                     </a>
                     <Button
-                        variant="ghost"
-                        className="text-white hover:bg-white/10"
+                        variant="outline"
+                        className="text-gray-300 border-white/20 hover:bg-white/10 hover:text-white bg-transparent"
                         onClick={() => base44.auth.redirectToLogin()}
                     >
                         Staff Login
@@ -180,16 +181,17 @@ export default function NinjaInterestPage() {
             </nav>
 
             {/* Hero */}
-            <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 text-white py-16 lg:py-24">
-                <div className="max-w-4xl mx-auto px-6 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm mb-6">
+            <div className="relative overflow-hidden py-16 lg:py-24">
+                <div className="absolute top-10 left-10 w-72 h-72 bg-purple-600/20 rounded-full blur-[120px]"></div>
+                <div className="max-w-4xl mx-auto px-6 text-center relative">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full text-sm text-purple-300 mb-6">
                         <span className="text-lg">🥷</span>
                         Coming Soon
                     </div>
-                    <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight text-white">
                         Localization Ninja Program
                     </h1>
-                    <p className="text-lg lg:text-xl text-purple-100 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
                         An intensive training program for aspiring linguists and localization professionals. 
                         Register your interest now and be the first to know when applications open.
                     </p>
@@ -197,29 +199,29 @@ export default function NinjaInterestPage() {
             </div>
 
             {/* What You'll Learn */}
-            <div className="py-16 bg-gray-50">
+            <div className="py-16 bg-[#111a2e]">
                 <div className="max-w-5xl mx-auto px-6">
-                    <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">What to Expect</h2>
+                    <h2 className="text-2xl font-bold text-center text-white mb-10">What to Expect</h2>
                     <div className="grid md:grid-cols-3 gap-6">
-                        <Card className="border-0 shadow-sm">
+                        <Card className="bg-white/5 border-white/10">
                             <CardContent className="pt-6">
-                                <BookOpen className="w-10 h-10 text-purple-600 mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">Hands-on Training</h3>
-                                <p className="text-gray-600 text-sm">Real-world translation and localization projects guided by industry experts</p>
+                                <BookOpen className="w-10 h-10 text-purple-400 mb-4" />
+                                <h3 className="text-lg font-semibold text-white mb-2">Hands-on Training</h3>
+                                <p className="text-gray-500 text-sm">Real-world translation and localization projects guided by industry experts</p>
                             </CardContent>
                         </Card>
-                        <Card className="border-0 shadow-sm">
+                        <Card className="bg-white/5 border-white/10">
                             <CardContent className="pt-6">
-                                <Zap className="w-10 h-10 text-purple-600 mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">CAT Tools & AI</h3>
-                                <p className="text-gray-600 text-sm">Learn MemoQ, Trados, MTPE workflows, and modern localization technology</p>
+                                <Zap className="w-10 h-10 text-cyan-400 mb-4" />
+                                <h3 className="text-lg font-semibold text-white mb-2">CAT Tools & AI</h3>
+                                <p className="text-gray-500 text-sm">Learn MemoQ, Trados, MTPE workflows, and modern localization technology</p>
                             </CardContent>
                         </Card>
-                        <Card className="border-0 shadow-sm">
+                        <Card className="bg-white/5 border-white/10">
                             <CardContent className="pt-6">
-                                <Award className="w-10 h-10 text-purple-600 mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">Career Launch</h3>
-                                <p className="text-gray-600 text-sm">Graduates join our professional freelancer network with priority project access</p>
+                                <Award className="w-10 h-10 text-purple-400 mb-4" />
+                                <h3 className="text-lg font-semibold text-white mb-2">Career Launch</h3>
+                                <p className="text-gray-500 text-sm">Graduates join our professional freelancer network with priority project access</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -230,11 +232,11 @@ export default function NinjaInterestPage() {
             <div className="py-16">
                 <div className="max-w-2xl mx-auto px-6">
                     <div className="text-center mb-10">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-3">Register Your Interest</h2>
-                        <p className="text-gray-600">Fill out the form below and we'll notify you when the next program opens.</p>
+                        <h2 className="text-2xl font-bold text-white mb-3">Register Your Interest</h2>
+                        <p className="text-gray-400">Fill out the form below and we'll notify you when the next program opens.</p>
                     </div>
 
-                    <Card>
+                    <Card className="bg-white/5 border-white/10">
                         <CardContent className="pt-6">
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 {/* Honeypot - hidden from real users */}
@@ -443,13 +445,13 @@ export default function NinjaInterestPage() {
 
                                 <Button
                                     type="submit"
-                                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3"
+                                    className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white py-3 shadow-lg shadow-purple-500/25"
                                     disabled={submitMutation.isPending}
                                 >
                                     {submitMutation.isPending ? 'Submitting...' : 'Register My Interest'}
                                 </Button>
 
-                                <p className="text-xs text-gray-500 text-center">
+                                <p className="text-xs text-gray-600 text-center">
                                     By submitting, you agree to be contacted about the Localization Ninja program.
                                 </p>
                             </form>
@@ -459,9 +461,10 @@ export default function NinjaInterestPage() {
             </div>
 
             {/* Footer */}
-            <div className="bg-gray-900 text-gray-400 py-8">
-                <div className="max-w-7xl mx-auto px-6 text-center text-sm">
-                    © {new Date().getFullYear()} el turco. All rights reserved.
+            <div className="bg-[#0a0f1e] border-t border-white/5 py-8">
+                <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <img src={LOGO_LIGHT} alt="elturco" className="h-7 opacity-60" />
+                    <p className="text-gray-600 text-sm">© {new Date().getFullYear()} elturco. All rights reserved.</p>
                 </div>
             </div>
         </div>
