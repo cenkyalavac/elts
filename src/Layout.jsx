@@ -22,6 +22,9 @@ import {
                   Megaphone, HelpCircle, GraduationCap
               } from "lucide-react";
 
+const LOGO_LIGHT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
+const FAVICON = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/5868dd4a9_0f83e6da-01b1-42b6-b8df-83eedb472954.png";
+
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -133,16 +136,14 @@ export default function Layout({ children, currentPageName }) {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <nav className="bg-gradient-to-r from-purple-900 via-purple-800 to-pink-700 text-white shadow-lg sticky top-0 z-40">
+            <nav className="bg-[#0f1629] text-white shadow-lg sticky top-0 z-40 border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-8">
                             {/* Logo - links to Dashboard */}
                             <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Dashboard')} className="flex items-center gap-2">
-                                <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-lg border border-white/30">
-                                    et
-                                </div>
-                                <span className="text-xl font-bold hidden sm:inline tracking-wide">el turco</span>
+                                <img src={FAVICON} alt="elturco" className="w-9 h-9 rounded-lg" />
+                                <img src={LOGO_LIGHT} alt="elturco" className="h-6 hidden sm:block" />
                             </Link>
                             
                             {/* Main navigation */}
@@ -151,8 +152,8 @@ export default function Layout({ children, currentPageName }) {
                                     <Link key={item.name} to={createPageUrl(item.name)}>
                                         <Button
                                             variant="ghost"
-                                            className={`gap-2 text-white hover:bg-white/10 ${
-                                                currentPageName === item.name ? 'bg-white/20' : ''
+                                            className={`gap-2 text-gray-300 hover:bg-white/10 hover:text-white ${
+                                                currentPageName === item.name ? 'bg-white/10 text-white' : ''
                                             }`}
                                         >
                                             <item.icon className="w-4 h-4" />
@@ -167,12 +168,12 @@ export default function Layout({ children, currentPageName }) {
                                 {/* Ninja - Separated with divider */}
                                 {showNinja && (
                                     <>
-                                        <div className="w-px h-6 bg-white/20 mx-2" />
+                                        <div className="w-px h-6 bg-white/10 mx-2" />
                                         <Link to={createPageUrl(ninjaNavItem.name)}>
                                             <Button
                                                 variant="ghost"
-                                                className={`gap-2 text-white hover:bg-white/10 ${
-                                                    currentPageName === ninjaNavItem.name || currentPageName === 'NinjaApplicants' ? 'bg-white/20' : ''
+                                                className={`gap-2 text-gray-300 hover:bg-white/10 hover:text-white ${
+                                                    currentPageName === ninjaNavItem.name || currentPageName === 'NinjaApplicants' ? 'bg-white/10 text-white' : ''
                                                 }`}
                                             >
                                                 <span className="text-base">🥷</span>
@@ -191,19 +192,19 @@ export default function Layout({ children, currentPageName }) {
                                         {/* User dropdown with settings */}
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="gap-2 text-white hover:bg-white/10">
-                                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                                        <User className="w-4 h-4" />
+                                                <Button variant="ghost" className="gap-2 text-gray-300 hover:bg-white/10 hover:text-white">
+                                                    <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                                        <User className="w-4 h-4 text-purple-300" />
                                                     </div>
                                                     <div className="text-left hidden lg:block">
-                                                        <div className="text-sm font-medium">{user.full_name || user.email?.split('@')[0]}</div>
-                                                        <div className="text-xs text-purple-200">
+                                                        <div className="text-sm font-medium text-white">{user.full_name || user.email?.split('@')[0]}</div>
+                                                        <div className="text-xs text-gray-500">
                                                             {user.role === 'admin' ? 'Admin' : 
                                                              user.role === 'project_manager' ? 'Project Manager' : 
                                                              'Applicant'}
                                                         </div>
                                                     </div>
-                                                    <ChevronDown className="w-4 h-4 text-purple-200" />
+                                                    <ChevronDown className="w-4 h-4 text-gray-500" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-56">
@@ -252,7 +253,7 @@ export default function Layout({ children, currentPageName }) {
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden border-t border-white/10 bg-purple-900">
+                    <div className="md:hidden border-t border-white/10 bg-[#0f1629]">
                         <div className="px-4 py-3 space-y-1">
                             {navItems.map(item => (
                                 <Link key={item.name} to={createPageUrl(item.name)} onClick={() => setMobileMenuOpen(false)}>
