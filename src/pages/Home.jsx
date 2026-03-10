@@ -172,7 +172,7 @@ export default function HomePage() {
                                 <Shield className="w-12 h-12 text-purple-600 mb-4" />
                                 <h3 className="text-xl font-semibold mb-3">Reliable Payment</h3>
                                 <p className="text-gray-600 leading-relaxed">
-                                    Timely payments and transparent rates for all completed projects
+                                    Timely and reliable payment processing for all completed projects
                                 </p>
                             </CardContent>
                         </Card>

@@ -45,7 +45,7 @@ export default function ApplyPage() {
     const benefits = [
         { icon: Globe, title: "Global Opportunities", description: "Work with clients from around the world on diverse projects" },
         { icon: Briefcase, title: "Flexible Schedule", description: "Choose projects that fit your schedule and lifestyle" },
-        { icon: TrendingUp, title: "Competitive Rates", description: "Fair compensation based on your expertise and specialization" },
+        { icon: TrendingUp, title: "Professional Growth", description: "Continuous opportunities to develop your skills and expand your expertise" },
         { icon: Users, title: "Professional Network", description: "Join a community of skilled linguists and professionals" },
         { icon: Clock, title: "Quick Payments", description: "Reliable and timely payment processing" },
         { icon: Award, title: "Career Growth", description: "Access to training, certification support, and career development" }
