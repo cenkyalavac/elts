@@ -22,6 +22,28 @@ export default function HomePage() {
     });
 
     React.useEffect(() => {
+        document.title = "elturco - Freelancer Portal";
+        
+        const setMeta = (property, content) => {
+            let el = document.querySelector(`meta[property="${property}"]`);
+            if (!el) {
+                el = document.createElement('meta');
+                el.setAttribute('property', property);
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', content);
+        };
+        setMeta('og:title', 'elturco - Freelancer Portal');
+        setMeta('og:description', 'Join our network of 700+ expert linguists');
+        setMeta('og:image', LOGO_DARK);
+
+        let favicon = document.querySelector("link[rel='icon']");
+        if (favicon) {
+            favicon.href = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/5868dd4a9_0f83e6da-01b1-42b6-b8df-83eedb472954.png";
+        }
+    }, []);
+
+    React.useEffect(() => {
         if (user) {
             if (user.role === 'applicant') {
                 window.location.href = createPageUrl('MyApplication');
