@@ -253,7 +253,7 @@ export default function NinjaInterestPage() {
                                 {/* Name & Email */}
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Full Name *</label>
+                                        <label className="text-sm font-medium text-gray-300">Full Name *</label>
                                         <Input
                                             value={form.full_name}
                                             onChange={(e) => setForm({ ...form, full_name: e.target.value })}
@@ -262,7 +262,7 @@ export default function NinjaInterestPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Email *</label>
+                                        <label className="text-sm font-medium text-gray-300">Email *</label>
                                         <Input
                                             type="email"
                                             value={form.email}
@@ -276,7 +276,7 @@ export default function NinjaInterestPage() {
                                 {/* Phone & Location */}
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Phone</label>
+                                        <label className="text-sm font-medium text-gray-300">Phone</label>
                                         <Input
                                             value={form.phone}
                                             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -284,7 +284,7 @@ export default function NinjaInterestPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Location</label>
+                                        <label className="text-sm font-medium text-gray-300">Location</label>
                                         <Input
                                             value={form.location}
                                             onChange={(e) => setForm({ ...form, location: e.target.value })}
@@ -296,7 +296,7 @@ export default function NinjaInterestPage() {
                                 {/* University & Department */}
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">University</label>
+                                        <label className="text-sm font-medium text-gray-300">University</label>
                                         <Input
                                             value={form.university}
                                             onChange={(e) => setForm({ ...form, university: e.target.value })}
@@ -304,7 +304,7 @@ export default function NinjaInterestPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Department</label>
+                                        <label className="text-sm font-medium text-gray-300">Department</label>
                                         <Input
                                             value={form.department}
                                             onChange={(e) => setForm({ ...form, department: e.target.value })}
@@ -316,7 +316,7 @@ export default function NinjaInterestPage() {
                                 {/* Education Status & Graduation */}
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Education Status</label>
+                                        <label className="text-sm font-medium text-gray-300">Education Status</label>
                                         <Select value={form.education_status} onValueChange={(v) => setForm({ ...form, education_status: v })}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select status" />
@@ -329,7 +329,7 @@ export default function NinjaInterestPage() {
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700">Graduation Date (or Expected)</label>
+                                        <label className="text-sm font-medium text-gray-300">Graduation Date (or Expected)</label>
                                         <Input
                                             value={form.graduation_date}
                                             onChange={(e) => setForm({ ...form, graduation_date: e.target.value })}
@@ -340,7 +340,7 @@ export default function NinjaInterestPage() {
 
                                 {/* Career Path */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700">Which career path interests you most?</label>
+                                    <label className="text-sm font-medium text-gray-300">Which career path interests you most?</label>
                                     <Select value={form.career_path} onValueChange={(v) => setForm({ ...form, career_path: v })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select a career path" />
@@ -355,7 +355,7 @@ export default function NinjaInterestPage() {
 
                                 {/* Experience Level */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700">Experience in Localization</label>
+                                    <label className="text-sm font-medium text-gray-300">Experience in Localization</label>
                                     <Select value={form.experience_level} onValueChange={(v) => setForm({ ...form, experience_level: v })}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select your experience level" />
@@ -370,7 +370,7 @@ export default function NinjaInterestPage() {
 
                                 {/* Language Pairs */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700">Language Pairs</label>
+                                    <label className="text-sm font-medium text-gray-300">Language Pairs</label>
                                     <div className="flex gap-2 mt-1">
                                         <Input
                                             value={langPair.source_language}
@@ -403,7 +403,7 @@ export default function NinjaInterestPage() {
 
                                 {/* Interest Areas */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700 mb-2 block">Areas of Interest</label>
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">Areas of Interest</label>
                                     <div className="flex flex-wrap gap-2">
                                         {INTEREST_AREAS.map(area => (
                                             <Badge
@@ -424,7 +424,7 @@ export default function NinjaInterestPage() {
 
                                 {/* How heard */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700">How did you hear about us?</label>
+                                    <label className="text-sm font-medium text-gray-300">How did you hear about us?</label>
                                     <Input
                                         value={form.how_heard}
                                         onChange={(e) => setForm({ ...form, how_heard: e.target.value })}
@@ -434,7 +434,7 @@ export default function NinjaInterestPage() {
 
                                 {/* Additional Notes */}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-700">Anything else you'd like to share?</label>
+                                    <label className="text-sm font-medium text-gray-300">Anything else you'd like to share?</label>
                                     <Textarea
                                         value={form.notes}
                                         onChange={(e) => setForm({ ...form, notes: e.target.value })}
