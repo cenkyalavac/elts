@@ -35,7 +35,7 @@ export default function HomePage() {
         };
         setMeta('og:title', 'elturco - Freelancer Portal');
         setMeta('og:description', 'Join our network of 700+ expert linguists');
-        setMeta('og:image', LOGO_DARK);
+        setMeta('og:image', 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/5868dd4a9_0f83e6da-01b1-42b6-b8df-83eedb472954.png');
 
         let favicon = document.querySelector("link[rel='icon']");
         if (favicon) {
