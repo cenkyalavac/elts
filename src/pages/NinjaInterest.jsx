@@ -128,27 +128,28 @@ export default function NinjaInterestPage() {
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 flex items-center justify-center p-6">
-                <Card className="max-w-lg w-full text-center">
+            <div className="min-h-screen bg-[#0f1629] flex items-center justify-center p-6">
+                <Card className="max-w-lg w-full text-center bg-white/5 border-white/10">
                     <CardContent className="pt-12 pb-12 px-8">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle className="w-10 h-10 text-green-600" />
+                        <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="w-10 h-10 text-green-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h2>
-                        <p className="text-gray-600 mb-6 leading-relaxed">
+                        <h2 className="text-2xl font-bold text-white mb-3">Thank You!</h2>
+                        <p className="text-gray-400 mb-6 leading-relaxed">
                             We've registered your interest in the Localization Ninja program. 
                             We'll notify you as soon as the next cohort opens for applications.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <Button
                                 variant="outline"
+                                className="border-white/20 text-gray-300 hover:bg-white/10 hover:text-white bg-transparent"
                                 onClick={() => window.location.href = createPageUrl('Home')}
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back to Home
                             </Button>
                             <Button
-                                className="bg-purple-600 hover:bg-purple-700"
+                                className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 shadow-lg shadow-purple-500/25"
                                 onClick={() => window.location.href = createPageUrl('Apply')}
                             >
                                 Apply as Freelancer
