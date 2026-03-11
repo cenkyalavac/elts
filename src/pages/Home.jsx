@@ -44,7 +44,8 @@ export default function HomePage() {
     }, []);
 
     React.useEffect(() => {
-        if (user) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (user && !urlParams.has('preview')) {
             if (user.role === 'applicant') {
                 window.location.href = createPageUrl('MyApplication');
             } else {
