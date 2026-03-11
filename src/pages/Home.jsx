@@ -54,7 +54,8 @@ export default function HomePage() {
         }
     }, [user]);
 
-    if (user) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (user && !urlParams.has('preview')) {
         return (
             <div className="min-h-screen bg-[#0f1629] flex items-center justify-center">
                 <div className="text-center">
