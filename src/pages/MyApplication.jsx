@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, Mail, Phone, MapPin, Globe, FileText, Calendar as CalendarIcon, MessageSquare, ArrowRight, CheckCircle2, AlertCircle, Upload } from "lucide-react";
+import { FileText, Calendar as CalendarIcon, Upload } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import AvailabilityCalendar from "../components/availability/AvailabilityCalendar";
@@ -96,16 +96,6 @@ export default function MyApplicationPage() {
             data: updateData,
             updateType
         });
-    };
-
-    const statusColors = {
-        'New Application': 'bg-blue-100 text-blue-800',
-        'Form Sent': 'bg-purple-100 text-purple-800',
-        'Price Negotiation': 'bg-yellow-100 text-yellow-800',
-        'Test Sent': 'bg-indigo-100 text-indigo-800',
-        'Approved': 'bg-green-100 text-green-800',
-        'On Hold': 'bg-gray-100 text-gray-800',
-        'Rejected': 'bg-red-100 text-red-800'
     };
 
     if (!application) {
