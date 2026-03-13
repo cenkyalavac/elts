@@ -98,7 +98,7 @@ const generateHtmlEmail = (template, bodyContent, freelancer) => {
                         <td style="background: linear-gradient(135deg, ${design.primaryColor}, ${design.accentColor}); border-radius: 16px 16px 0 0; padding: 30px 40px; text-align: center;">
                             ${headerImageUrl ? 
                                 `<img src="${headerImageUrl}" alt="Logo" style="max-height: 50px; margin-bottom: 10px;">` :
-                                `<h1 style="color: #ffffff; font-size: 28px; margin: 0; font-weight: 700;">el turco</h1>`
+                                `<img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/6654b10be_elturco_logo-01.png" alt="el turco" style="max-height: 60px;">`
                             }
                         </td>
                     </tr>
