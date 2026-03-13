@@ -9,7 +9,7 @@ import {
     ArrowLeft, Mail, Phone, MapPin, Globe, Award, Star,
     Calendar, FileText, Edit, Eye, User, Briefcase, 
     DollarSign, Clock, CheckCircle, XCircle, AlertTriangle,
-    Activity, MessageSquare, Send, Loader2
+    Activity, MessageSquare, Send, Loader2, Download
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils";
@@ -25,6 +25,8 @@ import FreelancerQualityTab from "../components/freelancers/FreelancerQualityTab
 import ActivityTimeline from "../components/freelancers/ActivityTimeline";
 import VendorScorecard from "../components/freelancers/VendorScorecard";
 import DuplicateWarning from "../components/freelancers/DuplicateWarning";
+import OnboardingWarning from "../components/freelancers/OnboardingWarning";
+import RateHistoryLog from "../components/freelancers/RateHistoryLog";
 
 const statusConfig = {
     'New Application': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: User },
@@ -170,6 +172,11 @@ export default function FreelancerDetailPage() {
                         </div>
                     )}
 
+                    {/* Onboarding Warning for Approved FL */}
+                    <div className="mb-4">
+                        <OnboardingWarning freelancer={freelancer} />
+                    </div>
+
                     <div className="bg-white rounded-xl shadow-sm border p-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="flex items-start gap-4">
@@ -228,6 +235,14 @@ export default function FreelancerDetailPage() {
                             </div>
                             
                             <div className="flex gap-2 flex-wrap">
+                                {freelancer.cv_file_url && (
+                                    <a href={freelancer.cv_file_url} target="_blank" rel="noopener noreferrer" download>
+                                        <Button variant="outline" size="sm">
+                                            <Download className="w-4 h-4" />
+                                            <span className="hidden sm:inline ml-2">CV</span>
+                                        </Button>
+                                    </a>
+                                )}
                                 <Button variant="outline" size="sm" onClick={() => setShowEmailDialog(true)}>
                                     <Send className="w-4 h-4" />
                                     <span className="hidden sm:inline ml-2">Email</span>
@@ -533,6 +548,9 @@ export default function FreelancerDetailPage() {
 
                                     {/* Vendor Scorecard */}
                                     <VendorScorecard freelancerId={freelancerId} />
+
+                                    {/* Rate History */}
+                                    <RateHistoryLog freelancerId={freelancerId} />
 
                                     {/* Smartcat Profile */}
                                     <SmartcatProfileSection 

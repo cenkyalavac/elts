@@ -19,6 +19,7 @@ import ProfessionalOverview from "../components/freelancers/ProfessionalOverview
 import WorkPreferencesForm from "../components/freelancers/WorkPreferencesForm";
 import PortfolioSection from "../components/freelancers/PortfolioSection";
 import QuickAvailabilityToggle from "../components/availability/QuickAvailabilityToggle";
+import OnboardingWarning from "../components/freelancers/OnboardingWarning";
 
 export default function MyApplicationPage() {
     const queryClient = useQueryClient();
@@ -141,6 +142,10 @@ export default function MyApplicationPage() {
                 {/* Quick Availability Toggle - Hero Position */}
                 <div className="mb-8">
                     <QuickAvailabilityToggle freelancerId={application.id} />
+                </div>
+
+                <div className="mb-4">
+                    <OnboardingWarning freelancer={application} />
                 </div>
 
                 <div className="mb-8">

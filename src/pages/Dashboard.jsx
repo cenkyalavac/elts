@@ -19,6 +19,8 @@ import QualityTrendChart from "../components/dashboard/QualityTrendChart";
 import TopPerformers from "../components/dashboard/TopPerformers";
 import AnnouncementsBanner from "../components/dashboard/AnnouncementsBanner";
 import OnboardingChecklist from "../components/onboarding/OnboardingChecklist";
+import SmartcatNudge from "../components/dashboard/SmartcatNudge";
+import TestScoreAlerts from "../components/dashboard/TestScoreAlerts";
 
 export default function Dashboard() {
     const { data: user, isLoading } = useQuery({
@@ -412,6 +414,8 @@ export default function Dashboard() {
 
                     {/* Right Column - Alerts & Top Performers */}
                     <div className="space-y-6">
+                        <TestScoreAlerts freelancers={freelancers} />
+                        <SmartcatNudge freelancers={freelancers} />
                         <QualityAlerts 
                             probationFreelancers={probationFreelancers}
                             disputedReports={disputedReports}
