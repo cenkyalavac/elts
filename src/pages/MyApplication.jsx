@@ -209,11 +209,11 @@ export default function MyApplicationPage() {
                         </div>
                     </TabsContent>
 
-                   <TabsContent value="jobs">
+                    <TabsContent value="jobs">
                         <FreelancerJobOffers freelancer={application} />
                     </TabsContent>
-                   </Tabs>
-                </div>
-                </div>
-                );
-                }
+                </Tabs>
+            </div>
+        </div>
+    );
+}
