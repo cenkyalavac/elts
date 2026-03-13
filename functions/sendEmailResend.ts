@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                from: `${from_name || 'el turco'} <onboarding@resend.dev>`,
+                from: `${from_name || 'el turco'} <vmo@eltur.co>`,
                 to: Array.isArray(to) ? to : [to],
                 subject,
                 html,
