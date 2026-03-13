@@ -1,4 +1,5 @@
 import React from 'react';
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight, Mail, Clock } from "lucide-react";
 import { createPageUrl } from "../../utils";
