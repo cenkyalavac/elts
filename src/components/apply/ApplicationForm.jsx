@@ -70,10 +70,10 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
             return await base44.entities.Freelancer.create(data);
         },
         onSuccess: () => {
+            const name = formData.full_name;
             localStorage.removeItem(STORAGE_KEY);
-            toast.success('Application submitted successfully! We\'ll be in touch soon.');
             setFormData(initialFormData);
-            onSuccess();
+            onSuccess(name);
         },
         onError: (error) => {
             toast.error('Failed to submit application. Please try again.');
