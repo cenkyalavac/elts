@@ -9,7 +9,7 @@ import ApplicationForm from "../components/apply/ApplicationForm";
 import ApplicationSuccess from "../components/apply/ApplicationSuccess";
 import { createPageUrl } from "../utils";
 
-const LOGO_LIGHT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
+const LOGO_FULL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/6654b10be_elturco_logo-01.png";
 
 export default function ApplyPage() {
     const [showForm, setShowForm] = useState(false);
@@ -66,7 +66,7 @@ export default function ApplyPage() {
             <nav className="bg-[#0f1629]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                     <a href={createPageUrl('Home')}>
-                        <img src={LOGO_LIGHT} alt="elturco" className="h-9" />
+                        <img src={LOGO_FULL} alt="elturco" className="h-14 object-contain" />
                     </a>
                     <div className="flex gap-3">
                         {existingUser ? (
