@@ -33,7 +33,7 @@ export default function FreelancerOnboarding() {
         rate: '',
         availability: 'Immediate',
         cv_file_url: '',
-        status: 'New'
+        status: 'New Application'
     });
 
     const steps = [
