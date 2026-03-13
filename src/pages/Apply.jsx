@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Briefcase, Clock, Award, Users, TrendingUp, ArrowRight } from "lucide-react";
 import ApplicationForm from "../components/apply/ApplicationForm";
+import ApplicationSuccess from "../components/apply/ApplicationSuccess";
 import { createPageUrl } from "../utils";
 
 const LOGO_LIGHT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
 
 export default function ApplyPage() {
     const [showForm, setShowForm] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [submittedName, setSubmittedName] = useState('');
     const [selectedPosition, setSelectedPosition] = useState(null);
     
     const { data: existingUser } = useQuery({
@@ -232,6 +235,10 @@ export default function ApplyPage() {
                         </div>
                     </div>
                 </>
+            ) : submitted ? (
+                <div className="max-w-4xl mx-auto px-6 py-12">
+                    <ApplicationSuccess applicantName={submittedName} />
+                </div>
             ) : (
                 <div className="max-w-4xl mx-auto px-6 py-12">
                     <ApplicationForm
@@ -240,9 +247,9 @@ export default function ApplyPage() {
                             setShowForm(false);
                             setSelectedPosition(null);
                         }}
-                        onSuccess={() => {
-                            setShowForm(false);
-                            setSelectedPosition(null);
+                        onSuccess={(name) => {
+                            setSubmittedName(name || '');
+                            setSubmitted(true);
                         }}
                     />
                 </div>
