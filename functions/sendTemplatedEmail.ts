@@ -1,4 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const EMAIL_DESIGNS = {
     modern: {
@@ -205,16 +207,31 @@ Deno.serve(async (req) => {
         // Generate beautiful HTML email
         const htmlBody = generateHtmlEmail(template, body, freelancer);
 
-        // Send email
-        await base44.integrations.Core.SendEmail({
-            to: freelancer.email,
-            subject: subject,
-            body: htmlBody
+        // Send email via Resend
+        const resendResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                from: 'el turco <onboarding@resend.dev>',
+                to: [freelancer.email],
+                subject: subject,
+                html: htmlBody,
+            }),
         });
+
+        const resendResult = await resendResponse.json();
+        if (!resendResponse.ok) {
+            console.error('Resend error:', resendResult);
+            return Response.json({ success: false, error: resendResult }, { status: 500 });
+        }
 
         return Response.json({ 
             success: true,
-            message: 'Email sent successfully'
+            message: 'Email sent successfully',
+            resend_id: resendResult.id
         });
 
     } catch (error) {
