@@ -169,43 +169,7 @@ export default function MyApplicationPage() {
                         <ProfessionalOverview freelancer={application} />
                     </TabsContent>
 
-                    <TabsContent value="application" className="space-y-8">
-
-                {/* Status Card */}
-                <Card className="mb-8 border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
-                    <CardContent className="pt-8 pb-8">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <div className="text-sm font-medium text-purple-700 mb-2">Current Status</div>
-                                <Badge className={`${statusColors[application.status]} text-base px-5 py-2`}>
-                                    {application.status}
-                                </Badge>
-                            </div>
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-3 text-sm text-gray-700">
-                                    <div className="p-2 bg-purple-100 rounded-lg">
-                                        <Clock className="w-4 h-4 text-purple-600" />
-                                    </div>
-                                    <div>
-                                        <div className="font-medium">Applied on</div>
-                                        <div className="text-gray-600">{new Date(application.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                                    </div>
-                                </div>
-                                {application.stage_changed_date && (
-                                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                                        <div className="p-2 bg-purple-100 rounded-lg">
-                                            <CalendarIcon className="w-4 h-4 text-purple-600" />
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">Last updated</div>
-                                            <div className="text-gray-600">{new Date(application.stage_changed_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* Dead "application" tab removed - content moved to Dashboard/Overview */}
 
                 {/* Onboarding Checklist */}
                 <Card className="mb-8 border-0 shadow-sm">
