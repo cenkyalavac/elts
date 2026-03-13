@@ -23,6 +23,8 @@ import QuizAssignmentDialog from "../components/quiz/QuizAssignmentDialog";
 import SmartcatProfileSection from "../components/smartcat/SmartcatProfileSection";
 import FreelancerQualityTab from "../components/freelancers/FreelancerQualityTab";
 import ActivityTimeline from "../components/freelancers/ActivityTimeline";
+import VendorScorecard from "../components/freelancers/VendorScorecard";
+import DuplicateWarning from "../components/freelancers/DuplicateWarning";
 
 const statusConfig = {
     'New Application': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: User },
@@ -161,6 +163,13 @@ export default function FreelancerDetailPage() {
                         </Button>
                     </Link>
                     
+                    {/* Duplicate Warning for New Applications */}
+                    {freelancer.status === 'New Application' && (
+                        <div className="mb-4">
+                            <DuplicateWarning email={freelancer.email} fullName={freelancer.full_name} />
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-xl shadow-sm border p-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="flex items-start gap-4">
@@ -227,6 +236,25 @@ export default function FreelancerDetailPage() {
                                     <Award className="w-4 h-4" />
                                     <span className="hidden sm:inline ml-2">Quiz</span>
                                 </Button>
+                                {canManage && freelancer.status === 'Approved' && !freelancer.tags?.includes('Ready to Work') && (
+                                    <Button
+                                        size="sm"
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                        onClick={() => {
+                                            const newTags = [...(freelancer.tags || []), 'Ready to Work'];
+                                            updateMutation.mutate({ tags: newTags });
+                                            createActivityMutation.mutate({
+                                                freelancer_id: freelancerId,
+                                                activity_type: 'Stage Changed',
+                                                description: 'Marked as Ready to Work',
+                                                performed_by: currentUser?.email
+                                            });
+                                        }}
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                        <span className="hidden sm:inline ml-2">Make Ready to Work</span>
+                                    </Button>
+                                )}
                                 {canManage && (
                                     <Button
                                         size="sm"
@@ -502,6 +530,9 @@ export default function FreelancerDetailPage() {
                                             </CardContent>
                                         </Card>
                                     )}
+
+                                    {/* Vendor Scorecard */}
+                                    <VendorScorecard freelancerId={freelancerId} />
 
                                     {/* Smartcat Profile */}
                                     <SmartcatProfileSection 

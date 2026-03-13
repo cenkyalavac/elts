@@ -574,6 +574,23 @@ export default function QualityReportForm({
                 />
             </div>
 
+            {/* PM Vendor Feedback - visible after QS scoring */}
+            {formData.qs_score && (
+                <Card className="border-green-200 bg-green-50/50">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm text-green-800">Vendor Feedback (visible to freelancer)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Textarea
+                            value={formData.vendor_feedback || ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, vendor_feedback: e.target.value }))}
+                            placeholder="Write feedback for the freelancer about this project... (e.g., great work on terminology, needs improvement on style)"
+                            rows={3}
+                        />
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Combined Score Preview */}
             {combinedScore != null && (
                 <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">

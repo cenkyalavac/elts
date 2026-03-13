@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, CheckCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import LanguagePairRateInput from "./LanguagePairRateInput";
+import DuplicateWarning from "../freelancers/DuplicateWarning";
 
 const STORAGE_KEY = 'application_form_draft';
 
@@ -175,6 +176,11 @@ export default function ApplicationForm({ position, onCancel, onSuccess }) {
                         />
                     </div>
                     
+                    {/* Duplicate check */}
+                    {(formData.email || formData.full_name) && (
+                        <DuplicateWarning email={formData.email} fullName={formData.full_name} />
+                    )}
+
                     {/* Basic Information */}
                     <div className="space-y-4">
                         <h3 className="font-semibold text-lg">Basic Information</h3>

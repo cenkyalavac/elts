@@ -21,6 +21,7 @@ import FreelancerPipelineCard from "../components/pipeline/FreelancerPipelineCar
 import FreelancerDetailDrawer from "../components/pipeline/FreelancerDetailDrawer";
 import PipelineTableView from "../components/pipeline/PipelineTableView";
 import TeamAvailabilityView from "../components/views/TeamAvailabilityView";
+import ReviewBucket from "../components/freelancers/ReviewBucket";
 import AnalyticsView from "../components/views/AnalyticsView";
 import BulkQuizAssignment from "../components/quiz/BulkQuizAssignment";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -569,10 +570,20 @@ export default function FreelancersPage() {
 
                 <Tabs defaultValue="applications" className="space-y-6">
                     <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full md:w-auto">
-                        <TabsTrigger value="applications" className="flex-1 md:flex-none">Applications</TabsTrigger>
+                        <TabsTrigger value="review" className="flex-1 md:flex-none relative">
+                            Review Inbox
+                            {freelancers.filter(f => f.status === 'New Application').length > 0 && (
+                                <Badge className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0">{freelancers.filter(f => f.status === 'New Application').length}</Badge>
+                            )}
+                        </TabsTrigger>
+                        <TabsTrigger value="applications" className="flex-1 md:flex-none">All Applications</TabsTrigger>
                         <TabsTrigger value="availability" className="flex-1 md:flex-none">Availability</TabsTrigger>
                         <TabsTrigger value="analytics" className="flex-1 md:flex-none">Analytics</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="review">
+                        <ReviewBucket freelancers={freelancers} />
+                    </TabsContent>
 
                     <TabsContent value="applications" className="space-y-6">
                         {showUpload && (
