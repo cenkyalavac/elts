@@ -47,6 +47,8 @@ export default function MyApplicationPage() {
         staleTime: 60000,
     });
 
+    const application = applications[0];
+
     const updateFreelancerMutation = useMutation({
         mutationFn: async ({ id, data, updateType }) => {
             await base44.entities.Freelancer.update(id, data);
@@ -57,51 +59,44 @@ export default function MyApplicationPage() {
             });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['myApplication']);
+            queryClient.invalidateQueries({ queryKey: ['myApplication'] });
+            toast.dismiss();
             toast.success("Document uploaded successfully");
         },
         onError: () => {
+            toast.dismiss();
             toast.error("Failed to upload document");
         }
     });
 
     const handleFileUpload = async (e, type) => {
         const file = e.target.files[0];
-        if (!file) return;
+        if (!file || !application) return;
 
-        try {
-            toast.loading("Uploading...");
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            
-            let updateData = {};
-            let updateType = "";
+        toast.loading("Uploading...");
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        
+        let updateData = {};
+        let updateType = "";
 
-            if (type === 'nda') {
-                updateData = { nda_file_url: file_url, nda: true };
-                updateType = "NDA Uploaded";
-            } else if (type === 'portfolio') {
-                updateData = { portfolio_file_url: file_url };
-                updateType = "Portfolio Uploaded";
-            } else if (type === 'certification') {
-                // Append to existing cert files or create new array if needed. 
-                // Since schema has certification_files array.
-                const currentFiles = application.certification_files || [];
-                updateData = { certification_files: [...currentFiles, file_url] };
-                updateType = "Certification Uploaded";
-            }
-
-            updateFreelancerMutation.mutate({ 
-                id: application.id, 
-                data: updateData,
-                updateType
-            });
-        } catch (error) {
-            console.error(error);
-            toast.error("Upload failed");
+        if (type === 'nda') {
+            updateData = { nda_file_url: file_url, nda: true };
+            updateType = "NDA Uploaded";
+        } else if (type === 'portfolio') {
+            updateData = { portfolio_file_url: file_url };
+            updateType = "Portfolio Uploaded";
+        } else if (type === 'certification') {
+            const currentFiles = application.certification_files || [];
+            updateData = { certification_files: [...currentFiles, file_url] };
+            updateType = "Certification Uploaded";
         }
-    };
 
-    const application = applications[0];
+        updateFreelancerMutation.mutate({ 
+            id: application.id, 
+            data: updateData,
+            updateType
+        });
+    };
 
     const statusColors = {
         'New Application': 'bg-blue-100 text-blue-800',
@@ -145,7 +140,7 @@ export default function MyApplicationPage() {
                 </div>
 
                 <div className="mb-4">
-                    <OnboardingWarning freelancer={application} />
+                    <OnboardingWarning freelancer={application} isApplicantView />
                 </div>
 
                 <div className="mb-8">
@@ -406,25 +401,30 @@ export default function MyApplicationPage() {
                                                     {pair.proficiency}
                                                 </Badge>
                                             </div>
-                                            {pair.rates && pair.rates.length > 0 && (
-                                                <div className="text-sm pl-3 border-l-2 border-blue-200">
-                                                    {pair.rates.map((rate, rateIdx) => (
-                                                        <div key={rateIdx}>
-                                                            <span className="font-semibold text-green-600">
-                                                                ${rate.rate_value} {rate.currency}
-                                                            </span>
-                                                            <span className="text-gray-600 ml-1">
-                                                                {rate.rate_type.replace('_', ' ')}
-                                                            </span>
-                                                            {rate.specialization && (
-                                                                <Badge variant="outline" className="ml-2 text-xs">
-                                                                    {rate.specialization}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                            {(() => {
+                                               const matchingRates = (application.rates || []).filter(r =>
+                                                   r.source_language === pair.source_language && r.target_language === pair.target_language
+                                               );
+                                               return matchingRates.length > 0 ? (
+                                               <div className="text-sm pl-3 border-l-2 border-blue-200">
+                                                   {matchingRates.map((rate, rateIdx) => (
+                                                       <div key={rateIdx}>
+                                                           <span className="font-semibold text-green-600">
+                                                               ${rate.rate_value} {rate.currency || 'USD'}
+                                                           </span>
+                                                           <span className="text-gray-600 ml-1">
+                                                               {rate.rate_type?.replace('_', ' ')}
+                                                           </span>
+                                                           {rate.specialization && (
+                                                               <Badge variant="outline" className="ml-2 text-xs">
+                                                                   {rate.specialization}
+                                                               </Badge>
+                                                           )}
+                                                       </div>
+                                                   ))}
+                                               </div>
+                                               ) : null;
+                                            })()}
                                         </div>
                                     ))}
                                 </div>

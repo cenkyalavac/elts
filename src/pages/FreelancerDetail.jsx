@@ -107,10 +107,6 @@ export default function FreelancerDetailPage() {
         updateMutation.mutate(data);
     };
 
-    const handleUpdate = (data) => {
-        updateMutation.mutate(data);
-    };
-
     const isAdmin = currentUser?.role === 'admin';
     const isProjectManager = currentUser?.role === 'project_manager';
     const canManage = isAdmin || isProjectManager;
@@ -321,13 +317,19 @@ export default function FreelancerDetailPage() {
                                         <Card>
                                             <CardHeader>
                                                 <CardTitle className="flex items-center gap-2">
-                                                    <Globe className="w-5 h-5" />
-                                                    Language Pairs & Rates
+                                                   <Globe className="w-5 h-5" />
+                                                   Language Pairs
+                                                   {freelancer.rates?.length > 0 && <span className="text-sm font-normal text-gray-500">& Rates</span>}
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="grid gap-3">
-                                                    {freelancer.language_pairs.map((pair, idx) => (
+                                                    {freelancer.language_pairs.map((pair, idx) => {
+                                                        // Match rates from the freelancer-level rates array by language pair
+                                                        const matchingRates = (freelancer.rates || []).filter(r =>
+                                                            r.source_language === pair.source_language && r.target_language === pair.target_language
+                                                        );
+                                                        return (
                                                         <div key={idx} className="border rounded-lg p-4 bg-gray-50">
                                                             <div className="flex items-center justify-between flex-wrap gap-2">
                                                                 <div className="flex items-center gap-2">
@@ -339,9 +341,9 @@ export default function FreelancerDetailPage() {
                                                                     </Badge>
                                                                 </div>
                                                             </div>
-                                                            {pair.rates?.length > 0 && (
+                                                            {matchingRates.length > 0 && (
                                                                 <div className="mt-3 space-y-2">
-                                                                    {pair.rates.map((rate, rateIdx) => (
+                                                                    {matchingRates.map((rate, rateIdx) => (
                                                                         <div key={rateIdx} className="flex items-center gap-2 text-sm">
                                                                             <DollarSign className="w-4 h-4 text-green-600" />
                                                                             <span className="font-semibold text-green-600">
@@ -365,7 +367,8 @@ export default function FreelancerDetailPage() {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -586,7 +589,7 @@ export default function FreelancerDetailPage() {
                                 <CardContent className="pt-6">
                                     <FreelancerFilesSection 
                                         freelancer={freelancer} 
-                                        onUpdate={handleUpdate}
+                                        onUpdate={handleSave}
                                     />
                                 </CardContent>
                             </Card>

@@ -2,10 +2,15 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
-export default function OnboardingWarning({ freelancer }) {
+export default function OnboardingWarning({ freelancer, isApplicantView = false }) {
     if (!freelancer || freelancer.status !== 'Approved') return null;
 
-    const checks = [
+    const checks = isApplicantView ? [
+        { label: 'CV Uploaded', done: !!freelancer.cv_file_url },
+        { label: 'NDA Signed', done: !!freelancer.nda },
+        { label: 'Language Pairs', done: freelancer.language_pairs?.length > 0 },
+        { label: 'Rates Set', done: freelancer.rates?.length > 0 },
+    ] : [
         { label: 'CV Uploaded', done: !!freelancer.cv_file_url },
         { label: 'NDA Signed', done: !!freelancer.nda },
         { label: 'Smartcat ID', done: !!freelancer.smartcat_supplier_id },
