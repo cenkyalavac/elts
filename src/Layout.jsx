@@ -22,8 +22,8 @@ import {
                   Megaphone, HelpCircle, GraduationCap
               } from "lucide-react";
 
-const LOGO_LIGHT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
-const FAVICON = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/f6026375c_0f83e6da-01b1-42b6-b8df-83eedb472954.png";
+const LOGO_ICON = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/f6026375c_0f83e6da-01b1-42b6-b8df-83eedb472954.png";
+const LOGO_TEXT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
 
 export default function Layout({ children, currentPageName }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -142,8 +142,8 @@ export default function Layout({ children, currentPageName }) {
                         <div className="flex items-center gap-8">
                             {/* Logo - links to Dashboard */}
                             <Link to={createPageUrl(isApplicant ? 'MyApplication' : 'Dashboard')} className="flex items-center gap-2">
-                                <img src={FAVICON} alt="elturco" className="w-9 h-9 rounded-full object-contain" />
-                                <img src={LOGO_LIGHT} alt="elturco" className="h-6 hidden sm:block" />
+                                <img src={LOGO_ICON} alt="elturco" className="w-8 h-8 rounded-full" />
+                                <img src={LOGO_TEXT} alt="elturco" className="h-5 hidden sm:block" />
                             </Link>
                             
                             {/* Main navigation */}

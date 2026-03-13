@@ -6,8 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users, Briefcase, Shield, ArrowRight, CheckCircle, Zap } from "lucide-react";
 import { createPageUrl } from "../utils";
 
-const LOGO_LIGHT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/2d72cba1e_elturco_logo-03.png";
-const LOGO_DARK = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/0a1d593a6_elturco_logo-04.png";
+const LOGO_FULL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/694868412332f081649b2833/6654b10be_elturco_logo-01.png";
 
 export default function HomePage() {
     const { data: user } = useQuery({
@@ -71,7 +70,7 @@ export default function HomePage() {
             {/* Navigation */}
             <nav className="bg-[#0f1629]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <img src={LOGO_LIGHT} alt="elturco" className="h-9" />
+                    <img src={LOGO_FULL} alt="elturco" className="h-14 object-contain" />
                     <Button 
                         variant="outline" 
                         className="text-gray-300 border-white/20 hover:bg-white/10 hover:text-white bg-transparent"
@@ -268,7 +267,7 @@ export default function HomePage() {
             {/* Footer */}
             <div className="bg-[#0a0f1e] border-t border-white/5 py-8">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <img src={LOGO_LIGHT} alt="elturco" className="h-7 opacity-60" />
+                    <img src={LOGO_FULL} alt="elturco" className="h-10 object-contain opacity-60" />
                     <p className="text-gray-600 text-sm">© {new Date().getFullYear()} elturco. All rights reserved.</p>
                 </div>
             </div>
